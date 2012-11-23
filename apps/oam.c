@@ -527,8 +527,8 @@ static int GwCommOamHeadBuild(GWTT_OAM_HEADER *pHead,  unsigned char GwOpcode,un
 	pHead->oui[1] = 0x0F;
 	pHead->oui[2] = 0xE9;
 	pHead->opCode = GwOpcode;
-	pHead->senderSerNo = htonl(SendSerNo);
-	pHead->wholePktLen = htons(SendDataSize);
+	pHead->senderSerNo = SendSerNo;
+	pHead->wholePktLen = SendDataSize;
 	if(NULL != pSessionIdfield)
 		memcpy(pHead->sessionId,pSessionIdfield,8);
 	return GWD_RETURN_OK;
@@ -591,8 +591,8 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	{
 		while((usOAMPayloadLenGW+DataLenSended) < SendDataSize)
 		{
-			avender->payLoadLength = htons(usOAMPayloadLenGW);
-			avender->payloadOffset = htons(DataLenSended);
+			avender->payLoadLength = (usOAMPayloadLenGW);
+			avender->payloadOffset = (DataLenSended);
 			memset(OamFrame+sizeof(GWTT_OAM_HEADER), '\0',2048-sizeof(GWTT_OAM_HEADER));
 			memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,usOAMPayloadLenGW);
 //			oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
@@ -609,8 +609,8 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 			}
 		}
 
-		avender->payLoadLength = htons(SendDataSize-DataLenSended);
-		avender->payloadOffset = htons(DataLenSended);
+		avender->payLoadLength = (SendDataSize-DataLenSended);
+		avender->payloadOffset = (DataLenSended);
 		memset(OamFrame+sizeof(GWTT_OAM_HEADER), '\0',2048-sizeof(GWTT_OAM_HEADER));
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,SendDataSize-DataLenSended);
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
@@ -621,7 +621,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	}
 	else
 	{
-		avender->payLoadLength = htons(SendDataSize);
+		avender->payLoadLength = (SendDataSize);
 		avender->payloadOffset = 0;
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData,SendDataSize);
 
