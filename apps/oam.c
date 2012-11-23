@@ -4,6 +4,7 @@
 //#include "cli_common.h"
 #include "../include/gw_os_api_core.h"
 #include "../include/gw_timer.h"
+#include "../cli_lib/cli_common.h"
 #include "gw_log.h"
 #include "oam.h"
 #include "gwdonuif_interval.h"
@@ -1951,8 +1952,6 @@ int Onu_Sysinfo_Get(void)
     return Onu_Sysinfo_Get_From_Flash();
 }
 
-#if _cmd_line_
-
 int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int year, month, date;
@@ -1963,19 +1962,19 @@ int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *ar
         switch(argc)
         {
         case 1:
-            return cli_arg_help(cli, 0,
+            return gw_cli_arg_help(cli, 0,
                 "<2007-2100>", "Year",
                  NULL);
         case 2:
-            return cli_arg_help(cli, 0,
+            return gw_cli_arg_help(cli, 0,
                 "<1-12>", "Month",
                  NULL);
         case 3:
-            return cli_arg_help(cli, 0,
+            return gw_cli_arg_help(cli, 0,
                 "<1-31>", "date",
                  NULL);
         default:
-            return cli_arg_help(cli, argc > 1, NULL);
+            return gw_cli_arg_help(cli, argc > 1, NULL);
         }
     }
 
@@ -1991,11 +1990,11 @@ int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *ar
         
 		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
 		{
-			cli_print(cli, "  System information save error!\r\n");
+			gw_cli_print(cli, "  System information save error!\r\n");
 		}
     } else
     {
-        cli_print(cli, "%% Invalid input.");
+        gw_cli_print(cli, "%% Invalid input.");
     }
     
     return CLI_OK;
@@ -2011,15 +2010,15 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
         switch(argc)
         {
         case 1:
-            return cli_arg_help(cli, 0,
+            return gw_cli_arg_help(cli, 0,
                 "<1-9>", "Major version",
                  NULL);
         case 2:
-            return cli_arg_help(cli, 0,
+            return gw_cli_arg_help(cli, 0,
                 "<1-9>", "Release version",
                  NULL);
         default:
-            return cli_arg_help(cli, argc > 1, NULL);
+            return gw_cli_arg_help(cli, argc > 1, NULL);
         }
     }
 
@@ -2033,11 +2032,11 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
         
 		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
 		{
-			cli_print(cli, "  System information save error!\r\n");
+			gw_cli_print(cli, "  System information save error!\r\n");
 		}
     } else
     {
-        cli_print(cli, "%% Invalid input.");
+        gw_cli_print(cli, "%% Invalid input.");
     }
     
     return CLI_OK;
@@ -2055,11 +2054,11 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
         switch(argc)
         {
         case 1:
-            return cli_arg_help(cli, 0,
+            return gw_cli_arg_help(cli, 0,
                 "<string>", "Manufacture serial number(length<16)",
                  NULL);
         default:
-            return cli_arg_help(cli, argc > 1, NULL);
+            return gw_cli_arg_help(cli, argc > 1, NULL);
         }
     }
 
@@ -2067,7 +2066,7 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
     {   
 		if((len = strlen(argv[0])) > 16)
 		{
-			cli_print(cli, "  The length of serial number must be less than %d.\r\n", 16);
+			gw_cli_print(cli, "  The length of serial number must be less than %d.\r\n", 16);
 			return CLI_OK;
 		}
 
@@ -2080,13 +2079,13 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
 
 		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
 		{
-			cli_print(cli, "  System information save error!\r\n");
+			gw_cli_print(cli, "  System information save error!\r\n");
 		}
 
 		return CLI_OK;
     } else
     {
-        cli_print(cli, "%% Invalid input.");
+        gw_cli_print(cli, "%% Invalid input.");
     }
     
     return CLI_OK;
@@ -2104,11 +2103,11 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
         switch(argc)
         {
         case 1:
-            return cli_arg_help(cli, 0,
+            return gw_cli_arg_help(cli, 0,
                 "<string>", "Device name(length<15)",
                  NULL);
         default:
-            return cli_arg_help(cli, argc > 1, NULL);
+            return gw_cli_arg_help(cli, argc > 1, NULL);
         }
     }
 
@@ -2116,7 +2115,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
     {   
 		if((len = strlen(argv[0])) > 15)
 		{
-			cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
+			gw_cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
 			return CLI_OK;
 		}
 
@@ -2129,13 +2128,13 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
 
 		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
 		{
-			cli_print(cli, "  System information save error!\r\n");
+			gw_cli_print(cli, "  System information save error!\r\n");
 		}
 
 		return CLI_OK;
     } else
     {
-        cli_print(cli, "%% Invalid input.");
+        gw_cli_print(cli, "%% Invalid input.");
     }
     
     return CLI_OK;
@@ -2153,21 +2152,21 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	lRet = Onu_Sysinfo_Get();
 	if (lRet != GWD_RETURN_OK)
 	{
-		cli_print(cli, "  Get product information from flash with error.\r\n");
+		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
 		return CLI_OK;
 	}
 	else
 	{
-		cli_print(cli,  "\n  Product information as following--");
-		cli_print(cli,  "    ONU type         : %s", "GT810A");
-		cli_print(cli,  "    DeiveName        : %s", onu_system_info_total.device_name);
-		cli_print(cli,  "    Hardware version : %s", onu_system_info_total.hw_version);
-		cli_print(cli,  "    Software version : %s", onu_system_info_total.sw_version);
-		cli_print(cli,  "    Firmware version : %s", iros_version);
-		cli_print(cli,  "    Bootload version : %s", irosbootver);
-		cli_print(cli,  "    Manufature date  : %s", onu_system_info_total.hw_manufature_date);
-		cli_print(cli,  "    Serial number    : %s", onu_system_info_total.serial_no);
-    	cli_print(cli,  "    Onu mac address  : %s", strMac);
+		gw_cli_print(cli,  "\n  Product information as following--");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT810A");
+		gw_cli_print(cli,  "    DeiveName        : %s", onu_system_info_total.device_name);
+		gw_cli_print(cli,  "    Hardware version : %s", onu_system_info_total.hw_version);
+		gw_cli_print(cli,  "    Software version : %s", onu_system_info_total.sw_version);
+		gw_cli_print(cli,  "    Firmware version : %s", iros_version);
+		gw_cli_print(cli,  "    Bootload version : %s", irosbootver);
+		gw_cli_print(cli,  "    Manufature date  : %s", onu_system_info_total.hw_manufature_date);
+		gw_cli_print(cli,  "    Serial number    : %s", onu_system_info_total.serial_no);
+    	gw_cli_print(cli,  "    Onu mac address  : %s", strMac);
 
 		return CLI_OK;
 	}
@@ -2175,31 +2174,9 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 
 int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	#if 0
 	long lRet = GWD_RETURN_OK;
 
-	cs_callback_context_t tc;
-
-	cs_uint16 temp, volt, txbia, txpow, rxpow;
-  
-       lRet =  cs_plat_i2c_opm_status_read(tc, 0, 0, &temp, &volt, &txbia, &txpow, &rxpow);
-	if (lRet != GWD_RETURN_OK)
-	{
-		cli_print(cli, "  Get product information from flash with error.\r\n");
-		return CLI_OK;
-	}
-	else
-	{
-		cli_print(cli,  "\n  the follow is optical module diagnostic variables: \r\n");
-		cli_print(cli,  "    temperatue         : %d", temp);
-		cli_print(cli,  "    voltage        : %d", volt);
-		cli_print(cli,  "    tx_bia: %d", txbia);
-		cli_print(cli,  "    txpower : %d", txpow);
-		cli_print(cli,  "    rxpower : %d", rxpow);
-		return CLI_OK;
-	}
-	#else
-	long lRet = GWD_RETURN_OK;
+#if 0
 	cs_callback_context_t tc;
 	cs_int16 temp = 0;
 	cs_uint16 vcc = 0, bias =0, txpow =0, rxpow=0;
@@ -2210,14 +2187,14 @@ int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *
         switch(argc)
         {
         default:
-            return cli_arg_help(cli, 1, NULL);
+            return gw_cli_arg_help(cli, 1, NULL);
         }
     }
 
        lRet =  cs_plat_i2c_opm_status_read(tc, 0, 0, &temp, &vcc, &bias, &txpow, &rxpow);
 	if (lRet != EPON_RETURN_SUCCESS)
 	{
-		cli_print(cli, "  Get optical module diagnostics from I2C with error.\r\n");
+		gw_cli_print(cli, "  Get optical module diagnostics from I2C with error.\r\n");
 		return CLI_OK;
 	}
 	else
@@ -2231,21 +2208,24 @@ int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *
 
 		txdbm = 10*log10(txdbm*0.0001);
 		rxdbm = 10*log10(rxdbm*0.0001);
-		cli_print(cli,  "\n  optical module diagnostics as following--");
-		cli_print(cli,  "    temperature      : %d  cel", temp);
-		cli_print(cli,  "    voltage          : %d  mV", vcc);
-		cli_print(cli,  "    bias current     : %d  mA", bias);
-		cli_print(cli,  "    tx power         : %4.1f  dbm", txdbm);
-		cli_print(cli,  "    rx power         : %4.1f  dbm", rxdbm);
+		gw_cli_print(cli,  "\n  optical module diagnostics as following--");
+		gw_cli_print(cli,  "    temperature      : %d  cel", temp);
+		gw_cli_print(cli,  "    voltage          : %d  mV", vcc);
+		gw_cli_print(cli,  "    bias current     : %d  mA", bias);
+		gw_cli_print(cli,  "    tx power         : %4.1f  dbm", txdbm);
+		gw_cli_print(cli,  "    rx power         : %4.1f  dbm", rxdbm);
 
 		return CLI_OK;
 	}
-	#endif
+#else
+	return lRet;
+#endif
 }
 
 int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 {
 	int ret = CLI_OK;
+#if 0
 	cs_callback_context_t context;
 	cs_uint16 idx = 0, next = 0;
 
@@ -2257,18 +2237,18 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
         switch(argc)
         {
         default:
-            return cli_arg_help(cli, 1, NULL);
+            return gw_cli_arg_help(cli, 1, NULL);
         }
     }
 
-    cli_print(cli, "====== FDB SW table is shown:======");
-    cli_print(cli, "index   mac_address        vid   port type ");
+    gw_cli_print(cli, "====== FDB SW table is shown:======");
+    gw_cli_print(cli, "index   mac_address        vid   port type ");
 
     while(epon_request_onu_fdb_entry_get_byindex(context, 0, 0, SDL_FDB_ENTRY_GET_MODE_ALL, idx, &entry, &next) == CS_OK)
     {
     	cs_uint16 vid = entry.vlan_id?entry.vlan_id:1;
     	idx = next;
-        cli_print(cli, " %2d   %02x:%02x:%02x:%02x:%02x:%02x %6d   %2d   %2d  ", idx,
+        gw_cli_print(cli, " %2d   %02x:%02x:%02x:%02x:%02x:%02x %6d   %2d   %2d  ", idx,
             entry.mac.addr[0],
             entry.mac.addr[1],
             entry.mac.addr[2],
@@ -2279,10 +2259,11 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
             entry.port,
             entry.type);
     }
-    cli_print(cli, "====== Totally %2d SW entries====\n", idx);
-
+    gw_cli_print(cli, "====== Totally %2d SW entries====\n", idx);
+#endif
 	return ret;
 }
+
 
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
@@ -2290,19 +2271,19 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     struct cli_command *set;
     struct cli_command *show, *sys, *atu;
     // set cmds in config mode
-    set = cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
-    	cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
-    	cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
-    	cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
-    	cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
+    set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
+    	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
+    	gw_cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
+    	gw_cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
+    	gw_cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
 
     // display cmds in config mode
-    show  = cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");
-    sys  = cli_register_command(cmd_root, show, "product", cmd_show_system_information, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
-	cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
+    show  = gw_cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");
+    sys  = gw_cli_register_command(cmd_root, show, "product", cmd_show_system_information, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
+	gw_cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
 
-	atu = cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
-	cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");
+	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
+	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");
 
 
 
@@ -2311,11 +2292,6 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     return;
 }
 
-static oam_vendor_handlers_t gwd_oam_handlers = {
-		NULL, NULL, NULL, NULL, Gwd_Oam_Handle
-};
-
-#endif
 
 gw_int32 gw_oam_parser(gw_int8 * pkt, const gw_int32 len)
 {
@@ -2365,9 +2341,14 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 
 	Rcp_Mgt_init();
 
-	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != CS_OK)
-		cs_printf("regist gwd cmds fail!\r\n");
+#endif
 
+	userCmdInitHandlerInit();
+
+	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
+		gw_printf("regist gwd cmds fail!\r\n");
+
+#if _cmd_line_
 	if(registerUserCmdInitHandler("rcp-switch", cli_switch_gwd_cmd) != CS_OK)
 		cs_printf("regist rcp  switch cmds fail!\r\n");
 

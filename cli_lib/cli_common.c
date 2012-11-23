@@ -179,7 +179,6 @@ struct cli_command *gw_cli_tree_init()
 //    cli_reg_usr_cmd(&cmd_root);
 
 //     gw_user_register_command_entry(&cmd_root);
-#if 0
      {
     	 int i;
     	 for(i=0; i<MAX_USER_CMD_INIT_HANDLER; i++)
@@ -196,7 +195,6 @@ struct cli_command *gw_cli_tree_init()
     		 }
     	 }
      }
-#endif
 
     return cmd_root;
 }
@@ -207,11 +205,14 @@ void cli_start()
     struct cli_def *cli = NULL;
 
     // init command tree
-    gw_cmd_tree = gw_cli_tree_init();
-    if(!gw_cmd_tree)
+    if(gw_cmd_tree == NULL)
     {
-    	gw_printf("--------root cmd init fail--------!\r\n");
-        	return;
+		gw_cmd_tree = gw_cli_tree_init();
+		if(!gw_cmd_tree)
+		{
+			gw_printf("--------root cmd init fail--------!\r\n");
+				return;
+		}
     }
 
     // init console session
