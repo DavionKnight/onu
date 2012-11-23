@@ -68,6 +68,21 @@ gw_int8 g_oam_async_queue_name[]="oam_async_queue";
 gw_int8 g_oam_async_thread_name[] = "oam_async_thread";
 
 
+void gw_dump_buffer(const gw_int8 *buf, const gw_int32 len)
+{
+	gw_int32 i;
+
+	gw_printf("\r\n");
+	for(i=0; i<len; i++)
+	{
+		if(!(i&0xf))
+			gw_printf("\r\n");
+		gw_printf("%02X ", buf[i]);
+	}
+	gw_printf("\r\n");
+}
+
+
 
 void gw_oam_async_thread_entry(gw_uint32 * para);
 
@@ -97,11 +112,12 @@ static gw_uint8 g_oam_pty_sub_thread_name[]="ptysthread";
 
 void gw_oam_pty_main_thread_entry(gw_uint32 * para);
 void gw_oam_pty_sub_thread_entry(gw_uint32 * para);
-void gw_oam_pty_test_slave_thread_entry(gw_uint32 * para);
+void gw_oam_pty_cli_thread_entry(gw_uint32 * para);
 
 static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen);
 static void OamPtyConnectReqPro(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen);
 static void OamPtyConFreeReqPro(GWTT_OAM_SESSION_INFO *pSeInf);
+static void OamPtyNotiMsgProcess(long int flag, long int fd);
 
 gw_status gwd_oam_cli_trans_send_out()
 {
@@ -258,21 +274,6 @@ void init_oam_pty()
 				gw_log(GW_LOG_LEVEL_DEBUG,("create %s fail !\r\n", g_oam_pty_sub_thread_name));
 			}
 
-			{
-				static gw_uint32 g_oam_pty_test_thread_id,
-				g_oam_pty_test_thread_stack_size = 4*1024,
-				g_oam_pty_test_thread_pri = 23;
-
-				if(gw_thread_create(&g_oam_pty_test_thread_id, "testpty", gw_oam_pty_test_slave_thread_entry, NULL, g_oam_pty_test_thread_stack_size,
-						g_oam_pty_test_thread_pri, 0) != GW_OK)
-					gw_log(GW_LOG_LEVEL_DEBUG,("create %s fail !\r\n", "testpty"));
-			}
-
-/*
-			master = thread_master_create();
-			vty_init();
-			vty_serv_console(g_pty_slave);
-			*/
 		}
 		else
 		{
@@ -281,12 +282,20 @@ void init_oam_pty()
 			gw_log(GW_LOG_LEVEL_DEBUG,("open pty dev  fail !\r\n"));
 		}
 
-		dumpPtyList();
-
 	}
 
 }
 
+void start_oamPtyCliThread()
+{
+	static gw_uint32 g_oam_pty_cli_thread_id,
+	g_oam_pty_cli_thread_stack_size = 4*1024,
+	g_oam_pty_cli_thread_pri = 14;
+
+	if(gw_thread_create(&g_oam_pty_cli_thread_id, "ptycli", gw_oam_pty_cli_thread_entry, NULL, g_oam_pty_cli_thread_stack_size,
+			g_oam_pty_cli_thread_pri, 0) != GW_OK)
+		gw_log(GW_LOG_LEVEL_DEBUG,("create %s fail !\r\n", "testpty"));
+}
 
 void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 {
@@ -299,6 +308,12 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 		length = pty_read(g_pty_master, rdata+1, sizeof(rdata)-1);
 		if(length > 0)
 		{
+			rdata[length+1] = 0;
+#if 0
+			gw_printf("pty sub thread recv:\r\n");
+			gw_dump_buffer(rdata+1, length);
+#else
+#endif
 			rdata[0] = 6;
 //			*(gw_uint16*)(rdata+1) = htons(length);
 			CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, rdata, length+1, gmCliPtyCtrl.bSessionId);
@@ -307,7 +322,7 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 }
 
 
-void gw_oam_pty_test_slave_thread_entry(gw_uint32 * para)
+void gw_oam_pty_cli_thread_entry(gw_uint32 * para)
 {
 
 #if 0
@@ -347,6 +362,7 @@ void gw_oam_pty_main_thread_entry(gw_uint32 * para)
 					OamPtyPacketProcess((GWTT_OAM_SESSION_INFO*)aumsg[1], (gw_uint8 *)aumsg[3], aumsg[0]);
 					break;
 				case PTY_NOTI_MSG:
+					OamPtyNotiMsgProcess(aumsg[1], aumsg[3]);
 					break;
 				case PTY_TIMER_MSG:
 					break;
@@ -370,6 +386,26 @@ void OamPtyShellCloseNoti(long lFd)
 	if(GW_OK != gw_pri_queue_put(g_oam_pty_queue_id, lMsg, sizeof(lMsg), GW_OSAL_WAIT_FOREVER, 0))
 	{
 		gw_log(GW_LOG_LEVEL_DEBUG, ("OamPtyShellCloseNoti send msg fail!\r\n"));
+	}
+}
+
+void OamPtyNotiMsgProcess(long int flag, long int fd)
+{
+	if( (gmCliPtyCtrl.lConnect) && flag == PTY_SHELL_CLOSE_FLAG && fd == gmCliPtyCtrl.lFd)
+	{
+		char bRes[8];
+		bRes[0] = CON_CTL_CODE_FREEREQ;
+
+		CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, bRes, 1, gmCliPtyCtrl.bSessionId);
+		gw_thread_delay(100);
+		CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, bRes, 1, gmCliPtyCtrl.bSessionId);
+
+		gmCliPtyCtrl.lConnect = 0;
+		gmCliPtyCtrl.lSendKpl = 0;
+		gmCliPtyCtrl.lTimeOut = 0;
+		gmCliPtyCtrl.lFd = 0;
+
+		memset(gmCliPtyCtrl.bSessionId, 0, sizeof(gmCliPtyCtrl.bSessionId));
 	}
 }
 
@@ -465,8 +501,6 @@ static void OamPtyConnectReqPro(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 {
     char bResBuf[8] = {0};
 
-    dumpPtyList();
-
 	if(gmCliPtyCtrl.lConnect)
 	{
 	    if(memcmp(gmCliPtyCtrl.bSessionId, pSeInf->SessionID, 8) == 0)
@@ -506,6 +540,8 @@ static void OamPtyConnectReqPro(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 
 			memcpy(gmCliPtyCtrl.bSessionId, pSeInf->SessionID, 8);
 
+			start_oamPtyCliThread();
+
 		    bResBuf[0] = CON_CTL_CODE_CONRES;
 			bResBuf[1] = PTY_CONNECT_REQ_RESP_ACCEPT;
 	    }
@@ -528,7 +564,6 @@ static void OamPtyConnectReqPro(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 		CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, bResBuf, 2, pSeInf->SessionID);
 	}
 
-	dumpPtyList();
 }
 
 static void OamPtyConFreeReqPro(GWTT_OAM_SESSION_INFO *pSeInf)

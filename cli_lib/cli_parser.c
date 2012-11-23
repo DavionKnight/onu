@@ -19,6 +19,8 @@ extern bool mon_read_char_with_timeout(char *c);
 extern void mon_write_chars(char* s, int n);
 extern int cmd_exe(int argc, char **argv);
 
+extern int g_pty_master;
+
 int gw_cur_chan = CHANNEL_SERIAL;
 char gw_parser_word[MAX_WORDS_NUM][MAX_WORDS_LEN];
 struct cli_def g_cli_telnet;
@@ -1955,11 +1957,11 @@ int gw_cli_loop(struct cli_def *cli)
             lastchar = c;
         }
 
-        gw_printf("recv msg %s\r\n", cmd);
+//        gw_printf("recv msg %s\r\n", cmd);
 
         if (l < 0) break;
 
-        if (!strcasecmp(cmd, "quit") && CHANNEL_TCP == cli->channel) break;
+        if (!strcasecmp(cmd, "quit") && (CHANNEL_TCP == cli->channel || CHANNEL_PTY == cli->channel)) break;
 
         if (cli->state == STATE_LOGIN)
         {
@@ -2097,6 +2099,9 @@ int gw_cli_loop(struct cli_def *cli)
     }
 #endif
 
+    if(CHANNEL_PTY == cli->channel)
+    	OamPtyShellCloseNoti(g_pty_master);
+
     return CLI_OK;
 }
 
@@ -2209,10 +2214,16 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
                 }
                 else if(CHANNEL_PTY == cli->channel)
                 {
+#if 0
                 	gw_uint32 i;
                 	for(i=0; i<strlen(p); i++);
                 		pty_write(cli->sockfd, p+i, 1);
+#else
+                	pty_write(cli->sockfd, p, strlen(p));
+#endif
                 	pty_write(cli->sockfd, "\r\n", 2);
+
+                	gw_printf("pty cli output %s\r\n", p);
                 }
                 else
                     fprintf(stderr, "Invalid channel %d", cli->channel);

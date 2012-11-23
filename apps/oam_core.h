@@ -22,4 +22,6 @@ gw_status gwd_oam_async_trans(GWTT_OAM_MESSAGE_NODE *);
 gw_status gwd_oam_pty_trans(GWTT_OAM_MESSAGE_NODE * msg);
 gw_status gwd_oam_cli_trans_send_out();
 
+void start_oamPtyCliThread();
+
 #endif /* OAM_CORE_H_ */
