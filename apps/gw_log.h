@@ -21,6 +21,6 @@ enum{
 gw_int32 getGwlogLevel();
 gw_int32 setGwLogLevel(gw_int32 lv);
 
-#define gw_log(lv, log) if(lv >= getGwlogLevel()) gw_printf log
+#define gw_log(lv, log...) if(lv >= getGwlogLevel()) gw_printf (log)
 
 #endif /* GW_LOG_H_ */

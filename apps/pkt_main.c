@@ -83,12 +83,12 @@ gw_status init_pkt_proc(void)
 	if(gw_pri_queue_create(&gw_pkt_queueid, gw_pkt_queue_name, gw_pkt_queue_depth, gw_pkt_msg_size, 4) != GW_OK)
 		return GW_ERROR;
 
-	gw_log(GW_LOG_LEVEL_DEBUG, ("lib_gwdonu pkt queue create ok!\r\n"));
+	gw_log(GW_LOG_LEVEL_DEBUG, "lib_gwdonu pkt queue create ok!\r\n");
 
 	if(gw_thread_create(&gw_pkt_threadid, gw_pkt_thread_name, gw_pkt_proc_main, NULL, GW_PKT_THREAD_STACK_SIZE, gw_pkt_thread_prio, 0) != GW_OK)
 		return GW_ERROR;
 
-	gw_log(GW_LOG_LEVEL_DEBUG, ("lib_gwdonu pkt thread create ok!\r\n"));
+	gw_log(GW_LOG_LEVEL_DEBUG, "lib_gwdonu pkt thread create ok!\r\n");
 
 	return GW_OK;
 }

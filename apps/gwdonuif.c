@@ -74,6 +74,19 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,("port send if is null!\r\n"));
 			break;
+		case LIB_IF_PORT_ADMIN_GET:
+			if(g_im_ifs->portadminget)
+				ret = (*g_im_ifs->portadminget)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port admin get if is null!\r\n");
+			break;
+		case LIB_IF_PORT_ADMIN_SET:
+			if(g_im_ifs->portadminget)
+				ret = (*g_im_ifs->portadminset)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port admin set if is null!\r\n");
+			break;
+			break;
 		default:
 			break;
 	}
