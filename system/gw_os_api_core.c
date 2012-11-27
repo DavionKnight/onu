@@ -367,6 +367,31 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
     return GW_E_OSAL_OK;
 }
 
+gw_int32 gw_thread_delete(gw_uint32 thread_id)
+{
+
+    cyg_mutex_lock(&gw_osal_task_table_mutex);
+
+
+    if (thread_id >= GW_OSAL_MAX_THREAD || gw_osal_thread_table[thread_id].free != FALSE) {
+        cyg_mutex_unlock(&gw_osal_task_table_mutex);
+        return GW_E_OSAL_ERR_INVALID_ID;
+    }
+
+    cyg_thread_kill(gw_osal_thread_table[thread_id].id);
+
+    memset(gw_osal_thread_table[thread_id].name, 0, GW_OSAL_MAX_API_NAME);
+
+    gw_osal_thread_table[thread_id].free = TRUE;
+    gw_osal_thread_table[thread_id].creator = 0;
+    gw_osal_thread_table[thread_id].stack_size = 0;
+    gw_osal_thread_table[thread_id].priority = 0;
+    gw_osal_thread_table[thread_id].stack_buf = NULL;
+    cyg_mutex_unlock(&gw_osal_task_table_mutex);
+	
+    return GW_E_OSAL_OK;
+}
+
 /*---------------------------------------------------------------------------------------
    Name: gw_thread_delay
 

@@ -817,7 +817,7 @@ typedef struct alarm_loop
         unsigned char onuPort[4];
 } __attribute__ ((packed)) ALARM_LOOP;
 
-#define NUM_PORTS_PER_SYSTEM 2
+#define NUM_PORTS_PER_SYSTEM 5
 #define IFM_ETH_ALARM_STATUS_LOOP     0x08
 
 /*added by wangxiaoyu 2009-03-11*/
@@ -927,8 +927,8 @@ typedef union tagIFM_ETH_IfIndex
 #define ONU_ALM_E1_CRC3		0x0002
 #define ONU_ALM_E1_CRC6		0x0001
 
-#define NUM_UNITS_PER_SYSTEM    1
-#define PHY_PORT_MAX 			1
+#define NUM_UNITS_PER_SYSTEM    5
+#define PHY_PORT_MAX 			11
 
 #define PHY_PORT_FE0 0
 

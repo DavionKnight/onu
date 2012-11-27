@@ -35,9 +35,10 @@ gw_status init_im_interfaces()
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs)
 {
 	gw_status ret = GW_E_ERROR;
+
 	if(ifs)
 	{
-		if(g_im_ifs)
+		if(init_im_interfaces() == GW_OK)
 		{
 			memcpy(g_im_ifs, ifs, sizeof(gwdonu_im_if_t));
 			ret = GW_E_OK;
@@ -62,6 +63,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 	va_start(ap, argc);
 
 	switch (type) {
+		case LIB_IF_ONU_LLID_GET:
+			if(g_im_ifs->onullidget)
+				ret = (*g_im_ifs->onullidget)(va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,("onu llid get if is null!\r\n"));
+			break;			
 		case LIB_IF_PORTSEND:
 			if(g_im_ifs->portsend)
 				ret = (*g_im_ifs->portsend)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8 *), va_arg(ap, gw_uint32));
@@ -82,11 +89,46 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 		case LIB_IF_PORT_ADMIN_SET:
 			if(g_im_ifs->portadminget)
-				ret = (*g_im_ifs->portadminset)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*));
+				ret = (*g_im_ifs->portadminset)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "port admin set if is null!\r\n");
 			break;
+		case LIB_IF_PORT_OPER_STATUS_GET:
+			if(g_im_ifs->portoperstatusget)
+				ret = (*g_im_ifs->portoperstatusget)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port oper status get if is null!\r\n");
 			break;
+		case LIB_IF_VLAN_ENTRY_GETNEXT:
+			if(g_im_ifs->vlanentrygetnext)
+				ret = (*g_im_ifs->vlanentrygetnext)(va_arg(ap, gw_uint32),  va_arg(ap, gw_uint16*),
+				va_arg(ap, gw_uint32*), va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "vlan entry getnext if is null!\r\n");
+			break;
+			
+		case LIB_IF_VLAN_ENTRY_GET:
+			if(g_im_ifs->vlanentryget)
+				ret = (*g_im_ifs->vlanentryget)(va_arg(ap, gw_uint32),  va_arg(ap, gw_uint32*), va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "vlan entry get if is null!\r\n");
+			break;
+		case LIB_IF_FDB_ENTRY_GET:
+			if(g_im_ifs->fdbentryget)
+				ret = (*g_im_ifs->vlanentryget)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8*),
+				va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry get if is null!\r\n");
+			break;
+
+		case LIB_IF_PORT_LOOP_EVENT_POST:
+			if(g_im_ifs->portloopnotify)
+				ret = (*g_im_ifs->portloopnotify)(va_arg(ap, gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port loop event post if is null!\r\n");
+			break;			
+			break;
+						
 		default:
 			break;
 	}

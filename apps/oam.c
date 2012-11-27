@@ -1428,10 +1428,10 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 		case ONU_LPB_DETECT:
 		{
 			int nv = 0;
-#if !HAVE_LOOP_DETECT
+
 			extern unsigned long gulLoopDetectMode;
 			extern long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable);
-#endif
+
 			GWDOAMTRC("EQU_DEVICE_INFO_REQ - ONU_LPB_DETECT received.\n");
 
 			memset(&tframe, 0, sizeof(OAM_ONU_LPB_DETECT_FRAME));
@@ -1470,9 +1470,9 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			GWDOAMTRC("  ONU_LPB_DETECT - maxwakeup : %d\n", oam_onu_lpb_detect_frame.maxwakeup); 
 			GWDOAMTRC("  ONU_LPB_DETECT - enable : %d\n", oam_onu_lpb_detect_frame.enable); 
 
-#if !HAVE_LOOP_DETECT
+
 			EthLoopbackDetectControl(tframe.enable, gulLoopDetectMode);
-#endif
+
 		}
 		return GWD_RETURN_OK;	
 

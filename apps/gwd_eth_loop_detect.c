@@ -62,7 +62,7 @@
 
 LPB_CTRL_LIST *g_lpb_detect_ctrl_head = NULL, *g_lpb_detect_ctrl_tail = NULL;
 
-unsigned long gwd_loop_thread_id;
+gw_int32 gwd_loop_thread_id;
 unsigned long timeCounter = 0;
 unsigned long gulLoopDetectMode = 1;
 unsigned long gulLoopDetectFrameHandleRegister = 0;
@@ -81,7 +81,7 @@ cyg_thread    loop_detect_thread_obj;
 #endif
 
 unsigned long   gulDebugLoopBackDetect = 0;
-#define LOOPBACK_DETECT_DEBUG(str) if( gulDebugLoopBackDetect ){ diag_printf str ;}
+#define LOOPBACK_DETECT_DEBUG(str) if( gulDebugLoopBackDetect ){ gw_printf str ;}
 #define DUMPGWDPKT(c, p, b, l)      if(gulDebugLoopBackDetect) dumpPkt(c, p, b, l)
 
 unsigned long gulNumOfPortsPerSystem = NUM_PORTS_PER_SYSTEM;
@@ -145,6 +145,7 @@ int boards_physical_to_logical(unsigned long unit, unsigned long pport, unsigned
     return 1;
 }
 
+#if 0
 int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
 {
 	int gtRet = GWD_RETURN_ERR;
@@ -159,7 +160,7 @@ int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
 		
 	memset(&gtAtuEntry, 0, sizeof (epon_sw_fdb_entry_t));
 
-	for (i = 0; i < EPON_ETHER_MACADDR_LEN; i++)
+	for (i = 0; i < GW_MACADDR_LEN ; i++)
 		gtAtuEntry.addr[i] = mac[i];
 	//gtAtuEntry.DBNum = vid;
 	memset(&vtuEntry, 0, sizeof (epon_sw_vlan_config_t));
@@ -175,7 +176,7 @@ int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
 			if (GW_TRUE == gtFound)
 			{
 				LOOPBACK_DETECT_DEBUG(("\r\nMac found in vlan %d/0x%x", vid, gtAtuEntry.egress_portmap));
-				numOfUniPorts = epon_onu_read_port_num();
+				numOfUniPorts = gw_onu_read_port_num();
 				for (i = 0; i < numOfUniPorts; i++)
 				{
 					uiPortVect = 0x1 << i;
@@ -217,6 +218,71 @@ int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
 
 	return gtRet;
 }
+#else
+int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
+{
+	int gtRet = GWD_RETURN_ERR;
+
+	gw_boolean gtFound;
+	int     i, numOfUniPorts;
+
+	unsigned int uiPortVect, eg_ports, tag_ports, untag_ports;
+
+	if(NULL == mac)
+		return GWD_RETURN_ERR;
+
+	*pLogicPort = 0xFF;
+	if(GW_RETURN_SUCCESS == (gtRet = call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GET, 3, vid, &tag_ports, &untag_ports)))
+	{
+		gtRet = call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GET, 3,  vid, mac, &eg_ports);
+		if (GW_RETURN_SUCCESS == gtRet)
+		{
+			if (GW_TRUE == gtFound)
+			{
+				LOOPBACK_DETECT_DEBUG(("\r\nMac found in vlan %d/0x%x", vid, eg_ports));
+				numOfUniPorts = gw_onu_read_port_num();
+				for (i = 0; i < numOfUniPorts; i++)
+				{
+					uiPortVect = 0x1 << i;
+					if (eg_ports & uiPortVect)
+					{
+						if((0 == (tag_ports & uiPortVect)) &&
+						   (0 == (untag_ports & uiPortVect)) )
+						{
+							LOOPBACK_DETECT_DEBUG(("\r\nMac found in wrong vlan %d", vid));
+							*pLogicPort = 0xFF;
+							gtRet = GWD_RETURN_ERR;
+						}
+						else
+						{
+							LOOPBACK_DETECT_DEBUG(("\r\nMac found in the right vlan"));
+							boards_physical_to_logical(0, i, pLogicPort);
+							gtRet = GWD_RETURN_OK;
+						}
+					}
+				}
+			}
+			else
+			{
+				LOOPBACK_DETECT_DEBUG(("\r\nMac NOT found in vlan %d", vid));
+				gtRet = GWD_RETURN_ERR;
+			}
+		}
+		else
+		{
+			LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_sw_search_fdb_entry failed %d", gtRet));
+		}
+	}
+	else
+	{
+		LOOPBACK_DETECT_DEBUG(("\r\epon_onu_sw_search_vlan_entry failed %d", gtRet));
+	}
+	
+
+	return gtRet;
+}
+
+#endif
 
 int boards_port_is_uni(unsigned long lport)
 {
@@ -259,6 +325,7 @@ unsigned long IFM_ETH_CREATE_INDEX( unsigned long ulSlot, unsigned long ulPort )
     return unIfIndx.ulPhyIfIndex;
 }
 
+#if 0
 int IFM_GET_FIRST_PORTONVLAN(unsigned long *ulport, unsigned short vid)
 {
 	epon_sw_vlan_config_t vlan_entry;
@@ -285,6 +352,32 @@ int IFM_GET_FIRST_PORTONVLAN(unsigned long *ulport, unsigned short vid)
     }
 	return GWD_RETURN_ERR;
 }
+#else
+int IFM_GET_FIRST_PORTONVLAN(unsigned long *ulport, unsigned short vid)
+{
+    gw_return_code_t ret = 1;
+	int i;
+	unsigned long lport, tagged_portmap, untagged_portmap;
+    
+    ret = call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GET, 3, vid, &tagged_portmap, &untagged_portmap);
+    if(ret == GW_RETURN_SUCCESS)
+	{
+		for(i=0; i<PHY_PORT_MAX; i++)
+		{
+			if((tagged_portmap & (1<<i)) || (untagged_portmap & (1<<i)))
+			{
+				if(boards_physical_to_logical(0, i, &lport))
+				{
+					*ulport = lport;
+					return GWD_RETURN_OK;
+				}
+			}
+		}
+    }
+	return GWD_RETURN_ERR;
+}
+
+#endif
 
 unsigned char* onu_product_name_get(unsigned char productID)
 {
@@ -374,6 +467,7 @@ void EthPortLoopBackDetectTask(void * data)
 	return;
 }
 
+#if 0
 /*jiangxt added, 20111008.*/
 unsigned int Onu_Loop_Detect_Set_FDB(gw_boolean  opr)
 {
@@ -409,6 +503,7 @@ unsigned int Onu_Loop_Detect_Set_FDB(gw_boolean  opr)
 
         return 0;
 }
+#endif
 
 long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable)
 {
@@ -445,7 +540,7 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
                  LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_register_special_frame_handle success!"));
            }
            
-           iRet = Onu_Loop_Detect_Set_FDB(1);
+//           iRet = Onu_Loop_Detect_Set_FDB(1);
            if (iRet == 0)
            {
                  LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set success!"));
@@ -470,7 +565,9 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
            			LOOP_DETECT_THREAD_STACKSIZE,
            			TASK_PRIORITY_LOWEST,
            			0) != GW_OK)
-           		gw_log(GW_LOG_LEVEL_CRI, "\r\nloop_detect_thread create fail!");
+           		{
+           			gw_log(GW_LOG_LEVEL_CRI, "\r\nloop_detect_thread create fail!");
+           		}
            	else
            		gw_log(GW_LOG_LEVEL_CRI, "\r\nloop_detect_thread created");
 
@@ -504,7 +601,8 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
         else
             gulLoopDetectMode = LOOP_DETECT_MODE_OLT;
 
-		cyg_thread_kill(loop_detect_thread_handle);
+		gw_thread_delete(gwd_loop_thread_id);
+		
         gulLoopDetectFrameHandleRegister = 0;
 	}
 
@@ -919,11 +1017,11 @@ int lpbDetectTransFrames(unsigned short usVid)
 	unsigned int OnuLlid;
 
 //	unsigned int dport;
-    epon_port_oper_status_t lb_port_opr_status;
+    gwd_port_oper_status_t lb_port_opr_status;
 
 //	dport = ifm_port_id_make(ONU_GE_PORT, 0, EPON_PORT_UNI);
     
-    epon_onu_get_local_mac(sysMac);    
+    gw_onu_get_local_mac(sysMac);    
     GwGetOltType(olt_mac_addr, &type);
     GwGetPonSlotPort(olt_mac_addr, type, &ulSlot, &ulPon);
     loopVid[0] = (unsigned char)((usVid >> 8) | 0xe0);
@@ -943,7 +1041,8 @@ int lpbDetectTransFrames(unsigned short usVid)
     memset(packet_head->OnuLocation, 0, 4);
     memset(&packet_head->OnuLocation[1], (unsigned char)ulSlot, 1);
     memset(&packet_head->OnuLocation[2], (unsigned char)ulPon, 1);
-    epon_onu_llid_read(&OnuLlid);
+//    epon_onu_llid_read(&OnuLlid);
+    call_gwdonu_if_api(LIB_IF_ONU_LLID_GET, 1, &OnuLlid);
     memset(&packet_head->OnuLocation[3], (unsigned char)OnuLlid, 1);
     memcpy(packet_head->Onumac, sysMac, 6);
     packet_head->OnuVid =htons(usVid);
@@ -954,11 +1053,10 @@ int lpbDetectTransFrames(unsigned short usVid)
     }
 
     DevId = 1;
-    for(i=0; i<epon_onu_read_port_num(); i++)
+    for(i=0; i<gw_onu_read_port_num(); i++)
     {
-        //call_gwdonu_if_api(LIB_IF_PORT_ADMIN_GET, 2, i+1, &lb_port_admin_status);
-        epon_onu_sw_read_port_oper_status(i+1, &lb_port_opr_status);
-        if (lb_port_opr_status == EPON_PORT_OPER_UP)
+        call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, i+1, &lb_port_opr_status);
+        if (lb_port_opr_status == PORT_OPER_STATUS_UP)			
         {        
 		/*LoopBackDetectPktBuffer[12] = 0xC0 + DevId;*/			/* Use Forward DSA tag: forwarding tag/untag based on switch rule */
 		/*LoopBackDetectPktBuffer[12] = 0x40 + DevId;*/		/* Use FromCPU DSA tag: forwarding tag/untag based on CPU control */
@@ -966,7 +1064,8 @@ int lpbDetectTransFrames(unsigned short usVid)
 		/*LoopBackDetectPktBuffer[12] = 0xFF;
 		LoopBackDetectPktBuffer[13] = 0xFE;*/
 		DUMPGWDPKT("\r\nLoopDetectPkt : ", i+1, LoopBackDetectPktBuffer, sizeof(LoopBackDetectPktBuffer));
-             iRet = epon_onu_sw_send_frame(i+1, LoopBackDetectPktBuffer, 64);
+//             iRet = epon_onu_sw_send_frame(i+1, LoopBackDetectPktBuffer, 64);
+		iRet = call_gwdonu_if_api(LIB_IF_PORTSEND, 4, i+1, LoopBackDetectPktBuffer, 64);
 		LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_sw_send_frame(v%d,p%d) return %d.", usVid, i+1, iRet));
         }
         else
@@ -979,11 +1078,11 @@ int lpbDetectTransFrames(unsigned short usVid)
 }
 #else
 {
-        epon_ether_header_lb_t frame;
-        epon_ether_header_lb_vlan_t frame1;
+        gw_ether_header_lb_t frame;
+        gw_ether_header_lb_vlan_t frame1;
         gw_boolean opr = 0;
         epon_macaddr_t mac;
-        epon_port_oper_status_t lb_port_opr_status;
+        gwd_port_oper_status_t lb_port_opr_status;
         epon_loop_detect_status tmp_status;
         unsigned char i = 0;
 #ifdef HAVE_EXT_SW_DRIVER
@@ -1004,7 +1103,7 @@ int lpbDetectTransFrames(unsigned short usVid)
         
         epon_onu_ifm_port_status_read(0x30400000, &opr_cfg);
         lb_port_opr_status = opr_cfg.oper;
-        if(lb_port_opr_status != EPON_PORT_OPER_UP)
+        if(lb_port_opr_status != PORT_OPER_STATUS_UP)
         {
 			LOOPBACK_DETECT_DEBUG(("\r\nUNI port opr status down, can't send loop frame."));
             return GWD_RETURN_ERR;
@@ -1019,13 +1118,13 @@ int lpbDetectTransFrames(unsigned short usVid)
 
         //set marvell port id in frame
         //send frame on all 4 marvell ports
-        for(i=0; i<epon_onu_read_port_num(); i++)
+        for(i=0; i<gw_onu_read_port_num(); i++)
         {
             //call_gwdonu_if_api(LIB_IF_PORT_ADMIN_GET, 2, i+1, &lb_port_admin_status);
-            epon_onu_sw_read_port_oper_status(i+1, &lb_port_opr_status);
+            call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, i+1, &lb_port_opr_status);
             //IROS_LOG_CRI(IROS_MODULE_ID_STP,"port %d opr %d\n", i+1, lb_port_opr_status);
             //IROS_LOG_CRI(IROS_MODULE_ID_STP, "oper status = %d , loopstatus = %d \n",lb_port_opr_status,loop_detect_status[i]);
-            if (lb_port_opr_status == EPON_PORT_OPER_UP)
+            if (lb_port_opr_status == PORT_OPER_STATUS_UP)
             {        
                 frame.lb_port = htonl(i+1);
                 rc = epon_onu_sw_send_frame(i+1, (gw_uint8 *)&frame, sizeof(frame));
@@ -1047,14 +1146,14 @@ int lpbDetectTransFrames(unsigned short usVid)
                     break;
             frame1.vlan = htons(config.vlan);
             //IROS_LOG_CRI(IROS_MODULE_ID_STP,"Get vlan entry id %d portmap 0x%x result %d\n", config.vlan, config.tagged_portmap, result);
-            for(i=0; i<epon_onu_read_port_num(); i++)
+            for(i=0; i<gw_onu_read_port_num(); i++)
             {
                 if(config.tagged_portmap & (1 << i))
                     continue;
 
-                epon_onu_sw_read_port_oper_status(i+1, &lb_port_opr_status);
+                call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, i+1, &lb_port_opr_status);
                 //IROS_LOG_CRI(IROS_MODULE_ID_STP,"port %d opr %d\n", i+1, lb_port_opr_status);
-                if (lb_port_opr_status == EPON_PORT_OPER_UP) {
+                if (lb_port_opr_status == PORT_OPER_STATUS_UP) {
                     frame1.lb_port = htonl(i+1);
                     DUMPLDPKT("LD send", (gw_uint8 *)&frame1, sizeof(frame1));
                     rc = epon_onu_sw_send_frame(i+1, (gw_uint8 *)&frame1, sizeof(frame1));
@@ -1169,7 +1268,7 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
     }
     /*add end*/
 
-    epon_onu_get_local_mac(sysMac);    
+    gw_onu_get_local_mac(sysMac);    
     if(ntohs(revLoopFrame->LoopFlag) != LOOP_DETECT_CHECK)
     {
         LOOPBACK_DETECT_DEBUG(("\r\nLoopFlag error "));
@@ -1302,12 +1401,12 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
 long ethLoopBackDetectActionCall( int enable, char * oamSession)
 {
 	int ret;
-    epon_sw_vlan_config_t vlan_entry;
-    gw_boolean result;
+//    epon_sw_vlan_config_t vlan_entry;
+//    gw_boolean result;
 	int need_to_send;
-	unsigned long lport;
+	unsigned long lport, tag_portlist, untag_portlist;
 	unsigned long i;
-       epon_port_oper_status_t status;
+       gwd_port_oper_status_t status;
 	unsigned short vid =0;
     
 	if(enable)
@@ -1339,16 +1438,19 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 		}
 		else
              {
+             	unsigned long int idx  = 0;
+
 	        	LOOPBACK_DETECT_DEBUG(("\r\nDetect in all vlan"));
-	        	memset(&vlan_entry, 0, sizeof(vlan_entry));
+//	        	memset(&vlan_entry, 0, sizeof(vlan_entry));		
 	        	while(1)
 	        	{
-		             if(GW_RETURN_SUCCESS != epon_onu_sw_get_next_vlan_entry(0, &vlan_entry, &result))
+//		             if(GW_RETURN_SUCCESS != epon_onu_sw_get_next_vlan_entry(0, &vlan_entry, &result))
+			    if(GW_RETURN_SUCCESS != call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GETNEXT, 4,  idx,  &vid, &tag_portlist, &untag_portlist))
 		                    break;
-		             if(result == GW_FALSE)
-		                    break;
+//		             if(result == GW_FALSE)
+//		                    break;
 	        		/* wakeup all the shutdown ports which have not reached wakeup threshold */
-	        		vid = vlan_entry.vlan;
+//	        		vid = vlan_entry.vlan;
 	        		if(vid != 0)
 	        		{
 	        	  	  	lpbDetectWakeupPorts(vid);
@@ -1357,12 +1459,13 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 					/* VLAN without linkup ports, no need check, but need update loopback status */
 					for(i=0; i<PHY_PORT_MAX; i++)
 					{
-						if((vlan_entry.tagged_portmap & (1<<i)) || (vlan_entry.untagged_portmap & (1<<i)))
+//						if((vlan_entry.tagged_portmap & (1<<i)) || (vlan_entry.untagged_portmap & (1<<i)))
+						if((tag_portlist & (1<<i) )|| (untag_portlist & (1<<i)))
 						{
 							if(boards_physical_to_logical(0, i, &lport))
 							{
-								epon_onu_sw_read_port_oper_status(lport, &status);
-								if(status == EPON_PORT_OPER_UP)
+								call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, lport, &status);
+								if(status == PORT_OPER_STATUS_UP)
 								{
 					    		            need_to_send = 1;
 					    		            break;
@@ -1407,7 +1510,7 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 
 int loopbackFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame)
 {
-    epon_ether_header_lb_t *plb_frame = NULL;
+    gw_ether_header_lb_t *plb_frame = NULL;
 	unsigned short vid;
 	unsigned short ether_type;
 
@@ -1418,11 +1521,11 @@ int loopbackFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame)
         return 1;	// No need handle
     }
 
-    plb_frame = (epon_ether_header_lb_t *)frame;
+    plb_frame = (gw_ether_header_lb_t *)frame;
     ether_type = ntohs(plb_frame->ethertype);
     if (ether_type == EPON_ETHERTYPE_DOT1Q) 
     {
-        epon_ether_header_lb_vlan_t *plb_vlan_frame = (epon_ether_header_lb_vlan_t *)frame;
+        gw_ether_header_lb_vlan_t *plb_vlan_frame = (gw_ether_header_lb_vlan_t *)frame;
         vid = ntohs(plb_vlan_frame->vlan);
         vid &= 0x0FFF;
     }
@@ -1467,10 +1570,7 @@ onu_event_port_loop_clear(gwd_ethloop_msg_t *msg)
 }
 
 #if 0
-int gwdEthPortLoopMsgBuildAndSend(unsigned long int portid, unsigned long int vid, unsigned long int status)
-#else
 int gwdEthPortLoopMsgBuildAndSend(unsigned long int status)
-#endif
 {
     extern cyg_handle_t m0;
     gwd_ethloop_msg_t *msg = NULL;
@@ -1495,6 +1595,7 @@ int gwdEthPortLoopMsgBuildAndSend(unsigned long int status)
 
     return 0;
 }
+#endif
 
 int gwdEthPortLoopLedAction()
 {
@@ -1525,7 +1626,9 @@ int gwdEthPortLoopLedAction()
 		pNode = pNode->next;
 	}
 
-	ret = gwdEthPortLoopMsgBuildAndSend(found?GWD_ETH_PORT_LOOP_ALARM:GWD_ETH_PORT_LOOP_ALARM_CLEAR);
+//	ret = gwdEthPortLoopMsgBuildAndSend(found?GWD_ETH_PORT_LOOP_ALARM:GWD_ETH_PORT_LOOP_ALARM_CLEAR);
+
+	ret = call_gwdonu_if_api(LIB_IF_PORT_LOOP_EVENT_POST, 1, found?GWD_ETH_PORT_LOOP_ALARM:GWD_ETH_PORT_LOOP_ALARM_CLEAR);
 
 	return ret;
 }

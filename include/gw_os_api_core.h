@@ -84,6 +84,8 @@ gw_int32 gw_thread_create(
                     gw_uint32       flags                        /* Don't support , you can ignore it */
                     );
 
+gw_int32 gw_thread_delete(gw_uint32 thread_id);
+
 gw_int32 gw_thread_delay(
                     gw_uint32 milli_second                 /* in millisecond , For Ecos and Linux , the minimum value should be 10,*/
                     );                                                   /* for Vxworks , the minimum value should be 17    */

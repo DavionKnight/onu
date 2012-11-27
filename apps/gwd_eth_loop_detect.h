@@ -26,6 +26,25 @@ typedef struct{
 	unsigned long int loopstatus;
 }gwd_ethloop_msg_t;
 
+typedef struct {
+        gw_macaddr_t          dst;
+        gw_macaddr_t          src;
+        gw_uint16           ethertype;
+        gw_uint32           lb_port;
+        gw_uint8            reserved[60];
+} __attribute__((packed)) gw_ether_header_lb_t;
+
+typedef struct {
+        gw_macaddr_t         dst;
+        gw_macaddr_t          src;
+        gw_uint16           tpid;
+        gw_uint16           vlan;
+        gw_uint16           ethertype;
+        gw_uint32           lb_port;
+        gw_uint8            flag;
+        gw_uint8            reserved[59];
+} __attribute__((packed)) gw_ether_header_lb_vlan_t;
+
 #if 0
 int gwdEthPortLoopMsgBuildAndSend(unsigned long int portid, unsigned long int vid, unsigned long int status);
 #else

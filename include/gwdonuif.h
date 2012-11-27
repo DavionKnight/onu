@@ -15,17 +15,31 @@ typedef enum{
 	PORT_ADMIN_UP
 }gwd_port_admin_t;
 
+typedef enum{
+	PORT_OPER_STATUS_DOWN,
+	PORT_OPER_STATUS_UP
+}gwd_port_oper_status_t;
+
 typedef gw_status (*libgwdonu_port_send_t)(gw_int32 portid, gw_uint8 *buf, gw_uint32 len);
 typedef gw_uint32 (*libgwdonu_oam_std_hdr_builer_t)(gw_uint8*, gw_uint32);
+typedef gw_status (*libgwdonu_onu_llid_get_t)(gw_uint32 *llid);
 typedef gw_status (*libgwdonu_sys_info_get_t)(gw_uint8 * sysmac, gw_uint32 *uniportnum);
 typedef gw_uint32 (*libgwdonu_sys_conf_save_t)(gw_uint8 * info, gw_uint32 len);
-typedef gw_uint32 (*libgwdonu_sys_conf_restore_t)(gw_uint8 *info, gw_int32 len);
+typedef gw_uint32 (*libgwdonu_sys_conf_restore_t)(gw_uint8 *info, gw_uint32 len);
 
 typedef gw_status (*libgwdonu_port_admin_status_get_t)(gw_int32 portid, gwd_port_admin_t *status);
 typedef gw_status (*libgwdonu_port_admin_status_set_t)(gw_int32 portid, gwd_port_admin_t status);
+typedef gw_status (*libgwdonu_port_oper_status_get_t)(gw_int32 portid, gwd_port_oper_status_t *status);
+
+typedef gw_status (*libgwdonu_vlan_entry_getnext_t)(gw_uint32 index, gw_uint16 *vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
+typedef gw_status (*libgwdonu_vlan_entry_get_t)(gw_uint32 vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
+typedef gw_status (*libgwdonu_fdb_entry_get_t)(gw_uint32 vid, gw_uint8 * macaddr, gw_uint32 *eg_portlist);
+
+typedef gw_status (*libgwdonu_port_loop_event_post_t)(gw_uint32 status);
 
 typedef struct gwdonu_im_if_s{
 
+	libgwdonu_onu_llid_get_t onullidget;
 	libgwdonu_sys_info_get_t sysinfoget;
 	libgwdonu_sys_conf_save_t sysconfsave;
 	libgwdonu_sys_conf_restore_t sysconfrestore;
@@ -34,6 +48,13 @@ typedef struct gwdonu_im_if_s{
 
 	libgwdonu_port_admin_status_get_t portadminget;
 	libgwdonu_port_admin_status_set_t portadminset;
+	libgwdonu_port_oper_status_get_t    portoperstatusget;
+
+	libgwdonu_vlan_entry_getnext_t		vlanentrygetnext;
+	libgwdonu_vlan_entry_get_t		vlanentryget;
+	libgwdonu_fdb_entry_get_t		fdbentryget;
+
+	libgwdonu_port_loop_event_post_t portloopnotify;
 
 }gwdonu_im_if_t;
 
