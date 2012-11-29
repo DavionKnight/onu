@@ -80,7 +80,7 @@ cyg_handle_t  loop_detect_thread_handle;
 cyg_thread    loop_detect_thread_obj;
 #endif
 
-unsigned long   gulDebugLoopBackDetect = 0;
+unsigned long   gulDebugLoopBackDetect = 1;
 #define LOOPBACK_DETECT_DEBUG(str) if( gulDebugLoopBackDetect ){ gw_printf str ;}
 #define DUMPGWDPKT(c, p, b, l)      if(gulDebugLoopBackDetect) dumpPkt(c, p, b, l)
 
@@ -237,45 +237,38 @@ int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
 		gtRet = call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GET, 3,  vid, mac, &eg_ports);
 		if (GW_RETURN_SUCCESS == gtRet)
 		{
-			if (GW_TRUE == gtFound)
+
+			LOOPBACK_DETECT_DEBUG(("\r\nMac found in vlan %d/0x%x", vid, eg_ports));
+			numOfUniPorts = gw_onu_read_port_num();
+			for (i = 0; i < numOfUniPorts; i++)
 			{
-				LOOPBACK_DETECT_DEBUG(("\r\nMac found in vlan %d/0x%x", vid, eg_ports));
-				numOfUniPorts = gw_onu_read_port_num();
-				for (i = 0; i < numOfUniPorts; i++)
+				uiPortVect = 0x1 << i;
+				if (eg_ports & uiPortVect)
 				{
-					uiPortVect = 0x1 << i;
-					if (eg_ports & uiPortVect)
+					if((0 == (tag_ports & uiPortVect)) &&
+					   (0 == (untag_ports & uiPortVect)) )
 					{
-						if((0 == (tag_ports & uiPortVect)) &&
-						   (0 == (untag_ports & uiPortVect)) )
-						{
-							LOOPBACK_DETECT_DEBUG(("\r\nMac found in wrong vlan %d", vid));
-							*pLogicPort = 0xFF;
-							gtRet = GWD_RETURN_ERR;
-						}
-						else
-						{
-							LOOPBACK_DETECT_DEBUG(("\r\nMac found in the right vlan"));
-							boards_physical_to_logical(0, i, pLogicPort);
-							gtRet = GWD_RETURN_OK;
-						}
+						LOOPBACK_DETECT_DEBUG(("\r\nMac found in wrong vlan %d", vid));
+						*pLogicPort = 0xFF;
+						gtRet = GWD_RETURN_ERR;
+					}
+					else
+					{
+						LOOPBACK_DETECT_DEBUG(("\r\nMac found in the right vlan"));
+						boards_physical_to_logical(0, i, pLogicPort);
+						gtRet = GWD_RETURN_OK;
 					}
 				}
-			}
-			else
-			{
-				LOOPBACK_DETECT_DEBUG(("\r\nMac NOT found in vlan %d", vid));
-				gtRet = GWD_RETURN_ERR;
 			}
 		}
 		else
 		{
-			LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_sw_search_fdb_entry failed %d", gtRet));
+			LOOPBACK_DETECT_DEBUG(("\r\nMac NOT found in vlan %d", vid));
 		}
 	}
 	else
 	{
-		LOOPBACK_DETECT_DEBUG(("\r\epon_onu_sw_search_vlan_entry failed %d", gtRet));
+		LOOPBACK_DETECT_DEBUG(("\r\nget vlan entry fail! %d", gtRet));
 	}
 	
 
@@ -1447,6 +1440,7 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 //		             if(GW_RETURN_SUCCESS != epon_onu_sw_get_next_vlan_entry(0, &vlan_entry, &result))
 			    if(GW_RETURN_SUCCESS != call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GETNEXT, 4,  idx,  &vid, &tag_portlist, &untag_portlist))
 		                    break;
+				
 //		             if(result == GW_FALSE)
 //		                    break;
 	        		/* wakeup all the shutdown ports which have not reached wakeup threshold */

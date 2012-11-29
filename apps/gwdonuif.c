@@ -15,6 +15,26 @@
 static gwdonu_im_if_t * g_im_ifs = NULL;
 
 
+static gw_uint32 g_uni_port_num = 0;
+static gw_macaddr_t g_sys_mac;
+
+gw_uint8 gw_onu_read_port_num()
+{
+	gw_log(GW_LOG_LEVEL_DEBUG, "read onu port num: %d\r\n", g_uni_port_num);
+	return g_uni_port_num;
+}
+
+gw_status gw_onu_get_local_mac( gw_macaddr_t * mac)
+{
+	if(mac)
+	{
+		memcpy(mac, g_sys_mac, GW_MACADDR_LEN);
+		return GW_RETURN_SUCCESS;
+	}
+	return GW_RETURN_FAIL;
+}
+
+
 gw_status init_im_interfaces()
 {
 	if(g_im_ifs == NULL)
@@ -41,6 +61,21 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs)
 		if(init_im_interfaces() == GW_OK)
 		{
 			memcpy(g_im_ifs, ifs, sizeof(gwdonu_im_if_t));
+
+#if 1
+{
+	int num = sizeof(gwdonu_im_if_t)/sizeof(int);
+	int i = 0;
+	int * p= (int*)g_im_ifs;
+	gw_printf("dump im ifs:\r\n");
+	for(i=0; i<num; i++,p++)
+		gw_printf("%d    %08x\r\n", i+1, *p);
+		
+}
+#endif
+
+			call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
+			
 			ret = GW_E_OK;
 		}
 	}
@@ -68,7 +103,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				ret = (*g_im_ifs->onullidget)(va_arg(ap, gw_uint32*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,("onu llid get if is null!\r\n"));
-			break;			
+			break;	
+		case LIB_IF_SYSINFO_GET:
+			if(g_im_ifs->sysinfoget)
+				ret = (*g_im_ifs->sysinfoget)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,("sys info get if is null!\r\n"));
+			break;	
 		case LIB_IF_PORTSEND:
 			if(g_im_ifs->portsend)
 				ret = (*g_im_ifs->portsend)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8 *), va_arg(ap, gw_uint32));
@@ -137,3 +178,4 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 
 	return ret;
 }
+
