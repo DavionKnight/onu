@@ -27,6 +27,17 @@ static gw_uint32 gw_pkt_queueid, gw_pkt_queue_depth = 128, gw_pkt_msg_size = siz
 static gw_uint8 gw_pkt_queue_name[]="GW_PKT_QUEUE";
 
 
+void gw_dump_pkt(gw_int8 *pkt, gw_int16 len, gw_uint8 width)
+{
+	gw_int16 i;
+	for(i=0; i<len; i++)
+	{
+		if(!(i%width))
+			gw_log(GW_LOG_LEVEL_DEBUG, ("\r\n"));
+		gw_log(GW_LOG_LEVEL_DEBUG, ("%02X ", pkt[i]));
+	}
+}
+
 void gw_pkt_proc_main(gw_uint32 * para)
 {
 	gw_uint8 * buf = malloc(gw_pkt_msg_size);
@@ -53,13 +64,7 @@ void gw_pkt_proc_main(gw_uint32 * para)
 						{
 							gw_log(GW_LOG_LEVEL_MINOR, ("pkt handler fail, type %d\r\n", type));
 
-							gw_int16 i;
-							for(i=0; i<p->pkt_len; i++)
-							{
-								if(!(i&0xf))
-									gw_log(GW_LOG_LEVEL_DEBUG, ("\r\n"));
-								gw_log(GW_LOG_LEVEL_DEBUG, ("%02X ", p->pkt[i]));
-							}
+							gw_dump_pkt(p->pkt, p->pkt_len, 16);
 						}
 					}
 

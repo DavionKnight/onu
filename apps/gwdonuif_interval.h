@@ -26,6 +26,7 @@ enum{
 	LIB_IF_VLAN_ENTRY_GET,
 	LIB_IF_FDB_ENTRY_GET,
 	LIB_IF_PORT_LOOP_EVENT_POST,
+	LIB_IF_SPECIAL_PKT_HANDLER_REGIST,
 };
 
 gw_status init_im_interfaces();

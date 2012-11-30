@@ -20,6 +20,8 @@ typedef enum{
 	PORT_OPER_STATUS_UP
 }gwd_port_oper_status_t;
 
+typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
+
 typedef gw_status (*libgwdonu_port_send_t)(gw_int32 portid, gw_uint8 *buf, gw_uint32 len);
 typedef gw_uint32 (*libgwdonu_oam_std_hdr_builer_t)(gw_uint8*, gw_uint32);
 typedef gw_status (*libgwdonu_onu_llid_get_t)(gw_uint32 *llid);
@@ -36,6 +38,7 @@ typedef gw_status (*libgwdonu_vlan_entry_get_t)(gw_uint32 vlanid, gw_uint32 *tag
 typedef gw_status (*libgwdonu_fdb_entry_get_t)(gw_uint32 vid, gw_uint8 * macaddr, gw_uint32 *eg_portlist);
 
 typedef gw_status (*libgwdonu_port_loop_event_post_t)(gw_uint32 status);
+typedef gw_status (*libgwdonu_onu_register_special_frame_hanler_t)(libgwdonu_special_frame_handler_t handler);
 
 typedef struct gwdonu_im_if_s{
 
@@ -55,6 +58,8 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_fdb_entry_get_t		fdbentryget;
 
 	libgwdonu_port_loop_event_post_t portloopnotify;
+
+	libgwdonu_onu_register_special_frame_hanler_t specialpkthandler;
 
 }gwdonu_im_if_t;
 

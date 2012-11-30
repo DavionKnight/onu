@@ -53,6 +53,7 @@
 #include "gw_log.h"
 #include "oam.h"
 #include "gwd_eth_loop_detect.h"
+#include "pkt_main.h"
 
 #endif
 
@@ -109,7 +110,10 @@ extern OAM_ONU_LPB_DETECT_FRAME oam_onu_lpb_detect_frame, tframe;
 long ethLoopBackDetectActionCall( int enable, char * oamSession);
 int sendOamLpbDetectNotifyMsg(unsigned char port, unsigned char state, unsigned short uvid,unsigned char *session, ALARM_LOOP *pAlarmInfo);
 long ethLoopBackDetectActionCall( int enable, char * oamSession);
+
+int gw_loopbackFrameParser( gw_uint8  *frame, gw_uint32  len);
 int loopbackFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame);
+int gw_loopbackFrameRevHandle(gw_uint8  *frame, gw_uint32  len, gw_uint32  portid );
 //extern gw_return_code_t epon_request_ctc_onu_phy_admin_state_read (gw_uint8 port, gw_uint32 *state);
 extern int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char *pSentData,const unsigned short SendDataSize, unsigned char  *pSessionIdfield);
 extern int GwGetOltType(unsigned char *mac, GWD_OLT_TYPE *type);
@@ -223,7 +227,6 @@ int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
 {
 	int gtRet = GWD_RETURN_ERR;
 
-	gw_boolean gtFound;
 	int     i, numOfUniPorts;
 
 	unsigned int uiPortVect, eg_ports, tag_ports, untag_ports;
@@ -518,12 +521,14 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
 
         if(!gulLoopDetectFrameHandleRegister)
         {
+#if 0			
             /*jiangxt added, 20111008.*/
            #ifdef HAVE_EXT_SW_DRIVER
            iRet = epon_onu_sw_register_frame_handle(loopbackFrameRevHandle);
            #else
            iRet = epon_onu_register_special_frame_handle(loopbackFrameRevHandle);
            #endif
+
            if (iRet == GW_RETURN_FAIL)
            {
                  LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_register_special_frame_handle failed!"));
@@ -532,8 +537,11 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
            {
                  LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_register_special_frame_handle success!"));
            }
-           
-//           iRet = Onu_Loop_Detect_Set_FDB(1);
+#else		
+		gw_reg_pkt_parse(GW_PKT_LPB, gw_loopbackFrameParser);
+		gw_reg_pkt_handler(GW_PKT_LPB, gw_loopbackFrameRevHandle);
+#endif
+/*           iRet = Onu_Loop_Detect_Set_FDB(1);
            if (iRet == 0)
            {
                  LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set success!"));
@@ -542,6 +550,7 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
            {
                  LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set failed!"));
            }
+*/
            /*added end, jiangxt.*/
                
            	gulLoopDetectFrameHandleRegister = 1;
@@ -1502,6 +1511,44 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 	return 0;	
 }
 
+int gw_loopbackFrameParser( gw_uint8  *frame, gw_uint32  len)
+{
+    gw_ether_header_lb_t *plb_frame = NULL;
+	LOOP_DETECT_FRAME_DATA  * pd = NULL;
+
+	unsigned short ether_type;
+
+    LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser Func IN! "));
+
+	gw_dump_pkt(frame, len, 16);	
+
+    if ((len==0) || (frame==NULL)) 
+    {
+	LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser fail, buff empty! "));	
+        return GW_PKT_MAX;
+    }
+
+    plb_frame = (gw_ether_header_lb_t *)frame;
+    ether_type = ntohs(plb_frame->ethertype);
+    if (ether_type == EPON_ETHERTYPE_DOT1Q) 
+    {
+	pd = (LOOP_DETECT_FRAME_DATA *)(frame+16);	
+    }
+    else
+	pd = (LOOP_DETECT_FRAME_DATA *)(frame+12);
+
+	if(pd->Ethtype == ntohs(ETH_TYPE_LOOP_DETECT) && pd->LoopFlag == ntohs(LOOP_DETECT_CHECK))
+	{
+		LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser ok! "));
+		return GW_PKT_LPB;
+	}
+	else
+		LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser fail! "));	
+
+	return GW_PKT_MAX;
+    
+}
+
 int loopbackFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame)
 {
     gw_ether_header_lb_t *plb_frame = NULL;
@@ -1537,6 +1584,12 @@ int loopbackFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame)
     else
         return 0;
 }
+
+int gw_loopbackFrameRevHandle(gw_uint8  *frame, gw_uint32  len, gw_uint32  portid )
+{
+	return loopbackFrameRevHandle(portid, len, frame);
+}
+
 
 
 extern void epon_onu_start_alarm_led();

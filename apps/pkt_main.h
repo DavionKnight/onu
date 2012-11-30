@@ -31,4 +31,6 @@ gw_status gw_pkt_handler_call(GW_PKT_TYPE type, gw_int8 *pkt, const gw_int32 len
 gw_status init_pkt_proc(void);
 gw_int32 gwlib_sendPktToQueue(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
 
+void gw_dump_pkt(gw_int8 *pkt, gw_int16 len, gw_uint8 width);
+
 #endif /* PKT_MAIN_H_ */
