@@ -33,6 +33,7 @@
 
 #include "../include/gw_os_api_core.h"
 #include "gwdonuif_interval.h"
+#include "pkt_main.h"
 #include "rcp_gwd.h"
 #include "oam.h"
 
@@ -6553,6 +6554,31 @@ int rrcp_packet_handler(unsigned int srcPort, unsigned int len, unsigned char *p
 	}
 
 	return iRet;
+}
+
+gw_int32 gw_rcppktparser(gw_int8 *pkt, gw_int32 len)
+{
+	gw_int32 ret = GW_PKT_MAX;
+
+	gw_int16 eth_type = 0;
+
+	if(pkt && len > 18)
+	{
+		if(pkt[12] == 0x81 && pkt[13] == 0x00)
+			eth_type = ntohs(*(gw_int16*)(pkt+16));
+		else
+			eth_type = ntohs(*(gw_int16*)(pkt+12));
+
+		if(eth_type == ETH_TYPE_RRCP)
+			ret = GW_PKT_RCP;
+	}
+
+	return ret;
+}
+
+gw_status gw_rcppktHandler(gw_int8 *pkt, gw_int32 len, gw_int32 portid)
+{
+	return (RcpFrameRevHandle(portid,  len, pkt) == 1)?GW_OK:GW_ERROR;
 }
 
 gw_int32 RcpFrameRevHandle(gw_uint32 portid ,gw_uint32  len, gw_uint8  *frame)

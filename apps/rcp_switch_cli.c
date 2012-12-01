@@ -39,6 +39,7 @@ extern  "C"
 #else
 #include "../include/gw_os_api_core.h"
 #include "../cli_lib/cli_common.h"
+#include "pkt_main.h"
 #include "rcp_gwd.h"
 #include "oam.h"
 #include "gw_log.h"
@@ -5685,12 +5686,17 @@ int rcp_dev_status_check(void)
 	return GWD_RETURN_OK;
 }
 
+extern gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
+extern gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
+
 void start_rcp_device_monitor(void)
 {
 	int iRet;
 	
     if(!gulRcpFrameHandleRegister)
     {
+
+#if 0
 #ifdef HAVE_EXT_SW_DRIVER
        iRet = epon_onu_sw_register_frame_handle(RcpFrameRevHandle);
 #else
@@ -5705,7 +5711,11 @@ void start_rcp_device_monitor(void)
              printf("\r\nRegister RCP frame handler success!");
              gulEthRxTaskReady = 1;
        }
-       
+#endif
+
+	gw_reg_pkt_parse(GW_PKT_RCP, gw_rcppktparser);
+	gw_reg_pkt_handler(GW_PKT_RCP, gw_rcppktHandler);
+	
        /*iRet = Onu_Loop_Detect_Set_FDB(1);
        if (iRet == 0)
        {
