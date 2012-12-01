@@ -561,7 +561,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	cs_llid_t llid;
 	cs_callback_context_t context;
 
-	if(epon_request_onu_mpcp_llid_get(context, 0, 0, &llid) != CS_OK)
+	if(epon_request_onu_mpcp_llid_get(context, 0, 0, &llid) != GW_OK)
 		return GWD_RETURN_ERR;
 	 */
 
@@ -2244,7 +2244,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     gw_cli_print(cli, "====== FDB SW table is shown:======");
     gw_cli_print(cli, "index   mac_address        vid   port type ");
 
-    while(epon_request_onu_fdb_entry_get_byindex(context, 0, 0, SDL_FDB_ENTRY_GET_MODE_ALL, idx, &entry, &next) == CS_OK)
+    while(epon_request_onu_fdb_entry_get_byindex(context, 0, 0, SDL_FDB_ENTRY_GET_MODE_ALL, idx, &entry, &next) == GW_OK)
     {
     	cs_uint16 vid = entry.vlan_id?entry.vlan_id:1;
     	idx = next;
@@ -2338,26 +2338,25 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 	pStrGwdHwVer = onu_system_info_total.hw_version;
 
 	oam_vendor_handler_register(GwOUI, gwd_oam_handlers);
+#endif
 
 	Rcp_Mgt_init();
-
-#endif
 
 	userCmdInitHandlerInit();
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
 
-#if _cmd_line_
-	if(registerUserCmdInitHandler("rcp-switch", cli_switch_gwd_cmd) != CS_OK)
-		cs_printf("regist rcp  switch cmds fail!\r\n");
 
-	if(registerUserCmdInitHandler("rcp-switch-debug", cli_debeg_gwd_cmd) != CS_OK)
-		cs_printf("regist rcp  switch debug cmds fail!\r\n");
+	if(registerUserCmdInitHandler("rcp-switch", cli_switch_gwd_cmd) != GW_OK)
+		gw_printf("regist rcp  switch cmds fail!\r\n");
 
-	if(registerUserCmdInitHandler("rcp-switch-show", cli_reg_rcp_cmd) != CS_OK)
-		cs_printf("regist rcp  switch show cmds fail!\r\n");
-#endif
+	if(registerUserCmdInitHandler("rcp-switch-debug", cli_debeg_gwd_cmd) != GW_OK)
+		gw_printf("regist rcp  switch debug cmds fail!\r\n");
+
+	if(registerUserCmdInitHandler("rcp-switch-show", cli_reg_rcp_cmd) != GW_OK)
+		gw_printf("regist rcp  switch show cmds fail!\r\n");
+
 
 //	ctc_onu_stats_monitor_init();
 }
