@@ -509,13 +509,13 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
 	}
 	
-	if(!dev->semTake(semAccessRcpChannel, cyg_current_time() + RCP_RESPONSE_TIMEOUT))
+	if(!dev->semTake(semAccessRcpChannel, RCP_RESPONSE_TIMEOUT))
 	{
 		RCP_DEBUG(("\r\n  RCP_Read_Reg : semAccessRcpChannel timedout!"));
 	}
 	
 	RCP_DEBUG(("\r\n  RCP_Read_Reg : 0x%x ", regAddr));
-	if(0 != epon_onu_sw_send_frame(dev->paPort, rcpPktBuf, 64))
+	if(0 != call_gwdonu_if_api ( LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64))
 	{
 		iRet = RCP_FAIL;
 		/*if(NULL != rcpPktBuf) free(rcpPktBuf);*/
@@ -6750,4 +6750,372 @@ int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
 END:
     return ret;
 }
+
+#define STATE_S 1
+#define STATE_PS 2
+#define STATE_PE 3
+
+#if 1
+unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)
+{
+	unsigned long roter_port[20];
+    unsigned long ulState = STATE_S;
+	unsigned long ulPort;
+	unsigned long ulPort_E;
+	unsigned long ul_i;
+	unsigned long ul_e;
+	int i = 0;
+    char digit_temp[ 12 ];
+    char cToken;
+    unsigned long list_i = 0;
+	int port_i = 0;
+    unsigned long temp_i = 0;
+    unsigned long ulListLen = 0;
+   	char *list;
+	unsigned long *rt_roter_port;
+    ulListLen = strlen(argv);
+    list = (char *)malloc(ulListLen + 2);
+    if ( list == NULL )
+    {
+        return NULL;
+    }
+    strncpy( list,argv, ulListLen + 1 );
+    list[ ulListLen ] = ',';
+    list[ ulListLen + 1 ] = '\0';
+
+    cToken = list[ list_i ];
+	bzero(roter_port,sizeof(roter_port));
+	
+	while ( cToken != 0 )
+    {
+        switch ( ulState )
+        {
+        	
+            case STATE_S:
+                if ( isdigit( cToken ) )
+                {
+                    digit_temp[ temp_i ] = cToken;
+                    temp_i++;
+                    if ( temp_i >= 11 )
+                    {
+                        goto error;
+                    }
+                }
+                else if ( isspace( cToken ) )
+                {}
+
+                else if ( cToken == ',' )
+                {
+                	i = 0;     				
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long ) atol( digit_temp );					
+					while((roter_port[i] !=ulPort) && (i<20))
+						{
+							
+							if(i == 19)
+								{									
+									roter_port[port_i] = ulPort;
+									port_i++;
+									if(ulPort > onu_roter_port_num)
+										{	
+											printf("Port %ld input error\n",ulPort);
+											printf("the max port is %ld,so you are wrong\n",onu_roter_port_num);
+											goto error;
+										}
+								}
+							i++;
+						}
+                    temp_i = 0;
+                    ulState = STATE_S;
+                }
+                else if ( cToken == '-')
+                {
+                	i = 0;   					
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long int ) atol( digit_temp );
+					while((roter_port[i] !=ulPort) && (i<20))
+						{
+							
+							if(i == 19)
+								{									
+									roter_port[port_i] = ulPort;
+									port_i++;
+									if(ulPort > onu_roter_port_num)
+										{	
+											printf("Port %ld input error\n",ulPort);
+											printf("the max port is %ld,so you are wrong\n",onu_roter_port_num);
+											goto error;
+										}
+								}
+							i++;
+						}
+                    temp_i = 0;
+                    ulState = STATE_PE;
+                }
+                else
+                {
+                    goto error;
+                }
+                break;
+            case STATE_PS:
+                if ( isdigit( cToken ) )
+                {
+
+                    digit_temp[ temp_i ] = cToken;
+                    temp_i++;
+                    if ( temp_i >= 11 )
+                    {
+                        goto error;
+                    }
+                }
+                else if ( isspace( cToken ) )
+                {}
+                else if ( cToken == ',' )
+                {
+					i = 0;
+                    if ( temp_i == 0 )
+                    {	   						
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long int ) atol( digit_temp );	
+	                if ( ulPort >= 20 )
+	                    {
+	                        goto error;
+	                    }
+					while((roter_port[i] !=ulPort) && (i<20))
+						{
+							
+							if(i == 19)
+								{									
+									roter_port[port_i] = ulPort;
+									port_i++;
+									if(ulPort > onu_roter_port_num)
+										{																				
+											goto error;
+										}
+								}
+							i++;
+						}
+                    temp_i = 0;
+                    ulState = STATE_S;
+	
+                }
+                else if ( cToken == '-' )
+                {
+   					i = 0;
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long int ) atol( digit_temp );
+
+					while((roter_port[i] !=ulPort) && (i<20))
+						{
+							
+							if(i == 19)
+								{									
+									roter_port[port_i] = ulPort;
+									port_i++;
+									if(ulPort> onu_roter_port_num)
+										{																					
+											goto error;
+										}
+								}
+							i++;
+						}
+                    temp_i = 0;
+                    ulState = STATE_PE;
+                }
+                else
+                {
+                    goto error;
+                }
+                break;
+            case STATE_PE:
+                if ( isdigit( cToken ) )
+                {					
+                    digit_temp[ temp_i ] = cToken;
+                    temp_i++;
+                    if ( temp_i >= 11 )
+                    {
+                        goto error;
+                    }
+                }
+                else if ( isspace( cToken ) )
+                {}
+                else if ( cToken == ',' )
+                {
+                	i = 0;					
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort_E = ( unsigned long int ) atol( digit_temp );
+					ul_i = ulPort;
+					ul_e = ulPort_E;
+					if(ul_i < ul_e)
+						{
+							ul_i = ulPort;
+							ul_e = ulPort_E;
+						}
+					else
+						{
+							ul_i = ulPort_E;
+							ul_e = ulPort;
+						}
+	 			
+				    while(ul_i <= ul_e )
+					{						
+						while((roter_port[i] != ul_i) && (i < 20))
+						{							
+							if(i == 19)
+								{								
+									roter_port[port_i] = ul_i;
+									port_i++;
+									if(ul_i > onu_roter_port_num)
+										{
+											printf("the port %ld  input error \n",ul_i);
+											printf("the max port is %ld,so you are wrong\n",onu_roter_port_num);
+											goto error;
+										}
+								}
+							i++;
+						}																						
+						ul_i++;						
+						i = 0;
+					}								                 	
+                    temp_i = 0;
+                    ulState = STATE_S;
+                }
+                else
+                {
+                    goto error;
+                }
+                break;
+            default:				
+                goto error;
+        }
+
+        list_i++;
+        cToken = list[ list_i ];		
+
+    }
+		
+	free(list);
+	rt_roter_port = (unsigned long *)malloc((port_i+1)* sizeof(unsigned long));
+	if(rt_roter_port == NULL)
+		{
+			printf("rt_roter_port malloc null error\n");
+			return NULL;
+		}
+	memcpy(rt_roter_port,roter_port,(port_i+1)*sizeof(unsigned long));
+	return rt_roter_port;
+error:
+	return NULL;
+
+       
+	
+}
+
+long GetMacAddr( char * szStr, char * pucMacAddr )
+{
+    char * p = NULL, *q = NULL, *pcTmp = NULL;
+    char cTmp[ 3 ];
+    unsigned long int i = 0, j = 0, k = 0;
+
+    /* 检查字符串长度是否正常 */
+    if ( 14 != strlen( szStr ) )
+    {
+        return GW_ERROR;
+    }
+
+    p = szStr;
+    for ( i = 0; i < 3; i++ )
+    {
+        if ( i != 2 )
+        {
+            /* 查看有无'.' */
+            q = strchr( p, '.' );
+            if ( NULL == p )
+            {
+                return GW_ERROR;
+            }
+        }
+        else
+        {
+            q = szStr + strlen( szStr );
+        }
+
+        /* 一个H不是4个字符 */
+        if ( 4 != q - p )
+        {
+            return GW_ERROR;
+        }
+        /* 检查是否是16进制的数字 */
+        for ( j = 0; j < 4; j++ )
+        {
+            if ( !( ( *( p + j ) >= '0' && *( p + j ) <= '9' ) || ( *( p + j 
+) >= 'a' && *( p + j ) <= 'f' )
+                    || ( *( p + j ) >= 'A' && *( p + j ) <= 'F' ) ) )
+            {
+                return GW_ERROR;
+            }
+        }
+
+        cTmp[ 0 ] = *p;
+        cTmp[ 1 ] = *( p + 1 );
+        cTmp[ 2 ] = '\0';
+        pucMacAddr[ k ] = ( char ) strtoul( cTmp, &pcTmp, 16 );
+        k++;
+
+        cTmp[ 0 ] = *( p + 2 );
+        cTmp[ 1 ] = *( p + 3 );
+        cTmp[ 2 ] = '\0';
+        pucMacAddr[ k ] = ( char ) strtoul( cTmp, &pcTmp, 16 );
+        k++;
+
+        p = q + 1;
+    }
+
+    /* 判断是否全部为0 */
+    if ( 0x0 == pucMacAddr[ 0 ] && 0x0 == pucMacAddr[ 1 ] && 0x0 == pucMacAddr
+[ 2 ]
+            && 0x0 == pucMacAddr[ 3 ] && 0x0 == pucMacAddr[ 4 ] && 0x0 == 
+pucMacAddr[ 5 ] )
+    {
+        return GW_ERROR;
+    }
+
+    /* 判断是否全部为ff */
+    if ( 0xff == pucMacAddr[ 0 ] && 0xff == pucMacAddr[ 1 ] && 0xff == 
+pucMacAddr[ 2 ]
+            && 0xff == pucMacAddr[ 3 ] && 0xff == pucMacAddr[ 4 ] && 0xff == 
+pucMacAddr[ 5 ] )
+    {
+        return GW_ERROR;
+    }
+
+    /* 判断是否为多播 */
+    if ( 0 != ( pucMacAddr[ 0 ] & 0x01 ) )
+    {
+        return GW_ERROR;
+    }
+
+    return GW_OK;
+
+}
+
+#endif
+
 

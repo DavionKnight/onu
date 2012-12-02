@@ -312,9 +312,9 @@ int cli_int_get_rcpreg(struct cli_def *cli, char *command, char *argv[], int arg
 				gw_cli_print(cli,  "  No memory for display.\r\n");
 				return CLI_ERROR;
 			}
-			ulStrLen += ECOS_Sprintf(outbuff + ulStrLen, "     All in HEX\r\n");
-			ulStrLen += ECOS_Sprintf(outbuff + ulStrLen, "  Address   Value\r\n");
-			ulStrLen += ECOS_Sprintf(outbuff + ulStrLen, "-------------------\r\n");
+			ulStrLen += sprintf(outbuff + ulStrLen, "     All in HEX\r\n");
+			ulStrLen += sprintf(outbuff + ulStrLen, "  Address   Value\r\n");
+			ulStrLen += sprintf(outbuff + ulStrLen, "-------------------\r\n");
 		
 			if(ulRegLen > 32)
 				{
@@ -324,14 +324,14 @@ int cli_int_get_rcpreg(struct cli_def *cli, char *command, char *argv[], int arg
 			{
 				iRet = pRcpDev->frcpReadReg(pRcpDev, usRegAddr, &usValue);
 				if(0 == iRet)
-					ulStrLen += ECOS_Sprintf(outbuff + ulStrLen, 
+					ulStrLen += sprintf(outbuff + ulStrLen, 
 						"     %04X-->%04X\r\n", usRegAddr, usValue);
 				else
-					ulStrLen += ECOS_Sprintf(outbuff + ulStrLen, 
+					ulStrLen += sprintf(outbuff + ulStrLen, 
 						"     %04X-->N.A\r\n", usRegAddr);
 				usRegAddr++;
 			}
-			ulStrLen += ECOS_Sprintf(outbuff + ulStrLen, "-------------------\r\n");
+			ulStrLen += sprintf(outbuff + ulStrLen, "-------------------\r\n");
 
 			gw_cli_print(cli,"outbuff %s\n",outbuff);
 			free(outbuff);
@@ -5691,7 +5691,7 @@ extern gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
 
 void start_rcp_device_monitor(void)
 {
-	int iRet;
+//	int iRet;
 	
     if(!gulRcpFrameHandleRegister)
     {

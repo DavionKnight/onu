@@ -505,7 +505,7 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
 {
 	//unsigned char   szName[32];
       unsigned long 	enable;
-      int iRet;  /*jiangxt added, 20111008.*/
+//      int iRet;  /*jiangxt added, 20111008.*/
 
     enable = oamEnable && localEnable;
 	if (enable)

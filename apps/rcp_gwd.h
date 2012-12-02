@@ -21,7 +21,7 @@ typedef unsigned long	oid;
 //platform added new type and micro define
 
 #define IFM_NAME_SIZE (31)
-
+#define ETH_FILTER_MAX_PORT_NUM_ON_SLOT     ( 4 )
 #define VTY_NEWLINE "\r\n"
 
 struct slot_port{
@@ -29,6 +29,16 @@ struct slot_port{
 	unsigned long	ulSlot;
 	unsigned long	ulPort;
 };
+
+
+#define ETH_SLOTPORT_TO_PORTNO( _slot, _port )           \
+          ( (  ( _slot )  - 1 ) * ( ETH_FILTER_MAX_PORT_NUM_ON_SLOT ) + (  ( _port )  ) )
+
+
+#define PORTNO_TO_ETH_SLOT( _portno )           \
+            ( ( ( _portno ) / ( ETH_FILTER_MAX_PORT_NUM_ON_SLOT ) ) + 1 )
+#define PORTNO_TO_ETH_PORTID( _portno )         \
+            ( ( _portno ) % ( ETH_FILTER_MAX_PORT_NUM_ON_SLOT ) )
 
 //end
 

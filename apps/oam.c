@@ -606,7 +606,8 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 			iSendPacketNumber ++;
 			if ((0 == (iSendPacketNumber % 10)) && (TRUE == bSlowProtocol))
 			{
-				cyg_thread_delay(1); /* 1 tick 10ms */
+//				cyg_thread_delay(1); /* 1 tick 10ms */
+				gw_thread_delay(10);
 			}
 		}
 
