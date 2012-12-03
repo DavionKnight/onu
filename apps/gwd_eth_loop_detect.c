@@ -550,8 +550,17 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
            {
                  LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set failed!"));
            }
-*/
+*/	
            /*added end, jiangxt.*/
+
+	if(call_gwdonu_if_api(LIB_IF_FDB_MGT_MAC_SET, 1, loop_detect_mac) == GW_OK)
+	{
+                 LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set success!"));	
+	}
+	else
+	{
+		LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set failed!"));
+	}
                
            	gulLoopDetectFrameHandleRegister = 1;
 
@@ -1518,9 +1527,7 @@ int gw_loopbackFrameParser( gw_uint8  *frame, gw_uint32  len)
 
 	unsigned short ether_type;
 
-    LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser Func IN! "));
-
-	gw_dump_pkt(frame, len, 16);	
+//    LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser Func IN! "));
 
     if ((len==0) || (frame==NULL)) 
     {
@@ -1540,10 +1547,10 @@ int gw_loopbackFrameParser( gw_uint8  *frame, gw_uint32  len)
 	if(pd->Ethtype == ntohs(ETH_TYPE_LOOP_DETECT) && pd->LoopFlag == ntohs(LOOP_DETECT_CHECK))
 	{
 		LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser ok! "));
+		gw_dump_pkt(frame, len, 16);	
 		return GW_PKT_LPB;
 	}
-	else
-		LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser fail! "));	
+
 
 	return GW_PKT_MAX;
     
@@ -1559,7 +1566,7 @@ int loopbackFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame)
 
     if ((len==0) || (frame==NULL)) 
     {
-        return 1;	// No need handle
+        return 0;	// No need handle
     }
 
     plb_frame = (gw_ether_header_lb_t *)frame;
@@ -1579,10 +1586,7 @@ int loopbackFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame)
     DUMPGWDPKT("\r\nLoopDetectFrameRevPKT : ", portid, frame, len);
     LOOPBACK_DETECT_DEBUG(("\r\n************************************ "));
     
-    if(0 == lpbDetectRevPacketHandle(frame, len, 1, portid, vid))
-        return 1;
-    else
-        return 0;
+    return lpbDetectRevPacketHandle(frame, len, 1, portid, vid);
 }
 
 int gw_loopbackFrameRevHandle(gw_uint8  *frame, gw_uint32  len, gw_uint32  portid )

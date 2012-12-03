@@ -33,8 +33,8 @@ void gw_dump_pkt(gw_int8 *pkt, gw_int16 len, gw_uint8 width)
 	for(i=0; i<len; i++)
 	{
 		if(!(i%width))
-			gw_log(GW_LOG_LEVEL_DEBUG, ("\r\n"));
-		gw_log(GW_LOG_LEVEL_DEBUG, ("%02X ", pkt[i]));
+			gw_log(GW_LOG_LEVEL_DEBUG, "\r\n");
+		gw_log(GW_LOG_LEVEL_DEBUG, "%02X ", pkt[i]);
 	}
 }
 
@@ -51,7 +51,7 @@ void gw_pkt_proc_main(gw_uint32 * para)
 			{
 				if(len < sizeof(queue_para_t))
 				{
-					gw_log(GW_LOG_LEVEL_MINOR,("too short msg size!\r\n"));
+					gw_log(GW_LOG_LEVEL_MINOR,"too short msg size!\r\n");
 				}
 				else
 				{
@@ -62,7 +62,7 @@ void gw_pkt_proc_main(gw_uint32 * para)
 						gw_status ret = gw_pkt_handler_call(type, p->pkt, p->pkt_len, p->portid);
 						if(ret != GW_OK)
 						{
-							gw_log(GW_LOG_LEVEL_MINOR, ("pkt handler fail, type %d\r\n", type));
+							gw_log(GW_LOG_LEVEL_MINOR, "pkt handler fail, type %d\r\n", type);
 
 							gw_dump_pkt(p->pkt, p->pkt_len, 16);
 						}
@@ -72,7 +72,7 @@ void gw_pkt_proc_main(gw_uint32 * para)
 				}
 			}
 			else
-				gw_log(GW_LOG_LEVEL_DEBUG, ("get queue error\r\n"));
+				gw_log(GW_LOG_LEVEL_DEBUG, "get queue error\r\n");
 
 			gw_thread_delay(50);
 		}

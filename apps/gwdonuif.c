@@ -158,10 +158,18 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 		case LIB_IF_FDB_ENTRY_GET:
 			if(g_im_ifs->fdbentryget)
-				ret = (*g_im_ifs->vlanentryget)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8*),
+				ret = (*g_im_ifs->fdbentryget)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8*),
 				va_arg(ap, gw_uint32*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry get if is null!\r\n");
+			break;
+
+		case LIB_IF_FDB_MGT_MAC_SET:
+			if(g_im_ifs->fdbmgtmacset)
+				ret = (*g_im_ifs->fdbmgtmacset)(va_arg(ap, gw_uint8*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "fdb mgt mac set if is null!\r\n");
+			break;			
 			break;
 
 		case LIB_IF_PORT_LOOP_EVENT_POST:

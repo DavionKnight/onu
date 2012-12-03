@@ -5767,6 +5767,7 @@ void start_rcp_device_monitor(void)
  ** Init functions
  */
 
+extern int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc);
 void cli_switch_gwd_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command *inter,*show,*show_mgt;
@@ -5777,7 +5778,7 @@ void cli_switch_gwd_cmd(struct cli_command **cmd_root)
 //	inter = gw_cli_register_command(cmd_root, 0,     "interface", NULL,					PRIVILEGE_PRIVILEGED, MODE_EXEC, "Select an interface to config");
 #if 1
 	c = gw_cli_register_command(cmd_root, 0, "configure", NULL,                         PRIVILEGE_PRIVILEGED, MODE_EXEC, "Enter configuration mode");
-//        gw_cli_register_command(cmd_root, c, "terminal", cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
+        gw_cli_register_command(cmd_root, c, "terminal", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
 inter = gw_cli_register_command(cmd_root, NULL, "interface",    NULL,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Select an interface to configure");
 //		gw_cli_register_command(cmd_root, inter, "IFNAME",   cmd_config_int ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Interface name");
 		gw_cli_register_command(cmd_root, inter, "switch",   cli_int_interface_switch ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Config switch connected to the interface");

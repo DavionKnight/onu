@@ -161,6 +161,22 @@ int gw_cli_int_exit(struct cli_def *cli, char *command, char *argv[], int argc)
     return CLI_OK;
 }
 
+int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    if (CLI_HELP_REQUESTED)
+        return CLI_HELP_NO_ARGS;
+
+    if(argc > 0)
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+        return CLI_OK;
+    }
+
+    gw_cli_set_configmode(cli, MODE_CONFIG, NULL);
+    return CLI_OK;
+}
+
+
 struct cli_command *gw_cli_tree_init()
 {
     struct cli_command *cmd_root = NULL;
