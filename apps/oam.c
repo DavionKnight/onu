@@ -1869,28 +1869,8 @@ int Onu_Sysinfo_Save_To_Flash(VOID)
     buff=(unsigned char  *)&onu_system_info_total;
     size =sizeof (onu_system_info_total);
 
-#if 0
-    tempBuff = iros_malloc(IROS_MID_OSAL, FLASH_USER_DATA_MAX_SIZE);
-	if(tempBuff == NULL) {
-       diag_printf("Config save failed\n");
-       ret= GWD_RETURN_ERR; 
-	   goto END;
-	}
-    
-	memset(tempBuff, 0x00, FLASH_USER_DATA_MAX_SIZE);
-	user_data_config_Read(0,tempBuff, FLASH_USER_DATA_MAX_SIZE);
-	pConfig = (unsigned char *)(tempBuff + GWD_PRODUCT_CFG_OFFSET);
-	memcpy(pConfig,buff,size);
+    ret = call_gwdonu_if_api(LIB_IF_SYSCONF_SAVE, 2, buff, size);
 
-	user_data_config_Write(tempBuff, FLASH_USER_DATA_MAX_SIZE);
-	if (tempBuff !=NULL ) {
-	    iros_free(tempBuff);
-	}
-
-END:
-#else
-	ret = save_userdata_to_flash(buff, GWD_PRODUCT_CFG_OFFSET, size);
-#endif
     return ret;
 }
 
@@ -1901,11 +1881,9 @@ int Onu_Sysinfo_Get_From_Flash(VOID)
 	unsigned char ucsDeviceNameDef[] = "GT810_A";
 
 	memset(&onu_system_info_total, 0, sizeof(onu_system_info_total));
-#if 0
-	if (GWD_RETURN_OK != (ret = user_data_config_Read(GWD_PRODUCT_CFG_OFFSET, (unsigned char *)&onu_system_info_total, sizeof(onu_system_info_total))))
-#else
-	if (GWD_RETURN_OK != (ret = get_userdata_from_flash((unsigned char *)&onu_system_info_total, GWD_PRODUCT_CFG_OFFSET,  sizeof(onu_system_info_total))))
-#endif
+
+//	if (GWD_RETURN_OK != (ret = get_userdata_from_flash((unsigned char *)&onu_system_info_total, GWD_PRODUCT_CFG_OFFSET,  sizeof(onu_system_info_total))))
+	if(GW_OK != call_gwdonu_if_api(LIB_IF_SYSCONF_RESTORE, 2, (unsigned char *)&onu_system_info_total, sizeof(onu_system_info_total)))
 	{
 		memset(&onu_system_info_total, 0, sizeof(onu_system_info_total));
 //		IROS_LOG_MAJ(IROS_MID_OAM, "Read system info from flash failed.(%d)\r\n", ret);
