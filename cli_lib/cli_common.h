@@ -92,7 +92,8 @@ enum cli_states {
 
 #define CTRL(c) (c - '@')
 
-#define CS_CONSOLE_BUF_LEN  8192
+//#define CS_CONSOLE_BUF_LEN  8192
+#define CS_CONSOLE_BUF_LEN  4096
 
 typedef struct {
     gw_uint8 buf[CS_CONSOLE_BUF_LEN];

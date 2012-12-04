@@ -1,5 +1,6 @@
 //#include "plat_common.h"
 #include "cli_common.h"
+#include "../apps/gw_log.h"
 
 #define MAX_USER_CMD_INIT_HANDLER 16
 #define USER_CMD_INIT_HANDLE_DESC_LEN 32
@@ -161,21 +162,41 @@ int gw_cli_int_exit(struct cli_def *cli, char *command, char *argv[], int argc)
     return CLI_OK;
 }
 
-int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc)
+
+int gw_cli_set_configmode(struct cli_def *cli, int mode, char *config_desc)
 {
-    if (CLI_HELP_REQUESTED)
-        return CLI_HELP_NO_ARGS;
+     static char string[64];
+    int old = cli->mode;
+    cli->mode = mode;
 
-    if(argc > 0)
+	gw_log(GW_LOG_LEVEL_DEBUG, "old mode is %d and new mode %d\r\n", old, cli->mode);
+
+    if (mode != old)
     {
-        gw_cli_print(cli, "%% Invalid input.");
-        return CLI_OK;
+        if (!cli->mode)
+        {
+            // Not config mode
+            gw_cli_set_modestring(cli, NULL);
+        }
+        else if (config_desc && *config_desc)
+        {
+            snprintf(string, sizeof(string), "(config-%s)", config_desc);
+            gw_cli_set_modestring(cli, string);
+        }
+        else
+        {
+	   snprintf(string, sizeof(string), "(config)");
+            gw_cli_set_modestring(cli, string);
+        }
+
     }
+	else
+	{
+		gw_log(GW_LOG_LEVEL_DEBUG, "the same mode set!\r\n");
+	}
 
-    gw_cli_set_configmode(cli, MODE_CONFIG, NULL);
-    return CLI_OK;
+    return old;
 }
-
 
 struct cli_command *gw_cli_tree_init()
 {

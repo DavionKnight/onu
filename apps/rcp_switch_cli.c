@@ -5767,7 +5767,24 @@ void start_rcp_device_monitor(void)
  ** Init functions
  */
 
-extern int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc);
+
+int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	gw_log(GW_LOG_LEVEL_DEBUG, "enter config mode!!\r\n");
+	
+    if (CLI_HELP_REQUESTED)
+        return CLI_HELP_NO_ARGS;
+
+    if(argc > 0)
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+        return CLI_OK;
+    }
+
+    gw_cli_set_configmode(cli, MODE_CONFIG, NULL);
+    return CLI_OK;
+}
+
 void cli_switch_gwd_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command *inter,*show,*show_mgt;

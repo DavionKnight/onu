@@ -6755,6 +6755,223 @@ END:
 #define STATE_PS 2
 #define STATE_PE 3
 
+#define MAXSlotNum 2
+#define MAXPortOnSlotNum 5
+
+	#define SysBeginOfPortOnSlot   1
+	#define SysEndOfPortOnSlot     MAXPortOnSlotNum
+	#define SysIsValidPortOnSlot( _port ) \
+    	((_port)>=SysBeginOfPortOnSlot && (_port)<=SysEndOfPortOnSlot)
+
+struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_onu,char *ifname,struct cli_def* cli_i )
+{
+	struct slot_port *p;
+    unsigned long ulState = STATE_S;
+    unsigned long ulSlot;
+	unsigned long ulPort;
+    char digit_temp[ 12 ];
+    char cToken;
+    unsigned long list_i = 0;
+    unsigned long temp_i = 0;
+    unsigned long ulListLen = 0;
+    char * list;
+
+	p = my_onu;
+    ulListLen = strlen(argv);
+    list = (char *)malloc(ulListLen + 2);
+    if ( list == NULL )
+    {
+        return NULL;
+    }
+    strncpy( list,argv, ulListLen + 1 );
+    list[ ulListLen ] = ',';
+    list[ ulListLen + 1 ] = '\0';
+
+    cToken = list[ list_i ];
+
+	
+	while ( cToken != 0 )
+    {
+ 
+        switch ( ulState )
+        {
+        	
+            case STATE_S:
+                if ( isdigit( cToken ) )
+                {
+        
+                    digit_temp[ temp_i ] = cToken;
+                    temp_i++;
+                    if ( temp_i >= 11 )
+                    {
+                        goto error;
+                    }
+                }
+                else if ( isspace( cToken ) )
+                {}
+	/********************************************************************************************************
+	判断板级号，检查板级的有效性。
+	*********************************************************************************************************/
+                else if ( cToken == '/' )
+                {
+ 
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulSlot = ( unsigned long ) atol( digit_temp );
+
+					 if ( ulSlot >= MAXSlotNum )                   	
+	                    {
+	                        goto error;
+	                    }
+					p->ulSlot = ulSlot;
+                    temp_i = 0;
+                    ulState = STATE_PS;
+                }
+
+/***************************************************************************************************************
+判断板级上的PORT 的号，并检查PORT 的有效性，通过板级的号来判断板级的类型，
+并且创建索引。
+****************************************************************************************************************/
+                else if ( cToken == ',' )
+                {
+      
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long ) atol( digit_temp );
+	
+	                if( FALSE==SysIsValidPortOnSlot( ulPort))
+	                   {
+	                       goto error;
+	                   }
+
+					p->ulPort = ulPort;
+                    temp_i = 0;
+                    ulState = STATE_S;
+                }
+                else if ( cToken == '-' )
+                {
+   
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long int ) atol( digit_temp );
+					p->ulPort = ulPort;
+                    temp_i = 0;
+                    ulState = STATE_PE;
+                }
+
+                else
+                {
+                    goto error;
+                }
+                break;
+            case STATE_PS:
+                if ( isdigit( cToken ) )
+                {
+
+                    digit_temp[ temp_i ] = cToken;
+                    temp_i++;
+                    if ( temp_i >= 11 )
+                    {
+                        goto error;
+                    }
+                }
+                else if ( isspace( cToken ) )
+                {}
+                else if ( cToken == ',' )
+                {
+
+                    if ( temp_i == 0 )
+                    {	
+   
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long int ) atol( digit_temp );	
+	                if ( ulPort >= MAXPortOnSlotNum )
+	                    {
+	                        goto error;
+	                    }
+					p->ulPort = ulPort;
+                    temp_i = 0;
+                    ulState = STATE_S;
+	
+                }
+                else if ( cToken == '-' )
+                {
+   
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort = ( unsigned long int ) atol( digit_temp );
+					p->ulPort = ulPort;
+                    temp_i = 0;
+                    ulState = STATE_PE;
+                }
+                else
+                {
+                    goto error;
+                }
+                break;
+            case STATE_PE:
+                if ( isdigit( cToken ) )
+                {
+
+                    digit_temp[ temp_i ] = cToken;
+                    temp_i++;
+                    if ( temp_i >= 11 )
+                    {
+                        goto error;
+                    }
+                }
+                else if ( isspace( cToken ) )
+                {}
+                else if ( cToken == ',' )
+                {
+
+                    if ( temp_i == 0 )
+                    {
+                        goto error;
+                    }
+                    digit_temp[ temp_i ] = 0;
+                    ulPort= ( unsigned long int ) atol( digit_temp );
+					p->ulPort = ulPort;
+                    temp_i = 0;
+                    ulState = STATE_S;
+                }
+                else
+                {
+                    goto error;
+                }
+                break;
+            default:
+                goto error;
+        }
+
+        list_i++;
+        cToken = list[ list_i ];
+
+    }
+	free(list);
+	return p;
+error:
+	gw_cli_print( cli_i, "%% Can not find interface %s.\r\n", ifname );
+	return NULL;
+
+       
+ }
+
+
 #if 1
 unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)
 {

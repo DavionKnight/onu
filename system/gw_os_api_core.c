@@ -2279,6 +2279,7 @@ gw_int32 gw_pri_queue_get (gw_uint32 queue_id, void *data, gw_uint32 size, gw_ui
         *size_copied = *((int *)(pbuf + sizeof(gw_node)));
         if(*size_copied > size)
         {
+	   free(pbuf);
             gw_osal_queue_table[queue_id].get_data_long++;
             gw_osal_queue_table[queue_id].get_error++;
             return GW_E_OSAL_ERR;

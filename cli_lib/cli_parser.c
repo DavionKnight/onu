@@ -1,9 +1,9 @@
 
 #include <ctype.h>
 #include <network.h>
-#include "../include/gw_os_api_core.h"
 #include "cli_common.h"
-#include "cyg/kernel/kapi.h"
+#include "../apps/gw_log.h"
+#include "../include/gw_os_api_core.h"
 
 #ifdef HAVE_TELNET_CLI
 #define perror(s) gw_printf(s)
@@ -264,40 +264,13 @@ int gw_cli_set_privilege(struct cli_def *cli, int priv)
 void gw_cli_set_modestring(struct cli_def *cli, char *modestring)
 {
         cli->modestring = modestring;
+
    /* #ifdef HAVE_ZTE_OAM   
         if(gw_cur_chan == CHANNEL_TCP)
         {
             cli->modestring = NULL;
         }
     #endif*/
-}
-
-int gw_cli_set_configmode(struct cli_def *cli, int mode, char *config_desc)
-{
-    int old = cli->mode;
-    cli->mode = mode;
-
-    if (mode != old)
-    {
-        if (!cli->mode)
-        {
-            // Not config mode
-            gw_cli_set_modestring(cli, NULL);
-        }
-        else if (config_desc && *config_desc)
-        {
-            static char string[64];
-            snprintf(string, sizeof(string), "(config-%s)", config_desc);
-            gw_cli_set_modestring(cli, string);
-        }
-        else
-        {
-            gw_cli_set_modestring(cli, "(config)");
-        }
-
-    }
-
-    return old;
 }
 
 int gw_cli_set_switch_onuport_mode_enter(struct cli_def *cli, int mode, char *config_desc)
@@ -725,6 +698,8 @@ static char *join_words(int argc, char **argv)
     return p;
 }
 
+extern int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc);
+
 static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands, int num_words, char *words[], int start_word, int filters[])
 {
     struct cli_command *c, *again = NULL;
@@ -732,6 +707,8 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
 
     if (filters[0])
         c_words = filters[0];
+
+	gw_log(GW_LOG_LEVEL_DEBUG, "num: %d, c_words: %d, start num: %d\r\n", num_words, c_words, start_word);
 
     // Deal with ? for help
     if (!words[start_word])
@@ -783,6 +760,7 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
             // Found a word!
             if (!c->children)
             {
+	       gw_log(GW_LOG_LEVEL_DEBUG, "found a  word !\r\n");
                 // Last word
                 if (!c->callback)
                 {
@@ -813,6 +791,7 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
                         gw_cli_error(cli, "Invalid %s \"%s\"", commands->parent ? "argument" : "command", words[start_word]);
                     }
                 }
+
                 return rc;
             }
 
@@ -900,11 +879,15 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
                 }
             }
 
+	    gw_log(GW_LOG_LEVEL_DEBUG, "execute callback: valid == %d\r\n", rc);
             if (rc == CLI_OK)
             {
+		gw_log(GW_LOG_LEVEL_DEBUG, "gw_int_config_terminal %p, callback %p\r\n", gw_cli_int_configure_terminal, c->callback);
                 rc = c->callback(cli, gw_cli_command_name(cli, c), words + start_word + 1, c_words - start_word - 1);
                 // cli_error(cli, "-- cmd handler got invoked \n");
             }
+	   else
+	   	gw_log(GW_LOG_LEVEL_DEBUG, "filter fail!\r\n");
 
             while (cli->filters)
             {
@@ -960,21 +943,12 @@ int gw_cli_run_command(struct cli_def *cli, char *command)
 
     num_words = gw_cli_parse_line(command, words, sizeof(words) / sizeof(words[0]));
 
-    // disable filter function
-#if 0
-    unsigned int f;
-    for (i = f = 0; i < num_words && f < sizeof(filters) / sizeof(filters[0]) - 1; i++)
-    {
-        if (words[i][0] == '|')
-            filters[f++] = i;
-    }
-    filters[f] = 0;
-#endif
-
     if (num_words)
         r = gw_cli_find_command(cli, cli->commands, num_words, words, 0, filters);
     else
+    {
         r = CLI_ERROR;
+    }
 
     for (i = 0; i < num_words; i++)
     {
@@ -982,7 +956,7 @@ int gw_cli_run_command(struct cli_def *cli, char *command)
     }
 
     if (r == CLI_ERROR || r == CLI_ERROR_ARG)
-        cyg_thread_delay(50);
+        gw_thread_delay(50);
 
     if (r == CLI_QUIT)
         return r;
