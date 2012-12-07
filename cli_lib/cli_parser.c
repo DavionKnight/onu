@@ -2197,7 +2197,6 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
 #endif
                 	pty_write(cli->sockfd, "\r\n", 2);
 
-                	gw_printf("pty cli output %s\r\n", p);
                 }
                 else
                     fprintf(stderr, "Invalid channel %d", cli->channel);

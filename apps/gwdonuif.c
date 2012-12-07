@@ -90,6 +90,8 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 	va_list ap;
 	gw_status ret = GW_ERROR;
 
+	gw_int8 ifname[32] = "";
+
 
 	if(!g_im_ifs)
 	{
@@ -104,14 +106,29 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			if(g_im_ifs->onullidget)
 				ret = (*g_im_ifs->onullidget)(va_arg(ap, gw_uint32*));
 			else
-				gw_log(GW_LOG_LEVEL_DEBUG,("onu llid get if is null!\r\n"));
+				strcpy(ifname, "onu llid get if");
+//				gw_log(GW_LOG_LEVEL_DEBUG,("onu llid get if is null!\r\n"));
 			break;	
 		case LIB_IF_SYSINFO_GET:
 			if(g_im_ifs->sysinfoget)
 				ret = (*g_im_ifs->sysinfoget)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*));
 			else
-				gw_log(GW_LOG_LEVEL_DEBUG,("sys info get if is null!\r\n"));
+//				gw_log(GW_LOG_LEVEL_DEBUG,("sys info get if is null!\r\n"));			
+				strcpy(ifname, "sys info get");
 			break;	
+		case LIB_IF_SYSCONF_SAVE:
+			if(g_im_ifs->sysconfsave)
+				ret = (*g_im_ifs->sysconfsave)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
+			else
+//				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf save if is null!\r\n");
+				strcpy(ifname, "sys conf save");
+			break;
+		case LIB_IF_SYSCONF_RESTORE:
+			if(g_im_ifs->sysconfrestore)
+				ret = (*g_im_ifs->sysconfrestore)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
+//			else
+//				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf restore if is null!\r\n");
+			break;
 		case LIB_IF_PORTSEND:
 			if(g_im_ifs->portsend)
 				ret = (*g_im_ifs->portsend)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8 *), va_arg(ap, gw_uint32));
@@ -186,8 +203,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 						
 		default:
+//			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");
 			break;
 	}
+
+	if(!ifname[0])
+		gw_log(GW_LOG_LEVEL_DEBUG, "%s is null!\r\n", ifname);
 
 	va_end(ap);
 
