@@ -708,8 +708,6 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
     if (filters[0])
         c_words = filters[0];
 
-	gw_log(GW_LOG_LEVEL_DEBUG, "num: %d, c_words: %d, start num: %d\r\n", num_words, c_words, start_word);
-
     // Deal with ? for help
     if (!words[start_word])
         return CLI_ERROR;
@@ -760,7 +758,6 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
             // Found a word!
             if (!c->children)
             {
-	       gw_log(GW_LOG_LEVEL_DEBUG, "found a  word !\r\n");
                 // Last word
                 if (!c->callback)
                 {
@@ -879,10 +876,8 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
                 }
             }
 
-	    gw_log(GW_LOG_LEVEL_DEBUG, "execute callback: valid == %d\r\n", rc);
             if (rc == CLI_OK)
             {
-		gw_log(GW_LOG_LEVEL_DEBUG, "gw_int_config_terminal %p, callback %p\r\n", gw_cli_int_configure_terminal, c->callback);
                 rc = c->callback(cli, gw_cli_command_name(cli, c), words + start_word + 1, c_words - start_word - 1);
                 // cli_error(cli, "-- cmd handler got invoked \n");
             }

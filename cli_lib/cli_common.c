@@ -169,8 +169,6 @@ int gw_cli_set_configmode(struct cli_def *cli, int mode, char *config_desc)
     int old = cli->mode;
     cli->mode = mode;
 
-	gw_log(GW_LOG_LEVEL_DEBUG, "old mode is %d and new mode %d\r\n", old, cli->mode);
-
     if (mode != old)
     {
         if (!cli->mode)
@@ -190,10 +188,6 @@ int gw_cli_set_configmode(struct cli_def *cli, int mode, char *config_desc)
         }
 
     }
-	else
-	{
-		gw_log(GW_LOG_LEVEL_DEBUG, "the same mode set!\r\n");
-	}
 
     return old;
 }
