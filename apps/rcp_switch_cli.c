@@ -5770,7 +5770,6 @@ void start_rcp_device_monitor(void)
 
 int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	gw_log(GW_LOG_LEVEL_DEBUG, "enter config mode!!\r\n");
 	
     if (CLI_HELP_REQUESTED)
         return CLI_HELP_NO_ARGS;
@@ -5785,7 +5784,7 @@ int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv
     return CLI_OK;
 }
 
-void cli_switch_gwd_cmd(struct cli_command **cmd_root)
+void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command *inter,*show,*show_mgt;
 	struct cli_command *show_system,*port,*vlan,*stat,*c;
@@ -5889,7 +5888,7 @@ port_cable = gw_cli_register_command(cmd_root,cable,  "test",NULL,       PRIVILE
 }
 
 
-void cli_debeg_gwd_cmd(struct cli_command **cmd_root)
+void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command *get,*set,*show,*set_product,*set_board,*set_rcpmanufacture;
 //		gw_cli_register_command(cmd_root, NULL, "debug",    cmd_debug_mode_int, PRIVILEGE_PRIVILEGED,   MODE_CONFIG,    "Enter debug mode");

@@ -2153,12 +2153,8 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 
 int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	long lRet = GWD_RETURN_OK;
 
-#if 0
-	cs_callback_context_t tc;
-	cs_int16 temp = 0;
-	cs_uint16 vcc = 0, bias =0, txpow =0, rxpow=0;
+	gw_uint16 temp=0, vcc = 0, bias =0, txpow =0, rxpow=0;
 
     // deal with help
     if(CLI_HELP_REQUESTED)
@@ -2170,8 +2166,7 @@ int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *
         }
     }
 
-       lRet =  cs_plat_i2c_opm_status_read(tc, 0, 0, &temp, &vcc, &bias, &txpow, &rxpow);
-	if (lRet != EPON_RETURN_SUCCESS)
+         if(call_gwdonu_if_api(LIB_IF_OPM_GET, 5, &temp, &vcc, &bias, &txpow, &rxpow) != GW_OK)
 	{
 		gw_cli_print(cli, "  Get optical module diagnostics from I2C with error.\r\n");
 		return CLI_OK;
@@ -2180,7 +2175,7 @@ int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *
 	{
 		double txdbm = 0.9, rxdbm = 0.0;
 		temp = temp/256;
-		vcc = (cs_uint16)(vcc*0.1);
+		vcc = (gw_uint16)(vcc*0.1);
 		bias = bias*0.002;
 		txdbm = txpow;
 		rxdbm = rxpow;
@@ -2196,9 +2191,7 @@ int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *
 
 		return CLI_OK;
 	}
-#else
-	return lRet;
-#endif
+
 }
 
 int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
@@ -2237,6 +2230,41 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
             vid,
             entry.port,
             entry.type);
+    }
+    gw_cli_print(cli, "====== Totally %2d SW entries====\n", idx);
+#else
+
+
+    gw_uint32 vid = 0, egports = 0, idx = 0;
+	gw_uint8 mac[GW_MACADDR_LEN]={0,0,0,0,0,0};
+
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        default:
+            return gw_cli_arg_help(cli, 1, NULL);
+        }
+    }
+
+    gw_cli_print(cli, "====== FDB SW table is shown:======");
+    gw_cli_print(cli, "index   mac_address        vid   port type ");
+
+    while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 5, vid, mac, &vid, mac, &egports) == GW_OK)
+    {
+
+        gw_cli_print(cli, " %2d   %02x:%02x:%02x:%02x:%02x:%02x %6d   %2d   %2d  ", idx,
+            mac[0],
+            mac[1],
+            mac[2],
+            mac[3],
+            mac[4],
+            mac[5],
+            vid,
+            egports,
+            0);
+		idx++;
     }
     gw_cli_print(cli, "====== Totally %2d SW entries====\n", idx);
 #endif
@@ -2296,8 +2324,8 @@ gw_status gw_oam_handler(gw_int8 * pkt, const gw_int32 len, gw_int32 portid)
 void gwd_onu_init(void)
 {
 extern void Rcp_Mgt_init(void);
-extern void cli_switch_gwd_cmd(struct cli_command **cmd_root);
-extern void cli_debeg_gwd_cmd(struct cli_command **cmd_root);
+extern void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root);
+extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 
 	GwOamMessageListInit();
@@ -2327,10 +2355,10 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 		gw_printf("regist gwd cmds fail!\r\n");
 
 
-	if(registerUserCmdInitHandler("rcp-switch", cli_switch_gwd_cmd) != GW_OK)
+	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 
-	if(registerUserCmdInitHandler("rcp-switch-debug", cli_debeg_gwd_cmd) != GW_OK)
+	if(registerUserCmdInitHandler("rcp-switch-debug", gw_cli_debeg_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch debug cmds fail!\r\n");
 
 	if(registerUserCmdInitHandler("rcp-switch-show", cli_reg_rcp_cmd) != GW_OK)

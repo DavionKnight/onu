@@ -106,28 +106,28 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			if(g_im_ifs->onullidget)
 				ret = (*g_im_ifs->onullidget)(va_arg(ap, gw_uint32*));
 			else
-				strcpy(ifname, "onu llid get if");
-//				gw_log(GW_LOG_LEVEL_DEBUG,("onu llid get if is null!\r\n"));
+//				strcpy(ifname, "onu llid get if");
+				gw_log(GW_LOG_LEVEL_DEBUG,("onu llid get if is null!\r\n"));
 			break;	
 		case LIB_IF_SYSINFO_GET:
 			if(g_im_ifs->sysinfoget)
 				ret = (*g_im_ifs->sysinfoget)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*));
 			else
-//				gw_log(GW_LOG_LEVEL_DEBUG,("sys info get if is null!\r\n"));			
-				strcpy(ifname, "sys info get");
+				gw_log(GW_LOG_LEVEL_DEBUG,("sys info get if is null!\r\n"));			
+//				strcpy(ifname, "sys info get");
 			break;	
 		case LIB_IF_SYSCONF_SAVE:
 			if(g_im_ifs->sysconfsave)
 				ret = (*g_im_ifs->sysconfsave)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
 			else
-//				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf save if is null!\r\n");
-				strcpy(ifname, "sys conf save");
+				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf save if is null!\r\n");
+//				strcpy(ifname, "sys conf save");
 			break;
 		case LIB_IF_SYSCONF_RESTORE:
 			if(g_im_ifs->sysconfrestore)
 				ret = (*g_im_ifs->sysconfrestore)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
-//			else
-//				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf restore if is null!\r\n");
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf restore if is null!\r\n");
 			break;
 		case LIB_IF_PORTSEND:
 			if(g_im_ifs->portsend)
@@ -181,12 +181,27 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry get if is null!\r\n");
 			break;
 
+		case LIB_IF_FDB_ENTRY_GETNEXT:
+			if(g_im_ifs->fdbentrygetnext)
+				ret = (*g_im_ifs->fdbentrygetnext)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8*),
+				va_arg(ap, gw_uint32*), va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry getnext if is null!\r\n");
+			break;			
+
 		case LIB_IF_FDB_MGT_MAC_SET:
 			if(g_im_ifs->fdbmgtmacset)
 				ret = (*g_im_ifs->fdbmgtmacset)(va_arg(ap, gw_uint8*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "fdb mgt mac set if is null!\r\n");
-			break;			
+			break;		
+
+		case LIB_IF_OPM_GET:
+			if(g_im_ifs->opmget)
+				ret = (*g_im_ifs->opmget)(va_arg(ap, gw_uint16*), va_arg(ap, gw_uint16*), va_arg(ap, gw_uint16*),
+				va_arg(ap, gw_uint16*), va_arg(ap, gw_uint16*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "opm get if is null!\r\n");
 			break;
 
 		case LIB_IF_PORT_LOOP_EVENT_POST:
@@ -207,8 +222,8 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 	}
 
-	if(!ifname[0])
-		gw_log(GW_LOG_LEVEL_DEBUG, "%s is null!\r\n", ifname);
+//	if(!ifname[0])
+//		gw_log(GW_LOG_LEVEL_DEBUG, "%s is null!\r\n", ifname);
 
 	va_end(ap);
 
