@@ -976,6 +976,17 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr ++ = ResLen;
 			memcpy(ptr, onu_system_info_total.hw_manufature_date, ResLen);
 			ptr += ResLen;
+
+			/*auto config set*/
+			*ptr ++ = 0;
+
+			/*maximum slot config set*/
+			*ptr ++ = 0;
+
+			/*extension capality*/
+			*ptr ++ = 0xfe;
+			*ptr ++ = 3;
+			*ptr ++= 0x80; /*added ctc statistic function surpport*/			
 			
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
