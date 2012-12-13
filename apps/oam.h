@@ -959,7 +959,7 @@ typedef struct onu_system_information_total
 {
 	unsigned short 	product_serial;					/* 2 */
 	unsigned short	product_type;					/* 2 */
-	unsigned char	device_name[16];				/* 16 */
+	unsigned char	device_name[64];				/* 64 */
 	unsigned char	sw_version[12];					/* 12 */
 	unsigned char	serial_no[18];					/* 18 */
 	unsigned char	hw_version[6];					/* 6 */

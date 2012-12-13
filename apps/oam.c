@@ -84,7 +84,7 @@ unsigned long lpb_detect_timeout_timer = 0;
 
 unsigned long gulIpAddrInEeprom;
 
-ONU_SYS_INFO_TOTAL onu_system_info_total;
+ONU_SYS_INFO_TOTAL gw_onu_system_info_total;
 unsigned char *pStrGwdSwVer;
 unsigned char *pStrGwdHwVer;
 
@@ -95,8 +95,8 @@ struct {
 #endif
 
 unsigned char *irosbootver = "iROSBoot ONU 02.08.01 1286761672 Oct 11 2010";
-int Onu_Sysinfo_Get(void);
-int Onu_Sysinfo_Save(void);
+int GW_Onu_Sysinfo_Get(void);
+int GW_Onu_Sysinfo_Save(void);
 
 int GwOamMessageListInit(void)
 {
@@ -934,11 +934,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			ptr += ResLen;
 
 			/*Onu name*/
-			ResLen = strlen(onu_system_info_total.device_name);
+			ResLen = strlen(gw_onu_system_info_total.device_name);
 			if (ResLen > 128)
 				ResLen = 128;
 			*ptr++ = ResLen;
-			memcpy(ptr, onu_system_info_total.device_name, ResLen);
+			memcpy(ptr, gw_onu_system_info_total.device_name, ResLen);
 			ptr += ResLen;
 
 			/*Description*/
@@ -966,15 +966,15 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			ptr += ResLen;
 
 			/*Serial Number*/
-			ResLen = strlen(onu_system_info_total.serial_no);
+			ResLen = strlen(gw_onu_system_info_total.serial_no);
 			*ptr ++ = ResLen;
-			memcpy(ptr, onu_system_info_total.serial_no, ResLen);
+			memcpy(ptr, gw_onu_system_info_total.serial_no, ResLen);
 			ptr += ResLen;
 			
 			/*Manufacture Date*/
-			ResLen = strlen(onu_system_info_total.hw_manufature_date);
+			ResLen = strlen(gw_onu_system_info_total.hw_manufature_date);
 			*ptr ++ = ResLen;
-			memcpy(ptr, onu_system_info_total.hw_manufature_date, ResLen);
+			memcpy(ptr, gw_onu_system_info_total.hw_manufature_date, ResLen);
 			ptr += ResLen;
 
 			/*auto config set*/
@@ -1011,15 +1011,15 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			{
 				unsigned char tmpLen;
 
-				if (nameLen > sizeof(onu_system_info_total.device_name))
-					tmpLen = sizeof(onu_system_info_total.device_name);
+				if (nameLen > sizeof(gw_onu_system_info_total.device_name))
+					tmpLen = sizeof(gw_onu_system_info_total.device_name);
 				else
 					tmpLen = nameLen;
 				
-				Onu_Sysinfo_Get();
-				memset(onu_system_info_total.device_name, 0, sizeof(onu_system_info_total.device_name));
-				memcpy(onu_system_info_total.device_name, pReq, tmpLen);
-				Onu_Sysinfo_Save();
+				GW_Onu_Sysinfo_Get();
+				memset(gw_onu_system_info_total.device_name, 0, sizeof(gw_onu_system_info_total.device_name));
+				memcpy(gw_onu_system_info_total.device_name, pReq, tmpLen);
+				GW_Onu_Sysinfo_Save();
 				/* Success */
 				*ptr ++ = 1;
 				pReq += nameLen;
@@ -1865,7 +1865,7 @@ void ONU_Oam_BCStorm_Trap_Report_API(unsigned long slot, unsigned long port, uns
 	return;
 }
 
-int Onu_Sysinfo_Save_To_Flash(VOID)
+int GW_Onu_Sysinfo_Save_To_Flash(VOID)
 {
 #if 0
 	unsigned char *tempBuff = NULL;
@@ -1877,43 +1877,50 @@ int Onu_Sysinfo_Save_To_Flash(VOID)
 #endif
     int ret=0;
 
-    buff=(unsigned char  *)&onu_system_info_total;
-    size =sizeof (onu_system_info_total);
+    buff=(unsigned char  *)&gw_onu_system_info_total;
+    size =sizeof (gw_onu_system_info_total);
+
+    gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
 
     ret = call_gwdonu_if_api(LIB_IF_SYSCONF_SAVE, 2, buff, size);
 
     return ret;
 }
 
-int Onu_Sysinfo_Get_From_Flash(VOID)
+int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 {
 	int ret=GWD_RETURN_OK;
 	int iLastChar;
 	unsigned char ucsDeviceNameDef[] = "GT810_A";
 
-	memset(&onu_system_info_total, 0, sizeof(onu_system_info_total));
+	memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 
-//	if (GWD_RETURN_OK != (ret = get_userdata_from_flash((unsigned char *)&onu_system_info_total, GWD_PRODUCT_CFG_OFFSET,  sizeof(onu_system_info_total))))
-	if(GW_OK != call_gwdonu_if_api(LIB_IF_SYSCONF_RESTORE, 2, (unsigned char *)&onu_system_info_total, sizeof(onu_system_info_total)))
+//	if (GWD_RETURN_OK != (ret = get_userdata_from_flash((unsigned char *)&gw_onu_system_info_total, GWD_PRODUCT_CFG_OFFSET,  sizeof(gw_onu_system_info_total))))
+	if(GW_OK != call_gwdonu_if_api(LIB_IF_SYSCONF_RESTORE, 2, (unsigned char *)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total)))
 	{
-		memset(&onu_system_info_total, 0, sizeof(onu_system_info_total));
+		memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 //		IROS_LOG_MAJ(IROS_MID_OAM, "Read system info from flash failed.(%d)\r\n", ret);
 		ret = GWD_RETURN_ERR;
 	}
-	/* Avoid invalid string data */
-	if('E' != onu_system_info_total.valid_flag)
+	else
 	{
-		memcpy(onu_system_info_total.device_name, ucsDeviceNameDef, sizeof(ucsDeviceNameDef));
+		gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
 	}
-	iLastChar = sizeof(onu_system_info_total.device_name) - 1;
-	onu_system_info_total.device_name[iLastChar] = '\0';
-	iLastChar = sizeof(onu_system_info_total.serial_no) - 1;
-	onu_system_info_total.serial_no[iLastChar] = '\0';
-	iLastChar = sizeof(onu_system_info_total.hw_manufature_date) - 1;
-	onu_system_info_total.hw_manufature_date[iLastChar] = '\0';
+		
+	/* Avoid invalid string data */
+	if('E' != gw_onu_system_info_total.valid_flag)
+	{
+		memcpy(gw_onu_system_info_total.device_name, ucsDeviceNameDef, sizeof(ucsDeviceNameDef));
+	}
+	iLastChar = sizeof(gw_onu_system_info_total.device_name) - 1;
+	gw_onu_system_info_total.device_name[iLastChar] = '\0';
+	iLastChar = sizeof(gw_onu_system_info_total.serial_no) - 1;
+	gw_onu_system_info_total.serial_no[iLastChar] = '\0';
+	iLastChar = sizeof(gw_onu_system_info_total.hw_manufature_date) - 1;
+	gw_onu_system_info_total.hw_manufature_date[iLastChar] = '\0';
 
-	onu_system_info_total.product_type = DEVICE_TYPE_GT870;
-	sprintf(onu_system_info_total.sw_version, "V%dR%02dB%03d", 
+	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT870;
+	sprintf(gw_onu_system_info_total.sw_version, "V%dR%02dB%03d", 
 		SYS_SOFTWARE_MAJOR_VERSION_NO,
 		SYS_SOFTWARE_RELEASE_VERSION_NO,
 		SYS_SOFTWARE_BRANCH_VERSION_NO);
@@ -1921,25 +1928,25 @@ int Onu_Sysinfo_Get_From_Flash(VOID)
 	return ret;
 }
 
-int Onu_Sysinfo_Save(void)
+int GW_Onu_Sysinfo_Save(void)
 {
 	/* Save to flash */
-	onu_system_info_total.product_type = DEVICE_TYPE_GT870;
-	onu_system_info_total.valid_flag = 'E';
-	/*sprintf(onu_system_info_total.sw_version, "V%dR%02dB%03d", 
+	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT870;
+	gw_onu_system_info_total.valid_flag = 'E';
+	/*sprintf(gw_onu_system_info_total.sw_version, "V%dR%02dB%03d", 
 		SYS_SOFTWARE_MAJOR_VERSION_NO,
 		SYS_SOFTWARE_RELEASE_VERSION_NO,
 		SYS_SOFTWARE_BRANCH_VERSION_NO);
-	sprintf(onu_system_info_total.hw_version, "V%d.%d", 
+	sprintf(gw_onu_system_info_total.hw_version, "V%d.%d", 
 		SYS_HARDWARE_MAJOR_VERSION_NO,
 		SYS_HARDWARE_RELEASE_VERSION_NO);*/
 	
-	return Onu_Sysinfo_Save_To_Flash();
+	return GW_Onu_Sysinfo_Save_To_Flash();
 }
 
-int Onu_Sysinfo_Get(void)
+int GW_Onu_Sysinfo_Get(void)
 {
-    return Onu_Sysinfo_Get_From_Flash();
+    return GW_Onu_Sysinfo_Get_From_Flash();
 }
 
 int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -1974,11 +1981,11 @@ int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *ar
 		month = atoi(argv[1]);
 		date = atoi(argv[2]);
 
-		Onu_Sysinfo_Get();
-		sprintf(onu_system_info_total.hw_manufature_date, 
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.hw_manufature_date, 
 			   	"%d-%02d-%02d", year, month, date);
         
-		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
 		{
 			gw_cli_print(cli, "  System information save error!\r\n");
 		}
@@ -2017,10 +2024,10 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
 		v_major = atoi(argv[0]);
 		v_rel = atoi(argv[1]);
 
-		sprintf(onu_system_info_total.hw_version, "V%d.%d", 
+		sprintf(gw_onu_system_info_total.hw_version, "V%d.%d", 
 			v_major, v_rel);
         
-		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
 		{
 			gw_cli_print(cli, "  System information save error!\r\n");
 		}
@@ -2064,10 +2071,10 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
 			tmpStr[i] = TOUPPER(argv[0][i]);
 		tmpStr[i] = '\0';
 		
-		Onu_Sysinfo_Get();
-		sprintf(onu_system_info_total.serial_no, "%s", tmpStr);
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.serial_no, "%s", tmpStr);
 
-		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
 		{
 			gw_cli_print(cli, "  System information save error!\r\n");
 		}
@@ -2113,10 +2120,10 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
 			tmpStr[i] = TOUPPER(argv[0][i]);
 		tmpStr[i] = '\0';
 		
-		Onu_Sysinfo_Get();
-		sprintf(onu_system_info_total.device_name, "%s", tmpStr);
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.device_name, "%s", tmpStr);
 
-		if (GWD_RETURN_OK != Onu_Sysinfo_Save())
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
 		{
 			gw_cli_print(cli, "  System information save error!\r\n");
 		}
@@ -2139,7 +2146,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	
     cli_get_onu_mac_addr(strMac);
         
-	lRet = Onu_Sysinfo_Get();
+	lRet = GW_Onu_Sysinfo_Get();
 	if (lRet != GWD_RETURN_OK)
 	{
 		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
@@ -2149,13 +2156,13 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
 		gw_cli_print(cli,  "    ONU type         : %s", "GT810A");
-		gw_cli_print(cli,  "    DeiveName        : %s", onu_system_info_total.device_name);
-		gw_cli_print(cli,  "    Hardware version : %s", onu_system_info_total.hw_version);
-		gw_cli_print(cli,  "    Software version : %s", onu_system_info_total.sw_version);
+		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
+		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
+		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
 		gw_cli_print(cli,  "    Firmware version : %s", iros_version);
 		gw_cli_print(cli,  "    Bootload version : %s", irosbootver);
-		gw_cli_print(cli,  "    Manufature date  : %s", onu_system_info_total.hw_manufature_date);
-		gw_cli_print(cli,  "    Serial number    : %s", onu_system_info_total.serial_no);
+		gw_cli_print(cli,  "    Manufature date  : %s", gw_onu_system_info_total.hw_manufature_date);
+		gw_cli_print(cli,  "    Serial number    : %s", gw_onu_system_info_total.serial_no);
     	gw_cli_print(cli,  "    Onu mac address  : %s", strMac);
 
 		return CLI_OK;
@@ -2341,6 +2348,8 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 
 	GwOamMessageListInit();
 
+	GW_Onu_Sysinfo_Get();
+
 	init_gw_oam_async();
 
 	init_oam_pty();
@@ -2350,10 +2359,10 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 
 #if _cmd_line_
 
-	Onu_Sysinfo_Get();
+	GW_Onu_Sysinfo_Get();
 
-	pStrGwdSwVer = onu_system_info_total.sw_version;
-	pStrGwdHwVer = onu_system_info_total.hw_version;
+	pStrGwdSwVer = gw_onu_system_info_total.sw_version;
+	pStrGwdHwVer = gw_onu_system_info_total.hw_version;
 
 	oam_vendor_handler_register(GwOUI, gwd_oam_handlers);
 #endif

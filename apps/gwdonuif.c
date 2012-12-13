@@ -77,6 +77,7 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs)
 
 			call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
 			call_gwdonu_if_api(LIB_IF_SPECIAL_PKT_HANDLER_REGIST, 1, gwlib_sendPktToQueue);
+			GW_Onu_Sysinfo_Get();
 			
 			ret = GW_E_OK;
 		}
