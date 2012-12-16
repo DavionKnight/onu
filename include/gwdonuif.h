@@ -32,12 +32,20 @@ typedef gw_uint32 (*libgwdonu_sys_conf_restore_t)(gw_uint8 *info, gw_uint32 len)
 typedef gw_status (*libgwdonu_port_admin_status_get_t)(gw_int32 portid, gwd_port_admin_t *status);
 typedef gw_status (*libgwdonu_port_admin_status_set_t)(gw_int32 portid, gwd_port_admin_t status);
 typedef gw_status (*libgwdonu_port_oper_status_get_t)(gw_int32 portid, gwd_port_oper_status_t *status);
+typedef gw_status (*libgwdonu_port_mode_get_t)(gw_int32 portid, gw_int32 *spd, gw_int32 *duplex);
+typedef gw_status (*libgwdonu_port_mode_set_t)(gw_int32 portid, gw_int32 spd, gw_int32 duplex);
+typedef gw_status (*libgwdonu_port_isolate_get_t)(gw_int32 portid, gw_int32 *en);
+typedef gw_status (*libgwdonu_port_isolate_set_t)(gw_int32 portid, gw_int32 en);
 
 typedef gw_status (*libgwdonu_vlan_entry_getnext_t)(gw_uint32 index, gw_uint16 *vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
 typedef gw_status (*libgwdonu_vlan_entry_get_t)(gw_uint32 vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
 typedef gw_status (*libgwdonu_fdb_entry_get_t)(gw_uint32 vid, gw_uint8 * macaddr, gw_uint32 *eg_portlist);
 typedef gw_status (*libgwdonu_fdb_entry_getnext_t)(gw_uint32 vid, gw_uint8 * macaddr, gw_uint32 *nextvid, gw_uint8 *nextmac, gw_uint32 * eg_portlist);
 typedef gw_status (*libgwdonu_fdb_mgt_mac_set_t)(gw_uint8 * mac);
+typedef gw_status (*libgwdonu_atu_learn_get_t)(gw_int32 *en);
+typedef gw_status (*libgwdonu_atu_learn_set_t)(gw_int32 en);
+typedef gw_status (*libgwdonu_atu_age_get_t)(gw_int32 *age);
+typedef gw_status (*libgwdonu_atu_age_set_t)(gw_int32 age);
 
 typedef gw_status (*libgwdonu_opm_get_t)(gw_uint16 *temp,gw_uint16 *vcc,gw_uint16 *bias,gw_uint16 *txpow,gw_uint16 *rxpow);
 
@@ -56,12 +64,20 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_port_admin_status_get_t portadminget;
 	libgwdonu_port_admin_status_set_t portadminset;
 	libgwdonu_port_oper_status_get_t    portoperstatusget;
+	libgwdonu_port_mode_get_t		portmodeget;
+	libgwdonu_port_mode_set_t		portmodeset;
+	libgwdonu_port_isolate_get_t		portisolateget;
+	libgwdonu_port_isolate_set_t		portisolateset;
 
 	libgwdonu_vlan_entry_getnext_t		vlanentrygetnext;
 	libgwdonu_vlan_entry_get_t		vlanentryget;
 	libgwdonu_fdb_entry_get_t		fdbentryget;
 	libgwdonu_fdb_entry_getnext_t	fdbentrygetnext;
 	libgwdonu_fdb_mgt_mac_set_t	fdbmgtmacset;
+	libgwdonu_atu_learn_get_t		atulearnget;
+	libgwdonu_atu_learn_set_t		atulearnset;
+	libgwdonu_atu_age_get_t			atuageget;
+	libgwdonu_atu_age_set_t			atuageset;
 
 	libgwdonu_opm_get_t			opmget;
 

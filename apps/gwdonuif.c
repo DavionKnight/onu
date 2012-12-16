@@ -160,6 +160,30 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "port oper status get if is null!\r\n");
 			break;
+		case LIB_IF_PORT_MODE_GET:
+			if(g_im_ifs->portmodeget)
+				ret = (*g_im_ifs->portmodeget)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*), va_arg(ap, gw_int32 *));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port mode get if is null!\r\n");
+			break;			
+		case LIB_IF_PORT_MODE_SET:
+			if(g_im_ifs->portmodeset)
+				ret = (*g_im_ifs->portmodeset)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32), va_arg(ap, gw_int32 ));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port mode set if is null!\r\n");
+			break;	
+		case LIB_IF_PORT_ISOLATE_GET:
+			if(g_im_ifs->portisolateget)
+				ret = (*g_im_ifs->portisolateget)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port isolate get if is null!\r\n");
+			break;
+		case LIB_IF_PORT_ISOLATE_SET:
+			if(g_im_ifs->portisolateset)
+				ret = (*g_im_ifs->portisolateset)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port isolate set if is null!\r\n");
+			break;			
 		case LIB_IF_VLAN_ENTRY_GETNEXT:
 			if(g_im_ifs->vlanentrygetnext)
 				ret = (*g_im_ifs->vlanentrygetnext)(va_arg(ap, gw_uint32),  va_arg(ap, gw_uint16*),
@@ -189,6 +213,30 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry getnext if is null!\r\n");
 			break;			
+		case LIB_IF_ATU_LEARN_GET:
+			if(g_im_ifs->atulearnget)
+				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "atu learn get if is null!\r\n");
+			break;			
+		case LIB_IF_ATU_LEARN_SET:
+			if(g_im_ifs->atulearnget)
+				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "atu learn set if is null!\r\n");
+			break;	
+		case LIB_IF_ATU_AGE_GET:
+			if(g_im_ifs->atuageget)
+				ret = (*g_im_ifs->atuageget)(va_arg(ap, gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "atu age get if is null!\r\n");
+			break;			
+		case LIB_IF_ATU_AGE_SET:
+			if(g_im_ifs->atuageget)
+				ret = (*g_im_ifs->atuageget)(va_arg(ap, gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "atu age set if is null!\r\n");
+			break;				
 
 		case LIB_IF_FDB_MGT_MAC_SET:
 			if(g_im_ifs->fdbmgtmacset)
