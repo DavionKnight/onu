@@ -2091,7 +2091,7 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
 int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int  len, i;
-	unsigned char tmpStr[18];
+	unsigned char tmpStr[64];
 
         
     // deal with help
