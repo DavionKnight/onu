@@ -18,11 +18,11 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"<1-4>", "port id selected");
+					"<1-4>", "port id selected", NULL);
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0, 
-					"[0|1|2|3|4|5|6]", "port mode: 0 an;1 10HD; 2 10FD; 3 100HD; 4 100FD; 5 1000HD; 6 1000FD");
+					"[0|1|2|3|4|5|6]", "port mode: 0 an;1 10HD; 2 10FD; 3 100HD; 4 100FD; 5 1000HD; 6 1000FD", NULL);
 				break;
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
@@ -101,11 +101,11 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"<1-4>", "port id selected");
+					"<1-4>", "port id selected", NULL);
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0, 
-					"[0|1]", "isolate 1 enable; 0 disable");
+					"[0|1]", "isolate 1 enable; 0 disable", NULL);
 				break;
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
@@ -150,7 +150,7 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"[1|0]", "1 enable; 0 disable");
+					"[1|0]", "1 enable; 0 disable", NULL);
 				break;
 
 			default:
@@ -188,7 +188,7 @@ int cmd_oam_atu_age(struct cli_def *cli, char *command, char *argv[], int argc)
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"<0-600>", "l2 age time unit sec, 0: disable aging");
+					"<0-600>", "l2 age time unit sec, 0: disable aging", NULL);
 				break;
 
 			default:
