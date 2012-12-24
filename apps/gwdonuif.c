@@ -215,13 +215,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;			
 		case LIB_IF_ATU_LEARN_GET:
 			if(g_im_ifs->atulearnget)
-				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_uint32*));
+				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_int32), va_arg(ap, gw_uint32*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "atu learn get if is null!\r\n");
 			break;			
 		case LIB_IF_ATU_LEARN_SET:
 			if(g_im_ifs->atulearnget)
-				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_uint32));
+				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_int32), va_arg(ap, gw_uint32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "atu learn set if is null!\r\n");
 			break;	

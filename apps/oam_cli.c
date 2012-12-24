@@ -6,6 +6,7 @@
 #include "oam.h"
 #include "gwdonuif_interval.h"
 
+extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
 
 int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -99,11 +100,15 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 	{
 		switch (argc)
 		{
+/*			
 			case 1:
 				return gw_cli_arg_help(cli, 0,
 					"<1-4>", "port id selected", NULL);
 				break;
+
 			case 2:
+*/
+			case 1:
 				return gw_cli_arg_help(cli, 0, 
 					"[0|1]", "isolate 1 enable; 0 disable", NULL);
 				break;
@@ -113,8 +118,11 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 		}
 	}
 
+	port = 0xff;
+
 	if(argc >= 1)
 	{
+		#if 0
 		port = atoi(argv[0]);
 		if(argc > 1)
 			en = atoi(argv[1]);
@@ -131,9 +139,24 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 			if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
 				gw_cli_print(cli, "port %d set isolate %d fail!\r\n", port, en?"enable":"disable");
 		}
+		#else
+		if(argc == 1)
+			en = atoi(argv[1]);
+
+
+		if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
+			gw_cli_print(cli, "port %d set isolate %d fail!\r\n", port, en?"enabled":"disabled");
+	
+		#endif
 	}
 	else
-		gw_cli_print(cli, "invalid input!\r\n");
+	{	
+		if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_GET, 2, port, &en) != GW_OK)
+			gw_cli_print(cli, "get port isolate fail!\r\n");
+		else
+			gw_cli_print(cli, "Port isolate is %s\r\n", en?"enabled":"disabled");
+
+	}
 	
 
 	return CLI_OK;
@@ -142,13 +165,17 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
-	int en = 0;
+	int en = 0, portid = 0;
 
 	if(CLI_HELP_REQUESTED)
 	{
 		switch (argc)
 		{
 			case 1:
+				return gw_cli_arg_help(cli, 0, 
+					"<port_list>", "Input one fe port number", NULL );
+				break;
+			case 2:
 				return gw_cli_arg_help(cli, 0,
 					"[1|0]", "1 enable; 0 disable", NULL);
 				break;
@@ -159,19 +186,30 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 		}
 	}
 
-	if(argc == 1)
+	if(argc >= 1)
 	{
-		en = atoi(argv[0]);
-		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_SET, 1, en))
+		portid = atoi(argv[0]);
+
+		if(argc == 2)
+			en = atoi(argv[1]);
+
+		if(argc == 2 )
+		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_SET, 2, portid,  en))
 			gw_cli_print(cli, "atu learning set %s fail!\r\n", en?"enable":"disable");
+		else
+		{
+			if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_GET, 2,portid, &en))
+				gw_cli_print(cli, "get port %d atu learning fail!\r\n", portid);
+			else
+				gw_cli_print(cli, "port %d atu learning %s\r\n", portid, en?"enable":"disable");
+		}
 	}
 	else
 	{
-		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_GET, 1, &en))
-			gw_cli_print(cli, "get atu learning fail!\r\n");
-		else
-			gw_cli_print(cli, "atu learning %s\r\n", en?"enable":"disable");
+		gw_cli_print(cli, "input invalid!\r\n");
+		return CLI_ERROR;
 	}
+
 	
 
 	return CLI_OK;
@@ -224,11 +262,11 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 
 	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "atu command");
 	gw_cli_register_command(cmd_root, atu, "learning", cmd_oam_atu_learn, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "learning enable");
-	gw_cli_register_command(cmd_root, atu, "age", cmd_oam_atu_learn, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "age set");
+	gw_cli_register_command(cmd_root, atu, "aging", cmd_oam_atu_age, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "age set");
+	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");
 
 	c = gw_cli_register_command(cmd_root, NULL, "vlan", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan command");
-	c = gw_cli_register_command(cmd_root, c, "port", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port command");
-	gw_cli_register_command(cmd_root, c, "isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
+	gw_cli_register_command(cmd_root, c, "port_isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
 	
     return;
 }
