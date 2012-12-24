@@ -2289,6 +2289,61 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 	return ret;
 }
 
+int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int mac1[6];
+    unsigned char mac2[6];
+    int ret ;
+
+    int i;
+    
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "<xxxx.xxxx.xxxx>", "ONU  MAC Address",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+
+    if(1 == argc)
+    {   
+        if(strlen(argv[0]) > 18){
+            gw_cli_print(cli,"MAC address configuration is not OK\n");
+            return CLI_ERROR;
+        }
+        
+        ret = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", 
+            &mac1[0], &mac1[1], &mac1[2], &mac1[3],&mac1[4],&mac1[5]);
+        
+        if(ret != 6 || mac1[0]&0x01){
+            gw_cli_print(cli,"Input MAC is not a unicast MAC\n");
+            return CLI_ERROR;
+        }
+
+        for(i = 0 ; i < 6; i ++){
+            mac2[i] = (unsigned char)mac1[i];
+        }
+
+	ret = call_gwdonu_if_api(LIB_IF_ONU_MAC_SET, 1, mac2);
+
+	if(ret == GW_OK)
+		return CLI_OK;
+        
+    } else
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+		return CLI_ERROR;
+    }
+    
+    return CLI_OK;
+}
 
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
@@ -2301,6 +2356,7 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     	gw_cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
     	gw_cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
     	gw_cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
+	gw_cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
 
     // display cmds in config mode
     show  = gw_cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");

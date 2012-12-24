@@ -46,6 +46,7 @@ typedef gw_status (*libgwdonu_atu_learn_get_t)(gw_int32 portid, gw_int32 *en);
 typedef gw_status (*libgwdonu_atu_learn_set_t)(gw_int32 portid, gw_int32 en);
 typedef gw_status (*libgwdonu_atu_age_get_t)(gw_int32 *age);
 typedef gw_status (*libgwdonu_atu_age_set_t)(gw_int32 age);
+typedef gw_status(*libgwdonu_set_mac_t)(gw_int8 *mac);
 
 typedef gw_status (*libgwdonu_opm_get_t)(gw_uint16 *temp,gw_uint16 *vcc,gw_uint16 *bias,gw_uint16 *txpow,gw_uint16 *rxpow);
 
@@ -78,6 +79,8 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_atu_learn_set_t		atulearnset;
 	libgwdonu_atu_age_get_t			atuageget;
 	libgwdonu_atu_age_set_t			atuageset;
+
+	libgwdonu_set_mac_t			onumacset;
 
 	libgwdonu_opm_get_t			opmget;
 
