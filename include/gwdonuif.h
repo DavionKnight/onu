@@ -49,6 +49,7 @@ typedef gw_status (*libgwdonu_port_mode_get_t)(gw_int32 portid, gw_int32 * auneg
 typedef gw_status (*libgwdonu_port_mode_set_t)(gw_int32 portid, gw_int32 spd, gw_int32 duplex);
 typedef gw_status (*libgwdonu_port_isolate_get_t)(gw_int32 portid, gw_int32 *en);
 typedef gw_status (*libgwdonu_port_isolate_set_t)(gw_int32 portid, gw_int32 en);
+typedef gw_status (*libgwdonu_port_statistic_get_t)(gw_int32 portid, gw_int8 * data, gw_int32 * len);
 
 typedef gw_status (*libgwdonu_vlan_entry_getnext_t)(gw_uint32 index, gw_uint16 *vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
 typedef gw_status (*libgwdonu_vlan_entry_get_t)(gw_uint32 vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
@@ -82,6 +83,7 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_port_mode_set_t		portmodeset;
 	libgwdonu_port_isolate_get_t		portisolateget;
 	libgwdonu_port_isolate_set_t		portisolateset;
+	libgwdonu_port_statistic_get_t	portstatget;
 
 	libgwdonu_vlan_entry_getnext_t		vlanentrygetnext;
 	libgwdonu_vlan_entry_get_t		vlanentryget;

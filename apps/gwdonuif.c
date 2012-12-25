@@ -187,6 +187,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "port isolate set if is null!\r\n");
 			break;			
+		case LIB_IF_PORT_STATISTIC_GET:
+			if(g_im_ifs->portstatget)
+				ret = (*g_im_ifs->portstatget)(va_arg(ap, gw_int32), va_arg(ap, gw_int8 *), va_arg(ap, gw_int32 *));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port statistic get if is null!\r\n");
+			break;
 		case LIB_IF_VLAN_ENTRY_GETNEXT:
 			if(g_im_ifs->vlanentrygetnext)
 				ret = (*g_im_ifs->vlanentrygetnext)(va_arg(ap, gw_uint32),  va_arg(ap, gw_uint16*),

@@ -227,7 +227,7 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 	}
 	else
 	{
-		gw_cli_print(cli, "input invalid!\r\n");
+		gw_cli_print(cli, GW_CLI_INCOMPLETE_MSG);
 		return CLI_ERROR;
 	}
 

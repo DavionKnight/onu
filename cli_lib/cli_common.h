@@ -79,6 +79,7 @@ enum cli_states {
     STATE_ENABLE
 };
 
+#define GW_CLI_INCOMPLETE_MSG "%% Command incomplete.\r\n"
 
 // macros for ? helper in cmd handler
 #define CLI_HELP_REQUESTED  (argc > 0 && argv[argc-1][strlen(argv[argc-1])-1] == '?')
