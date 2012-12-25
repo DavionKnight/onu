@@ -53,7 +53,7 @@ gw_status init_im_interfaces()
 	return GW_OK;
 }
 
-gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs)
+gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 {
 	gw_status ret = GW_E_ERROR;
 
@@ -61,25 +61,31 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs)
 	{
 		if(init_im_interfaces() == GW_OK)
 		{
-			memcpy(g_im_ifs, ifs, sizeof(gwdonu_im_if_t));
-
+			if(size != sizeof(gwdonu_im_if_t))
+			{
+				gw_log(GW_LOG_LEVEL_DEBUG, "im ifs vesion not match!!\r\n");
 #if 1
-{
-	int num = sizeof(gwdonu_im_if_t)/sizeof(int);
-	int i = 0;
-	int * p= (int*)g_im_ifs;
-	gw_printf("dump im ifs:\r\n");
-	for(i=0; i<num; i++,p++)
-		gw_printf("%d    %08x\r\n", i+1, *p);
-		
-}
-#endif
+				{
+					int num = size/sizeof(int);
+					int i = 0;
+					int * p= (int*)ifs;
+					gw_printf("dump im ifs:\r\n");
+					for(i=0; i<num; i++,p++)
+						gw_printf("%d    %08x\r\n", i+1, *p);
 
-			call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
-			call_gwdonu_if_api(LIB_IF_SPECIAL_PKT_HANDLER_REGIST, 1, gwlib_sendPktToQueue);
-			GW_Onu_Sysinfo_Get();
-			
-			ret = GW_E_OK;
+				}
+#endif
+			}
+			else
+			{
+				memcpy(g_im_ifs, ifs, sizeof(gwdonu_im_if_t));
+
+				call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
+				call_gwdonu_if_api(LIB_IF_SPECIAL_PKT_HANDLER_REGIST, 1, gwlib_sendPktToQueue);
+				GW_Onu_Sysinfo_Get();
+
+				ret = GW_E_OK;
+			}
 		}
 	}
 
@@ -90,9 +96,6 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 {
 	va_list ap;
 	gw_status ret = GW_ERROR;
-
-	gw_int8 ifname[32] = "";
-
 
 	if(!g_im_ifs)
 	{

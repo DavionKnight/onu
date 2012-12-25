@@ -164,7 +164,7 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 
 
 		if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
-			gw_cli_print(cli, "port %d set isolate %d fail!\r\n", port, en?"enabled":"disabled");
+			gw_cli_print(cli, "port %d set isolate %s fail!\r\n", port, en?"enabled":"disabled");
 	
 		#endif
 	}

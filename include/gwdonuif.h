@@ -8,7 +8,7 @@
 #ifndef GWDONUIF_H_
 #define GWDONUIF_H_
 
-#include "../include/gw_types.h"
+#include "gw_types.h"
 
 typedef enum{
 	PORT_ADMIN_DOWN,
@@ -103,6 +103,6 @@ typedef struct gwdonu_im_if_s{
 
 }gwdonu_im_if_t;
 
-gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs);
+gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size);
 
 #endif /* GWDONUIF_H_ */
