@@ -20,6 +20,19 @@ typedef enum{
 	PORT_OPER_STATUS_UP
 }gwd_port_oper_status_t;
 
+typedef enum{
+	GWD_PORT_SPD_AUNEG = 1,
+	GWD_PORT_SPD_10,
+	GWD_PORT_SPD_100,
+	GWD_PORT_SPD_1000
+}gwd_port_mode_spd_t;
+
+typedef enum{
+	GWD_PORT_DUPLEX_AUNEG = 1,
+	GWD_PORT_DUPLEX_FULL,
+	GWD_PORT_DUPLEX_HALF
+}gwd_port_mode_duplex_t;
+
 typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
 
 typedef gw_status (*libgwdonu_port_send_t)(gw_int32 portid, gw_uint8 *buf, gw_uint32 len);
@@ -32,7 +45,7 @@ typedef gw_uint32 (*libgwdonu_sys_conf_restore_t)(gw_uint8 *info, gw_uint32 len)
 typedef gw_status (*libgwdonu_port_admin_status_get_t)(gw_int32 portid, gwd_port_admin_t *status);
 typedef gw_status (*libgwdonu_port_admin_status_set_t)(gw_int32 portid, gwd_port_admin_t status);
 typedef gw_status (*libgwdonu_port_oper_status_get_t)(gw_int32 portid, gwd_port_oper_status_t *status);
-typedef gw_status (*libgwdonu_port_mode_get_t)(gw_int32 portid, gw_int32 *spd, gw_int32 *duplex);
+typedef gw_status (*libgwdonu_port_mode_get_t)(gw_int32 portid, gw_int32 * auneg_en, gw_int32 *spd, gw_int32 *duplex);
 typedef gw_status (*libgwdonu_port_mode_set_t)(gw_int32 portid, gw_int32 spd, gw_int32 duplex);
 typedef gw_status (*libgwdonu_port_isolate_get_t)(gw_int32 portid, gw_int32 *en);
 typedef gw_status (*libgwdonu_port_isolate_set_t)(gw_int32 portid, gw_int32 en);

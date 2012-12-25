@@ -23,7 +23,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0, 
-					"[0|1|2|3|4|5|6]", "port mode: 0 an;1 10HD; 2 10FD; 3 100HD; 4 100FD; 5 1000HD; 6 1000FD", NULL);
+					"[0|8|9|10|11|12]", "port mode: 0 an;8 100FD; 9 100HD; 10 10FD; 11 10FD; 12 1000FD", NULL);
 				break;
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
@@ -33,7 +33,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 
 	if(argc >= 1)
 	{
-		int spd, duplex;
+		int spd, duplex, en;
 					
 		port = atoi(argv[0]);
 		if(argc > 1)
@@ -41,42 +41,61 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 
 		if(argc == 1 )
 		{
-			if(call_gwdonu_if_api(LIB_IF_PORT_MODE_GET, 3, port, &spd, &duplex) != GW_OK)
+			if(call_gwdonu_if_api(LIB_IF_PORT_MODE_GET, 4, port, &en, &spd, &duplex) != GW_OK)
 				gw_cli_print(cli, "get port mode fail!\r\n");
 			else
-				gw_cli_print(cli, "get port mode: speed %d, duplex %s\r\n", spd, duplex?"full":"half");
+			{
+				char str_spd[16] = "";
+				char str_duplex[16] = "";
+				
+				gw_cli_print(cli, "  port %d auto neg: %s\r\n", port, en?"enabled":"disabled");
+
+				if(spd == GWD_PORT_SPD_10)
+					strcpy(str_spd, "10M");
+				else if( spd == GWD_PORT_SPD_100 )
+					strcpy(str_spd, "100M");
+				else if( spd == GWD_PORT_SPD_1000 )
+					strcpy(str_spd, "1000M");
+				else
+					strcpy(str_spd, "UNKNOWN");
+
+				if(duplex == GWD_PORT_DUPLEX_FULL)
+					strcpy(str_duplex, "FULL");
+				else if( duplex == GWD_PORT_DUPLEX_HALF )
+					strcpy(str_duplex, "HALF");
+				else
+					strcpy(str_duplex, "UNKNOWN");
+
+				gw_cli_print(cli, "  current speed %s, duplex %s\r\n", str_spd, str_duplex);
+			}
 		}
 		else
 		{
 			switch(mode)
 			{
-				case 1:
-					spd = 10;
-					duplex = 0;
+				case 11:
+					spd = GWD_PORT_SPD_10;
+					duplex = GWD_PORT_DUPLEX_HALF;
 					break;
-				case 2:
-					spd = 10;
-					duplex = 1;
+				case 10:
+					spd = GWD_PORT_SPD_10;
+					duplex = GWD_PORT_DUPLEX_FULL;
 					break;
-				case 3:
-					spd = 100;
-					duplex = 0;
+				case 8:
+					spd = GWD_PORT_SPD_100;
+					duplex = GWD_PORT_DUPLEX_FULL;
 					break;
-				case 4:
-					spd = 100;
-					duplex = 1;
-					break;
-				case 5:
-					spd = 1000;
-					duplex = 0;
+				case 9:
+					spd = GWD_PORT_SPD_100;
+					duplex = GWD_PORT_DUPLEX_HALF;
 					break;
 				case 6:
-					spd = 1000;
-					duplex = 1;
+					spd = GWD_PORT_SPD_1000;
+					duplex = GWD_PORT_DUPLEX_FULL;
 					break;
 				default:
-					spd = 0;
-					duplex = 1;
+					spd = GWD_PORT_SPD_AUNEG;
+					duplex = GWD_PORT_DUPLEX_AUNEG;
 					break;
 			}
 			
@@ -85,7 +104,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 		}
 	}
 	else
-		gw_cli_print(cli, "invalid input!\r\n");
+		gw_cli_print(cli, "  nvalid input!\r\n");
 	
 
 	return CLI_OK;
@@ -185,7 +204,7 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 				break;
 		}
 	}
-
+ 
 	if(argc >= 1)
 	{
 		portid = atoi(argv[0]);
@@ -194,8 +213,10 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 			en = atoi(argv[1]);
 
 		if(argc == 2 )
-		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_SET, 2, portid,  en))
-			gw_cli_print(cli, "atu learning set %s fail!\r\n", en?"enable":"disable");
+		{
+			if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_SET, 2, portid,  en))
+				gw_cli_print(cli, "atu learning set %s fail!\r\n", en?"enable":"disable");
+		}
 		else
 		{
 			if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_GET, 2,portid, &en))

@@ -2319,10 +2319,10 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
             return CLI_ERROR;
         }
         
-        ret = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", 
+        ret = sscanf(argv[0], "%02x%02x.%02x02.%02x%02x", 
             &mac1[0], &mac1[1], &mac1[2], &mac1[3],&mac1[4],&mac1[5]);
         
-        if(ret != 6 || mac1[0]&0x01){
+        if(ret != 3 || mac1[0]&0x01){
             gw_cli_print(cli,"Input MAC is not a unicast MAC\n");
             return CLI_ERROR;
         }
@@ -2363,8 +2363,8 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     sys  = gw_cli_register_command(cmd_root, show, "product", cmd_show_system_information, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
 	gw_cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
 
-	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
-	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");
+/*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
+	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
 
 
 
