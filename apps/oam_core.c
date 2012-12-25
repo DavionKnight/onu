@@ -151,6 +151,9 @@ void init_gw_oam_async()
 	gw_log(GW_LOG_LEVEL_DEBUG, ("create oam async thread ok!\r\n"));
 
 
+	oam_cli_start();
+
+
 }
 
 void gw_oam_async_thread_entry(gw_uint32 * para)
@@ -173,7 +176,9 @@ void gw_oam_async_thread_entry(gw_uint32 * para)
 				{
 					if(OAM_CLI_OUT_BUF_LENGTH >= msg->RevPktLen)
 						g_oam_cli_out_len = msg->RevPktLen;
-					memcpy(g_oam_cli_out_buf, msg->pPayLoad, g_oam_cli_out_len);
+//					memcpy(g_oam_cli_out_buf, msg->pPayLoad, g_oam_cli_out_len);
+
+					gw_cli_run_oam_command( msg->pPayLoad);
 
 					CommOnuMsgSend(CLI_RESP_TRANSMIT, msg->SendSerNo, g_oam_cli_out_buf, g_oam_cli_out_len, msg->SessionID);
 					GwOamMessageListNodeFree(msg);

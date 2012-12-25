@@ -23,12 +23,15 @@ extern int g_pty_master;
 
 int gw_cur_chan = CHANNEL_SERIAL;
 char gw_parser_word[MAX_WORDS_NUM][MAX_WORDS_LEN];
+
 struct cli_def g_cli_telnet;
 char g_cli_telnet_buffer[MAX_PRINT_BUF_LEN];
 
 struct cli_def g_pty_cli_console;
 char g_pty_cli_console_buff[MAX_PRINT_BUF_LEN];
 
+struct cli_def g_oam_cli_vty;
+char g_oam_cli_vty_buff[MAX_PRINT_BUF_LEN];
 
 void gw_console_put_char(char c)
 {
@@ -508,6 +511,21 @@ struct cli_def *gw_cli_init(struct cli_command *cmd_root, int channel)
         gw_cli_set_privilege(cli, PRIVILEGE_UNPRIVILEGED);
         gw_cli_set_configmode(cli, MODE_EXEC, 0);
     }
+    else if(channel == CHANNEL_OAM)
+    {
+        memset(&gw_parser_word[0][0],0,MAX_WORDS_LEN*MAX_WORDS_NUM);
+        memset(&g_oam_cli_vty,0,sizeof(struct cli_def));
+        memset(g_oam_cli_vty_buff,0,MAX_PRINT_BUF_LEN);
+        cli=&g_oam_cli_vty;
+        cli->buf_size = MAX_PRINT_BUF_LEN;
+        cli->buffer= g_oam_cli_vty_buff;
+        gw_cli_free_history(cli);
+
+        cli->commands = cmd_root;
+        cli->privilege = cli->mode = -1;
+        gw_cli_set_privilege(cli, PRIVILEGE_UNPRIVILEGED);
+        gw_cli_set_configmode(cli, MODE_EXEC, 0);
+    }
 
     return cli;
 }
@@ -957,6 +975,11 @@ int gw_cli_run_command(struct cli_def *cli, char *command)
         return r;
 
     return CLI_OK;
+}
+
+int gw_cli_run_oam_command(char * command)
+{
+	return gw_cli_run_command(&g_oam_cli_vty, command);
 }
 
 int gw_cli_get_completions(struct cli_def *cli, char *command, char **completions, int max_completions)

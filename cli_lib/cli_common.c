@@ -269,5 +269,35 @@ void cli_start()
     return;
 }
 
+void oam_cli_start()
+{
+    struct cli_def *cli = NULL;
+
+    // init command tree
+    if(gw_cmd_tree == NULL)
+    {
+		gw_cmd_tree = gw_cli_tree_init();
+		if(!gw_cmd_tree)
+		{
+			gw_printf("--------root cmd init fail--------!\r\n");
+				return;
+		}
+    }
+
+    // init console session
+    cli = gw_cli_init(gw_cmd_tree, CHANNEL_OAM);
+    if(NULL == cli)
+    {
+    	gw_printf("--------cli_init fail--------\r\n");
+        	return;
+    }
+
+    // configure session
+    //cli->sockfd = g_pty_slave;
+    cli->channel = CHANNEL_OAM;
+    gw_cli_set_banner(cli, CLI_BANNER);
+    gw_cli_set_hostname(cli, HOST_NAME);
+}
+
 //#endif
 
