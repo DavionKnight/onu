@@ -2146,8 +2146,8 @@ extern gw_uint32 g_oam_cli_out_len ;
 
 void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list ap)
 {
-    static char *buffer;
-    static int size, len;
+    char *buffer;
+    int size, len;
     char *p;
     int n;
 
