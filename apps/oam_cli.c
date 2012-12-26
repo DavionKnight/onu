@@ -276,6 +276,43 @@ int cmd_oam_atu_age(struct cli_def *cli, char *command, char *argv[], int argc)
 	return CLI_OK;
 }
 
+int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	unsigned char laser_mode = 0;
+
+	// deal with help
+	if (CLI_HELP_REQUESTED) {
+		switch (argc) {
+		case 1:
+			return gw_cli_arg_help(cli, 0, "[1|0]", "1: always on 0: normal",
+					NULL );
+		default:
+			return gw_cli_arg_help(cli, argc > 1, NULL );
+		}
+	}
+
+	if (1 == argc) {
+		if (atoi(argv[0]) == 1) {
+			laser_mode = 0;
+		} else if (atoi(argv[0]) == 0) {
+			laser_mode = 2;
+		} else {
+			gw_cli_print(cli, "%% Invalid input.");
+			return CLI_ERROR;
+		}
+
+		call_gwdonu_if_api(LIB_IF_LASER_SET, 1, laser_mode);
+
+	} else {
+		if(call_gwdonu_if_api(LIB_IF_LASER_GET, 1, &laser_mode) != GW_OK)
+				gw_cli_print(cli, "get laser status fail!\r\n");
+		else
+			gw_cli_print(cli, "laser status is %s", laser_mode?"normal":"always on");
+	}
+
+	return CLI_OK;
+}
+
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL;
@@ -291,5 +328,9 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 	c = gw_cli_register_command(cmd_root, NULL, "vlan", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan command");
 	gw_cli_register_command(cmd_root, c, "port_isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
 	
+	c = gw_cli_register_command(cmd_root, NULL, "mgt", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "ONU device management");
+	c = gw_cli_register_command(cmd_root, c, "laser", cmd_gw_laser, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Laser status");
+
+
     return;
 }
