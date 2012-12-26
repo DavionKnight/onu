@@ -33,6 +33,64 @@ typedef enum{
 	GWD_PORT_DUPLEX_HALF
 }gwd_port_mode_duplex_t;
 
+typedef struct {
+        gw_uint64 RxFramesOk;
+        gw_uint64 RxUnicasts;
+        gw_uint64 RxMulticasts;
+        gw_uint64 RxBroadcasts;
+        gw_uint64 Rx64Octets;
+        gw_uint64 Rx127Octets;
+        gw_uint64 Rx255Octets;
+        gw_uint64 Rx511Octets;
+        gw_uint64 Rx1023Octets;
+        gw_uint64 RxMaxOctets;
+        gw_uint64 RxJumboOctets;
+        gw_uint64 RxUndersize;
+        gw_uint64 RxOversize;
+        gw_uint64 RxFragments;
+        gw_uint64 RxJabber;
+        gw_uint64 RxFCSErrors;
+        gw_uint64 RxDiscards;
+        gw_uint64 RxAlignErrors;
+        gw_uint64 RxIntMACErrors;
+        gw_uint64 RxPppoes;
+        gw_uint64 RxQueueFull;
+        gw_uint64 RxPause;
+        gw_uint64 RxOctetsOkMsb;
+        gw_uint64 RxOctetsOKLsb;
+        gw_uint64 RxError;
+        gw_uint64 TxFramesOk;
+        gw_uint64 TxUnicasts;
+        gw_uint64 TxMulticasts;
+        gw_uint64 TxBroadcasts;
+        gw_uint64 Tx64Octets;
+        gw_uint64 Tx127Octets;
+        gw_uint64 Tx255Octets;
+        gw_uint64 Tx511Octets;
+        gw_uint64 Tx1023Octets;
+        gw_uint64 TxMaxOctets;
+        gw_uint64 TxJumboOctets;
+        gw_uint64 TxDeferred;
+        gw_uint64 TxTooLongFrames;
+        gw_uint64 TxCarrierErrFrames;
+        gw_uint64 TxSqeErrFrames;
+        gw_uint64 TxSingleCollisions;
+        gw_uint64 TxMultipleCollisions;
+        gw_uint64 TxExcessiveCollisions;
+        gw_uint64 TxLateCollisions;
+        gw_uint64 TxMacErrFrames;
+        gw_uint64 TxQueueFull;
+        gw_uint64 TxPause;
+        gw_uint64 TxOctetsOk;
+        gw_uint64 TxError;
+} __attribute__((packed)) gw_onu_counter_t;
+
+typedef struct{
+	gw_uint32 rxrate;
+	gw_uint32 txrate;
+	gw_onu_counter_t counter;
+} __attribute__((packed)) gw_onu_port_counter_t;
+
 typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
 
 typedef gw_status (*libgwdonu_port_send_t)(gw_int32 portid, gw_uint8 *buf, gw_uint32 len);

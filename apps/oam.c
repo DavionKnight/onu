@@ -2402,6 +2402,7 @@ extern void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root);
 extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
+extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 
 	GwOamMessageListInit();
 
@@ -2444,6 +2445,10 @@ extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 	if(registerUserCmdInitHandler("oam-mgt", gw_cli_reg_oam_cmd) != GW_OK)
 		gw_printf("regist oam cmds fail!\r\n");
 
+	if(registerUserCmdInitHandler("native_mgt", gw_cli_reg_native_cmd) != GW_OK)
+		gw_printf("regist native cmds fail!\r\n");
+
+	oam_cli_start();
 
 //	ctc_onu_stats_monitor_init();
 }
