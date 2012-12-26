@@ -259,11 +259,13 @@ int cmd_oam_atu_age(struct cli_def *cli, char *command, char *argv[], int argc)
 	if(argc == 1)
 	{
 		age = atoi(argv[0]);
+		gw_printf("argv[0] == %d\r\n", age);
 		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_AGE_SET, 1, age))
 			gw_cli_print(cli, "atu age set %d fail!\r\n", age);
 	}
 	else
 	{
+		gw_printf("no argv set!\r\n");
 		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_AGE_GET, 1, &age))
 			gw_cli_print(cli, "get atu age fail!\r\n");
 		else
