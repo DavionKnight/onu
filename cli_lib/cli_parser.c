@@ -2141,8 +2141,7 @@ int gw_cli_file(struct cli_def *cli, FILE *fh, int privilege, int mode)
     return CLI_OK;
 }
 
-extern gw_uint8 g_oam_cli_out_buf[];
-extern gw_uint32 g_oam_cli_out_len ;
+gw_status gwd_oam_cli_printf(gw_int8 * p, gw_int32 len);
 
 void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list ap)
 {
@@ -2158,16 +2157,16 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
     size = cli->buf_size;
     len = strlen(buffer);
 
-    gw_printf("buffer len is %d\r\n", len);
     // print buffer will not grow
     n = vsnprintf(buffer+len, size-len-1, format, ap);
     buffer[size-1] = 0;
     if (n < 0) // vsnprintf failed
         return;
 
-    gw_printf("print len is %d\r\n", n);
-
     p = buffer;
+
+    gw_dump_pkt(p, n+len, 16);
+
     do
     {
         char *next = strchr(p, '\n');
@@ -2175,7 +2174,16 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
         int print = 1;
 
         if (next)
+        {
+        	char * d = next;
+        	d--;
+        	if(*d == '\r' && d != p)
+        		*d = 0;
+
             *next++ = 0;
+            if(*next == '\r')
+            	*next++ = 0;
+        }
         else if (print_mode & PRINT_BUFFERED)
             break;
 
@@ -2209,10 +2217,8 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
 #endif
                 else if(CHANNEL_OAM == cli->channel)
                 {
-                	gw_log(GW_LOG_LEVEL_DEBUG, "oam result:    %s", p);
-                	strcpy(g_oam_cli_out_buf, p);
-                	strcat(g_oam_cli_out_buf, "\r\n");
-                	g_oam_cli_out_len = strlen(p)+2;
+                	gwd_oam_cli_printf(p, strlen(p));
+
                 }
                 else if(CHANNEL_PTY == cli->channel)
                 {

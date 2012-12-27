@@ -130,6 +130,23 @@ gw_status gwd_oam_cli_trans_send_out()
 	return call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, g_oam_cli_out_buf, g_oam_cli_out_len);
 }
 
+gw_int32 gwd_oam_cli_printf(gw_int8 * p, gw_int32 len)
+{
+	if(len)
+	{
+		if(len+g_oam_cli_out_len < OAM_CLI_OUT_BUF_LENGTH)
+			g_oam_cli_out_len += sprintf(g_oam_cli_out_buf+g_oam_cli_out_len, "%s", p);
+		else
+		{
+			len = OAM_CLI_OUT_BUF_LENGTH-g_oam_cli_out_len-1;
+			strncpy(g_oam_cli_out_buf+g_oam_cli_out_len, p, len);
+			g_oam_cli_out_len = OAM_CLI_OUT_BUF_LENGTH;
+		}
+	}
+
+	return g_oam_cli_out_len;
+}
+
 void init_gw_oam_async()
 {
 	if(GW_OK != gw_pri_queue_create(&g_oam_async_queue_id, g_oam_async_queue_name, g_oam_async_queue_deepth,
@@ -184,6 +201,9 @@ void gw_oam_async_thread_entry(gw_uint32 * para)
 					gw_log(GW_LOG_LEVEL_DEBUG, "\r\n");
 
 					CommOnuMsgSend(CLI_RESP_TRANSMIT, msg->SendSerNo, g_oam_cli_out_buf, g_oam_cli_out_len, msg->SessionID);
+
+					g_oam_cli_out_len = 0;
+
 					GwOamMessageListNodeFree(msg);
 				}
 					break;
