@@ -110,6 +110,64 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 	return CLI_OK;
 }
 
+int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	int slot;
+	char * pbuf = NULL;
+
+	if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"<1-1024>", "msg slot number", NULL);
+				break;
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				break;
+		}
+	}
+
+	slot = 1025;
+
+	if(argc >= 1)
+	{
+		if(argc == 1)
+			slot = atoi(argv[0]);
+
+		pbuf = gw_log_get_record(slot-1);
+
+		if(pbuf)
+			gw_cli_print(cli, "%s\r\n", pbuf);
+		else
+			gw_cli_print(cli, "empty slot!\r\n");
+
+	}
+	else
+	{
+		int nextslot = 0, start = 0;
+		start = slot =  gw_log_get_current_msg_slot();
+
+		do{
+
+			pbuf = gw_log_getnext_record(slot, &nextslot);
+		if(!pbuf)
+			gw_cli_print(cli, "empty slot!\r\n");
+		else
+			gw_cli_print(cli, "%d %s\r\n", nextslot, pbuf);
+
+			slot = nextslot;
+		}
+		while(nextslot != start);
+
+	}
+
+
+	return CLI_OK;
+}
+
 int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
@@ -330,6 +388,9 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 	
 	c = gw_cli_register_command(cmd_root, NULL, "mgt", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "ONU device management");
 	c = gw_cli_register_command(cmd_root, c, "laser", cmd_gw_laser, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Laser status");
+
+	c = gw_cli_register_command(cmd_root, NULL, "event", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "event show");
+	gw_cli_register_command(cmd_root, c, "show", cmd_oam_event_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show");
 
 
     return;
