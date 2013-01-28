@@ -155,7 +155,7 @@ gw_status gw_pkt_handler_call(GW_PKT_TYPE type, gw_int8 *pkt, const gw_int32 len
 
 gw_int32 gwlib_sendPktToQueue(gw_int8 *pkt, const gw_int32 len, gw_int32 portid)
 {
-	queue_para_t * pdata = NULL;
+	gw_int32 ret = GW_OK;
 	gw_int8 * data =  malloc(len);
 	if(data)
 	{
@@ -164,29 +164,23 @@ gw_int32 gwlib_sendPktToQueue(gw_int8 *pkt, const gw_int32 len, gw_int32 portid)
 	else
 	{
 		gw_log(GW_LOG_LEVEL_DEBUG,("gwlib_sendPktToQueue malloc fail!\r\n"));
-		return GW_ERROR;
+		ret = GW_ERROR;
 	}
 
-	pdata = malloc(sizeof(queue_para_t));
-	if(pdata)
+	if(ret == GW_OK)
 	{
-		pdata->portid = portid;
-		pdata->pkt_len = len;
-		pdata->pkt = data;
-		if(gw_pri_queue_put(gw_pkt_queueid, pdata, sizeof(queue_para_t), GW_OSAL_WAIT_FOREVER, 0) != GW_OK)
+		queue_para_t pdata;
+
+		pdata.portid = portid;
+		pdata.pkt_len = len;
+		pdata.pkt = data;
+		if(gw_pri_queue_put(gw_pkt_queueid, &pdata, sizeof(queue_para_t), GW_OSAL_WAIT_FOREVER, 0) != GW_OK)
 		{
 			free(data);
-			free(pdata);
 			gw_log(GW_LOG_LEVEL_DEBUG, ("gwlib_sendPktToQueue put msg fail!\r\n"));
-			return GW_ERROR;
+			ret = GW_ERROR;
 		}
-		else
-			return GW_OK;
 	}
-	else
-	{
-		gw_log(GW_LOG_LEVEL_DEBUG,("gwlib_sendPktToQueue malloc fail!\r\n"));
-		free(data);
-		return GW_ERROR;
-	}
+
+	return ret;
 }
