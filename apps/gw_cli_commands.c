@@ -91,13 +91,68 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 	return CLI_OK;
 }
 
+int cmd_bsctrl_policy(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	int portid = 0;
+
+	if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"[enable|disable]", "enable: port down; disable: only limit rate", NULL );
+				break;
+
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				break;
+		}
+	}
+
+
+	return CLI_OK;
+}
+
+int cmd_bsctrl_threshold(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	int portid = 0;
+
+	if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"<10-2000000>", "unit: packets per second", NULL );
+				break;
+
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				break;
+		}
+	}
+
+
+	return CLI_OK;
+}
+
 void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 {
-	struct cli_command * stat = NULL;
+
+	struct cli_command * stat = NULL, *cp = NULL;
 
 
 	stat = gw_cli_register_command(cmd_root, NULL, "stat", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "stat command");
 	gw_cli_register_command(cmd_root, stat, "port_show", cmd_stat_port_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port statistic show");
+
+	 // portdown {[enable|disable]}*1
+	cp = gw_cli_register_command(cmd_root, NULL, "broadcast", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast config");
+	cp = gw_cli_register_command(cmd_root, cp, "storm", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast storm config");
+	gw_cli_register_command(cmd_root, cp, "portdown", cmd_bsctrl_policy, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port down config");
+	gw_cli_register_command(cmd_root, cp, "threshold", cmd_bsctrl_threshold, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config");
 
 
     return;
