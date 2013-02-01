@@ -110,6 +110,39 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 	return CLI_OK;
 }
 
+
+int cmd_oam_port_mirror_src(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	int port, mode;
+
+	if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"[i|e|a]", "i: ingress; e: egress; a: both dir", NULL);
+				break;
+			case 2:
+				return gw_cli_arg_help(cli, 0,
+					"<port_list>", "port num", NULL);
+				break;
+			case 3:
+				return gw_cli_arg_help(cli, 0,
+									"[0|1]", "1: select as source port; 0: not source port", NULL);
+				break;
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				break;
+		}
+	}
+
+
+	return CLI_OK;
+}
+
+
 int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 

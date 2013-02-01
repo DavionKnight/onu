@@ -2165,7 +2165,7 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
 
     p = buffer;
 
-    gw_dump_pkt(p, n+len, 16);
+//    gw_dump_pkt(p, n+len, 16);
 
     do
     {
