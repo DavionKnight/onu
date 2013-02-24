@@ -7,8 +7,11 @@
 /* Copyright (c) 2002-2010 by Cortina Systems Incorporated.                                            */
 /***********************************************************************/
 
-
+#include <unistd.h>
 #include <stdio.h>
+
+#ifdef CYG_LINUX
+
 #include <cyg/kernel/kapi.h>
 #include <cyg/hal/hal_arch.h>
 #include <pkgconf/hal.h>
@@ -17,12 +20,20 @@
 #include <pkgconf/system.h>
 #include <pkgconf/memalloc.h>
 #include <pkgconf/isoinfra.h>
+
+#endif
+
 #include <stdlib.h>
 #include <sys/time.h>
 #include "fcntl.h"
 #include "pthread.h"
 #include "semaphore.h"
 #include "mqueue.h"
+
+#ifndef CYG_LINUX
+#include "signal.h"
+#endif
+
 #include "../include/gw_os_common.h"
 #include "../include/gw_os_api_core.h"
 
@@ -31,6 +42,9 @@
 #define OK	                    0
 
 gw_uint32 gw_creator_find(void);
+
+
+#ifdef CYG_LINUX
 
 void usleep(unsigned int usecs)
 {
@@ -46,18 +60,30 @@ void usleep(unsigned int usecs)
 	return;
 }
 
+#endif
+
 /*  tables for the properties of objects */
 
 /* threads */
 #if 1
 typedef struct {
     gw_int32 free;
+#ifdef CYG_LINUX
     cyg_handle_t id;
+#else
+    gw_uint32 id;
+#endif
     gw_int8 name [GW_OSAL_MAX_API_NAME];
+#ifdef CYG_LINUX
     cyg_handle_t creator;
+#else
+    gw_uint32 creator;
+#endif
     gw_uint32 stack_size;
     gw_uint32 priority;
+#ifdef CYG_LINUX
     cyg_thread thread_ctrl;
+#endif
     gw_uint8 *stack_buf;
 }osal_thread_record_t;
 #else
@@ -170,7 +196,7 @@ osal_count_sem_record_t gw_osal_count_sem_table   [GW_OSAL_MAX_COUNT_SEM];
 osal_mut_record_t       gw_osal_mut_table         [GW_OSAL_MAX_MUTEX];
 osal_queue_record_t     gw_osal_queue_table       [GW_OSAL_MAX_QUEUE];
 
-#if 1
+#ifdef CYG_LINUX
 cyg_mutex_t gw_osal_task_table_mutex;
 #else
 pthread_mutex_t gw_osal_thread_table_mut;
@@ -234,7 +260,7 @@ void gw_osal_core_init(void)
         gw_osal_queue_table[i].free = TRUE;
     }
 
-	#if 1
+#ifdef CYG_LINUX
     cyg_mutex_init(&gw_osal_task_table_mutex);
 	#else
 	pthread_mutex_init((pthread_mutex_t *)&gw_osal_thread_table_mut, NULL);
@@ -319,7 +345,11 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
         return GW_E_OSAL_ERR;
     }
 
+#ifdef CYG_LINUX
     cyg_mutex_lock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_lock(&gw_osal_thread_table_mut);
+#endif
     for (possible_taskid = 0; possible_taskid < GW_OSAL_MAX_THREAD; possible_taskid++) {
         if (gw_osal_thread_table[possible_taskid].free  == TRUE) {
             break;
@@ -328,7 +358,11 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 
     /* Check to see if the id is out of bounds */
     if (possible_taskid >= GW_OSAL_MAX_THREAD || gw_osal_thread_table[possible_taskid].free != TRUE) {
+#ifdef CYG_LINUX
         cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+        pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
 //        iros_free(stack_buf);
         free(stack_buf);
         osal_printf("\r\n no free thread can be allocate");
@@ -339,9 +373,14 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 
     gw_osal_thread_table[possible_taskid].free = FALSE;
 
+#ifdef CYG_LINUX
     cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
     /* Create VxWorks Task */
 
+#ifdef CYG_LINUX
     cyg_thread_create(priority,
                       function_pointer,
                       (cyg_addrword_t)param,
@@ -351,34 +390,62 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
                       &gw_osal_thread_table[possible_taskid].id,
                       &gw_osal_thread_table[possible_taskid].thread_ctrl);
     cyg_thread_resume(gw_osal_thread_table[possible_taskid].id);
+#else
+#endif
 
     *thread_id = possible_taskid;
 
     strcpy(gw_osal_thread_table[*thread_id].name, thread_name);
 
     /* this Id no longer free */
+#ifdef CYG_LINUX
     cyg_mutex_lock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_lock(&gw_osal_thread_table_mut);
+#endif
     gw_osal_thread_table[*thread_id].free = FALSE;
+
+#ifdef CYG_LINUX
     gw_osal_thread_table[*thread_id].creator = (cyg_handle_t)gw_creator_find();
+#else
+    gw_osal_thread_table[*thread_id].creator = gw_creator_find();
+#endif
     gw_osal_thread_table[*thread_id].stack_size = stack_size;
     gw_osal_thread_table[*thread_id].priority = priority;
     gw_osal_thread_table[*thread_id].stack_buf = stack_buf;
+
+#ifdef CYG_LINUX
     cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
     return GW_E_OSAL_OK;
 }
 
 gw_int32 gw_thread_delete(gw_uint32 thread_id)
 {
 
+#ifdef CYG_LINUX
     cyg_mutex_lock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_lock(&gw_osal_thread_table_mut);
+#endif
 
 
     if (thread_id >= GW_OSAL_MAX_THREAD || gw_osal_thread_table[thread_id].free != FALSE) {
-        cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#ifdef CYG_LINUX
+    cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
         return GW_E_OSAL_ERR_INVALID_ID;
     }
 
+#ifdef CYG_LINUX
     cyg_thread_kill(gw_osal_thread_table[thread_id].id);
+#else
+    pthread_cancel(thread_id);
+#endif
 
     memset(gw_osal_thread_table[thread_id].name, 0, GW_OSAL_MAX_API_NAME);
 
@@ -387,10 +454,17 @@ gw_int32 gw_thread_delete(gw_uint32 thread_id)
     gw_osal_thread_table[thread_id].stack_size = 0;
     gw_osal_thread_table[thread_id].priority = 0;
     gw_osal_thread_table[thread_id].stack_buf = NULL;
+
+#ifdef CYG_LINUX
     cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
 	
     return GW_E_OSAL_OK;
 }
+
+#ifdef CYG_LINUX
 
 /*---------------------------------------------------------------------------------------
    Name: gw_thread_delay
@@ -418,6 +492,8 @@ gw_int32 gw_thread_delay(gw_uint32 milli_second)
     return GW_E_OSAL_OK;
 
 }
+
+
 
 gw_uint32 gw_thread_number()
 {
@@ -495,6 +571,8 @@ void gw_thread_show()
 
     return;
 }
+
+#endif
 #else
 int gw_thread_create(unsigned int *thread_id,  const char *thread_name,
                      const void *function_pointer, void *param , unsigned int stack_size,
@@ -2396,7 +2474,11 @@ void gw_pri_queue_show(gw_uint32 queue_id)
 
 gw_uint64 gw_current_time(void)
 {
+#ifdef CYG_LINUX
     return (gw_uint64) cyg_current_time();
+#else
+    return times(NULL);
+#endif
 }
 
 void gw_timestamp_print()
@@ -2588,9 +2670,18 @@ gw_int32 gw_err_name_get(gw_int32 error_num, osal_err_name_t * err_name)
 ---------------------------------------------------------------------------------------*/
 gw_uint32 gw_creator_find()
 {
+#ifdef CYG_LINUX
     cyg_handle_t thread_id;
+#else
+    pthread_t thread_id;
+#endif
     gw_int32 i;
+
+#ifdef CYG_LINUX
     thread_id = cyg_thread_self();
+#else
+    thread_id = pthread_self();
+#endif
 
     for (i = 0; i < GW_OSAL_MAX_THREAD; i++) {
         if (thread_id == gw_osal_thread_table[i].id)
@@ -2628,6 +2719,8 @@ void gw_printf(const gw_int8 *String, ...)
     return;
 }
 
+#ifdef CYG_LINUX
+
 gw_uint32 gw_memory_usage()
 {
     extern struct mallinfo mallinfo( void );
@@ -2642,6 +2735,8 @@ extern int tolower( int );
 extern void (*_putc)(char c, void **param);
 extern int _vprintf(void (*putc)(char c, void **param), void **param, const char *fmt, va_list ap);
 extern bool mon_read_char_timeout(char *c);
+
+#endif
 
 void halt_do_help()
 {

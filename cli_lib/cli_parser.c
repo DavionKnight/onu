@@ -1,6 +1,10 @@
 
 #include <ctype.h>
+#ifdef CYG_LINUX
 #include <network.h>
+#else
+#include <sys/errno.h>
+#endif
 #include "cli_common.h"
 #include "../apps/gw_log.h"
 #include "../include/gw_os_api_core.h"
@@ -9,14 +13,19 @@
 #define perror(s) gw_printf(s)
 void gw_telnet_diag_print_unregister(void);
 extern gw_uint32 app_ip_changed;
-externC void (*_putc)(char c, void **param);
+extern void (*_putc)(char c, void **param);
 static void (*_putcFunc)(char c, void **param) = NULL;
 
 extern struct cli_def *telnet_cli;
 
+#ifdef CYG_LINUX
+
 extern void mon_read_char(char *c);
 extern bool mon_read_char_with_timeout(char *c);
 extern void mon_write_chars(char* s, int n);
+
+#endif
+
 extern int cmd_exe(int argc, char **argv);
 
 extern int g_pty_master;
