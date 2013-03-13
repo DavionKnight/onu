@@ -13,7 +13,7 @@
 //#include "sdl_api.h"
 
 #define OAMDBGERR               diag_printf
-
+extern broadcast_storm_s broad_storm;
 //cs_llid_t active_pon_port = CS_PON_PORT_ID;
 
 unsigned char gwdOamTrace = 0;
@@ -45,9 +45,9 @@ unsigned long	gulGwOamConnect = 0;
 #define DHCP_RELAY_PACKET_DEBUG(str) if( gulDebugEthDhcpSwitch ){ OAMDBGERR str ;}
 #endif
 
-const unsigned char SYS_SOFTWARE_MAJOR_VERSION_NO = 1;
-const unsigned char SYS_SOFTWARE_RELEASE_VERSION_NO = 1;
-const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 3;
+const unsigned char SYS_SOFTWARE_MAJOR_VERSION_NO = 2;
+const unsigned char SYS_SOFTWARE_RELEASE_VERSION_NO = 3;
+const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 2;
 const unsigned char SYS_SOFTWARE_DEBUG_VERSION_NO = 1;
 
 const unsigned char SYS_HARDWARE_MAJOR_VERSION_NO = 2;
@@ -598,6 +598,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 			memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,usOAMPayloadLenGW);
 //			oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
 			GWDOAMTRC("CommOnuMsgSend -- call port send if\r\n");
+			//gw_printf("oam storm alarm send 1 \n");
 			call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8 *)avender,(gw_uint32)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
 			gulDebugOamTxCount++;
             OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
@@ -616,6 +617,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 		memset(OamFrame+sizeof(GWTT_OAM_HEADER), '\0',2048-sizeof(GWTT_OAM_HEADER));
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,SendDataSize-DataLenSended);
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
+		//gw_printf("oam storm alarm send 2 \n");
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
@@ -628,6 +630,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData,SendDataSize);
 
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
+		//gw_printf("oam storm alarm send 3 \n");
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData));
@@ -860,6 +863,7 @@ int GwGetPonSlotPort(unsigned char *mac, GWD_OLT_TYPE type, unsigned long *slot,
 
 	return GWD_RETURN_OK;
 }
+localtime_tm w_gw_tim;
 static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 {
 	unsigned char ver[4] = {1, 1, 1, 1};
@@ -1098,7 +1102,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 		}
 		case ONU_REALTIME_SYNC:
 		{
-#if 0
+#if 1
 			unsigned short usValue;
 			unsigned char ucValue;
 			int	i = 0;
@@ -1108,7 +1112,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			pReq = pRequest->pPayLoad+1;
 
 			ptr = g_cSetTime;
-
+			memset(&w_gw_tim,0,sizeof(localtime_tm));
 			/* Year */
 			/*usValue = *((unsigned short *)pReq);*//* Will cause exception: maybe because pReq not odd address */
 			usValue = pReq[i];
@@ -1116,54 +1120,66 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			usValue = usValue << 8;
 			usValue += pReq[i];
 			if (usValue < 1980 ||usValue > 2079)   //according to OLT system time range, added by dushb 2009-11-12
-				return (tmpRet|S_OUT_OF_RANGE);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%4d/",usValue);
+			w_gw_tim.tm_year = usValue;
+			//diag_printf("year len:%d,year:%d\n",ResLen,w_gw_tim.tm_year);
 			ptr += ResLen;
 			i++;
 
 			/* Month */
 			ucValue = pReq[i];
 			if (ucValue > 12) 
-				return (tmpRet|S_BAD_PARAM);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d/",ucValue);
+			w_gw_tim.tm_mon = ucValue;
+			//diag_printf("mon len:%d mon:%d\n",ResLen,w_gw_tim.tm_mon);
 			ptr += ResLen;
 			i++;
 
 			/* Day */
 			ucValue = pReq[i];
 			if (ucValue > 31) 
-				return (tmpRet|S_BAD_CONFIGURATION);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d:",ucValue);
+			w_gw_tim.tm_mday = ucValue;
+			//diag_printf("day len:%d day:%d\n",ResLen,w_gw_tim.tm_mday);
 			ptr += ResLen;
 			i++;
 
 			/* Hour */
 			ucValue = pReq[i];
 			if (ucValue > 24) 
-				return (tmpRet|S_NO_RESOURCES);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d:",ucValue);
+			w_gw_tim.tm_hour = ucValue;
+			//diag_printf("hour len:%d hour:%d\n",ResLen,w_gw_tim.tm_hour);
 			ptr += ResLen;
 			i++;
 			
 			/* Minute */
 			ucValue = pReq[i];
 			if (ucValue > 59) 
-				return (tmpRet|S_NOT_FOUND);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d:",ucValue);
+			w_gw_tim.tm_min = ucValue;
+			//diag_printf("min len:%d min:%d\n",ResLen,w_gw_tim.tm_min);
 			ptr += ResLen;
 			i++;
 			
 			/* Second */
 			ucValue = pReq[i];
 			if (ucValue > 59) 
-				return (tmpRet|S_ALREADY_EXISTS);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d",ucValue);
+			w_gw_tim.tm_sec = ucValue;
+			//diag_printf("sec len:%d sec:%d\n",ResLen,w_gw_tim.tm_sec);
 			ptr += ResLen;
 			i++;
 
 			ResLen = i+1;
-			memcpy(Response,pRequest->pPayLoad,ResLen);
-
+			//memcpy(Response,pRequest->pPayLoad,ResLen);
+#ifdef __DEBUG__
 			cl_do_set_time_nouser(NULL);
 
 #if (RPU_YES == RPU_MODULE_TIMING_PKT)
@@ -1174,7 +1190,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 VOS_ASSERT(TimingPkt_TaskID != 0);
             }
 #endif
-			
+#endif		
 #endif
 			break;
 		}
@@ -1891,7 +1907,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 {
 	int ret=GWD_RETURN_OK;
 	int iLastChar;
-	unsigned char ucsDeviceNameDef[] = "GT810_A";
+	unsigned char ucsDeviceNameDef[] = "GT811_C";
 
 	memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 
@@ -1904,7 +1920,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 	}
 	else
 	{
-		gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
+		//gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
 	}
 		
 	/* Avoid invalid string data */
@@ -2155,7 +2171,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT810A");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT811C");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
@@ -2394,7 +2410,12 @@ gw_status gw_oam_handler(gw_int8 * pkt, const gw_int32 len, gw_int32 portid)
 	Gwd_Oam_Handle(portid, pkt, len);
 	return GW_OK;
 }
-
+void gw_broadcast_storm_init()
+{
+	broad_storm.gulBcStormThreshold = 1000;
+	broad_storm.gulBcStormStat = 0;
+	return;
+}
 void gwd_onu_init(void)
 {
 extern void Rcp_Mgt_init(void);
@@ -2414,7 +2435,7 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
 	gw_reg_pkt_handler(GW_PKT_OAM, gw_oam_handler);
-
+	gw_broadcast_storm_init();
 #if _cmd_line_
 
 	GW_Onu_Sysinfo_Get();
@@ -2426,7 +2447,9 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 #endif
 
 	Rcp_Mgt_init();
-
+	gw_printf("=========================================================\n");
+	gw_printf("=		input libred.a success now ...                 =\n");
+	gw_printf("=========================================================\n");
 	userCmdInitHandlerInit();
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)

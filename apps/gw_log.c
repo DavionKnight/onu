@@ -49,8 +49,7 @@ gw_int32 getGwLogRecordLevel()
 
 gw_int32 gw_log_add_record(gw_int8 * rec, gw_int32 len)
 {
-	log_entry_t * pmsg = NULL;
-
+	log_entry_t * pmsg = NULL;	
 	if(len > 0 && rec)
 	{
 
@@ -139,18 +138,25 @@ gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...)
     char data[256] = "";
 
     extern int diag_sprintf(char * buf, const char * fmt, va_list ap);
-
+#ifdef __DEBUG__
+	localtime_tm tm;
+	gw_time_get(&tm)
+#endif	
     char * buf = data;
 
     if(buf)
     {
     	memset(buf, 0, sizeof(data));
+		#ifdef __DEBUG__
+		memcpy(buf,&tm,sizeof(localtime_tm));
+		buf + sizeof(localtime_tm);
+		#endif
     	va_start(ap, String);
     	ret = diag_vsprintf(buf, String, ap);
     	va_end(ap);
 
     	if(level >= log_level)
-    		diag_printf("%s", buf);
+    		diag_printf("%s",buf);
 
     	if(level >= log_record_level)
     		gw_log_add_record(buf, ret);

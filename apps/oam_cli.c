@@ -6,6 +6,16 @@
 #include "oam.h"
 #include "gwdonuif_interval.h"
 
+
+#define GW_VLAN_MAX 4094
+#define GW_VLAN_LAS 1
+
+#define GW_ONUPORT_MAX 4
+#define GW_ONUPORT_LAS 1
+
+#define GW_PORT_PRI_MAX 7
+#define GW_PORT_PRI_LAS 0
+
 extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
 
 int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -220,7 +230,7 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 */
 			case 1:
 				return gw_cli_arg_help(cli, 0, 
-					"[0|1]", "isolate 1 enable; 0 disable", NULL);
+					"{[0|1]}*1", "isolate 1 enable; 0 disable", NULL);
 				break;
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
@@ -283,11 +293,11 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0, 
-					"<port_list>", "Input one fe port number", NULL );
+					"{<portlist>}*1", "Input one fe port number", NULL );
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0,
-					"[1|0]", "1 enable; 0 disable", NULL);
+					"{[1|0]}*1", "1 enable; 0 disable", NULL);
 				break;
 
 			default:
@@ -313,7 +323,7 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 			if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_GET, 2,portid, &en))
 				gw_cli_print(cli, "get port %d atu learning fail!\r\n", portid);
 			else
-				gw_cli_print(cli, "port %d atu learning %s\r\n", portid, en?"enable":"disable");
+				gw_cli_print(cli,"Port %d source mac address learn is %s\r\n",portid,en?"enable":"disable");
 		}
 	}
 	else
@@ -403,7 +413,93 @@ int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
 
 	return CLI_OK;
 }
+int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	gw_uint32 gw_port;
+	gw_uint16 gw_vlan;
+	gw_uint32 gw_pri;
+	if (CLI_HELP_REQUESTED) {
+		switch (argc) {
+		case 1:
+			return gw_cli_arg_help(cli, 0, "xxxx.xxxx.xxxx", "Please input the mac address",
+					NULL );
+		case 2:
+		    return gw_cli_arg_help(cli, 0, "<port_list>", "Please input the port_list",
+					NULL );
+		case 3:
+			return gw_cli_arg_help(cli, 0, "<1-4094>", "Please input vlan id",
+					NULL );
+		case 4:
+			return gw_cli_arg_help(cli, 0, "<0-7>", "MAC address's priority",
+					NULL );			
+		default:
+			return gw_cli_arg_help(cli, argc > 3, NULL );
 
+		}
+	}
+
+	if(argc == 4)
+		{
+			gw_port = iros_strtol(argv[1]);
+			if(gw_port > GW_ONUPORT_MAX || gw_port < GW_ONUPORT_LAS)
+				{
+					gw_cli_print(cli,"port error\n");
+					return -1;
+				}
+			gw_vlan = iros_strtol(argv[2]);
+			if(gw_vlan >GW_VLAN_MAX ||gw_vlan < GW_VLAN_LAS)
+				{
+					gw_cli_print(cli,"vlan error\n");
+					return -1;
+				}	
+			gw_pri = iros_strtol(argv[3]);
+			if(gw_pri < GW_PORT_PRI_LAS || gw_pri > GW_PORT_PRI_MAX)
+				{
+					gw_cli_print(cli,"pri error\n");
+				}
+			call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,argv[0],gw_port,gw_vlan);
+		}
+	else
+		{
+			gw_cli_print(cli,"%%input error\n");
+		}
+	return CLI_OK;
+}
+int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+		gw_uint8 * gw_buf = NULL;
+		gw_uint16 gw_vlan;
+		if (CLI_HELP_REQUESTED) {
+		switch (argc) {
+		case 1:
+			return gw_cli_arg_help(cli, 0, "xxxx.xxxx.xxxx", "Please input the mac address",
+					NULL );
+		case 2:
+			return gw_cli_arg_help(cli, 0, "<1-4094>", "Please input vlan id",
+					NULL );
+		default:
+			return gw_cli_arg_help(cli, argc > 1, NULL );
+
+		}
+		if(argc == 2)
+			{
+				gw_vlan = iros_strtol(argv[1]);
+				if(gw_vlan >GW_VLAN_MAX ||gw_vlan < GW_VLAN_LAS)
+					{
+						gw_cli_print(cli,"vlan error\n");
+						return -1;
+					}	
+				call_gwdonu_if_api(LIB_IF_STATIC_MAC_DEL, 2,argv[0],gw_vlan);
+			}
+		else
+			{
+				gw_cli_print(cli,"%%input error\n");
+			}
+		return 0;
+	}
+		
+	return CLI_OK;
+}
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL;
@@ -415,6 +511,8 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, atu, "learning", cmd_oam_atu_learn, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "learning enable");
 	gw_cli_register_command(cmd_root, atu, "aging", cmd_oam_atu_age, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "age set");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");
+	gw_cli_register_command(cmd_root, atu, "static_add", cmd_static_mac_add_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "static fdb mac add");
+	gw_cli_register_command(cmd_root, atu, "static_del", cmd_static_mac_del_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "static fdb mac del");
 
 	c = gw_cli_register_command(cmd_root, NULL, "vlan", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan command");
 	gw_cli_register_command(cmd_root, c, "port_isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");

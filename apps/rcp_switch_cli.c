@@ -5465,7 +5465,7 @@ void rcp_dev_monitor(void * data)
 									error++;
 							}
 							if(error != 0)
-								printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+								gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
 						}
 				    }
 				}
@@ -5665,7 +5665,7 @@ int rcp_dev_status_check(void)
 							error++;
 					}
 					if(error != 0)
-						printf("rcp_dev_status_check: updata vlan failed(%d,%d)\r\n", ret, error);
+						gw_printf("rcp_dev_status_check: updata vlan failed(%d,%d)\r\n", ret, error);
 					rcpDevList[i]->previousUplinkPort = rcpDevList[i]->upLinkPort;
 				}
 			}
@@ -5793,8 +5793,12 @@ void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
 	struct cli_command *mgt,*mgt_config,*mask,*maks_alarm,*clear,*rcp_switch;
 //	inter = gw_cli_register_command(cmd_root, 0,     "interface", NULL,					PRIVILEGE_PRIVILEGED, MODE_EXEC, "Select an interface to config");
 #if 1
+#ifdef __DEBUG__
 	c = gw_cli_register_command(cmd_root, 0, "configure", NULL,                         PRIVILEGE_PRIVILEGED, MODE_EXEC, "Enter configuration mode");
         gw_cli_register_command(cmd_root, c, "terminal", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
+#endif
+	//c = gw_cli_register_command(cmd_root, 0, "configure", NULL,                         PRIVILEGE_PRIVILEGED, MODE_EXEC, "Enter configuration mode");
+        gw_cli_register_command(cmd_root, NULL, "enable", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
 inter = gw_cli_register_command(cmd_root, NULL, "interface",    NULL,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Select an interface to configure");
 //		gw_cli_register_command(cmd_root, inter, "IFNAME",   cmd_config_int ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Interface name");
 		gw_cli_register_command(cmd_root, inter, "switch",   cli_int_interface_switch ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Config switch connected to the interface");

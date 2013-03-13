@@ -20,6 +20,7 @@ typedef short                   gw_int16;
 typedef unsigned char           gw_uint8;
 typedef char                    gw_int8;
 typedef unsigned char           gw_boolean;
+typedef float					gw_float;
 
 typedef enum {
     GW_PON_PORT_ID     = 0x00,
@@ -50,7 +51,15 @@ typedef enum {
     GW_E_NOT_SUPPORT      = 6,
     GW_E_ERROR            = 0xffffffff
 } gw_status;
-
+typedef enum {
+        GW_PORT_ADMIN_DOWN,
+        GW_PORT_ADMIN_UP,
+} gw_port_admin_status_t;
+typedef struct{
+	gw_uint64 gulBcStormThreshold;
+	gw_uint64 gulBcStormStat;
+}broadcast_storm_s;
+broadcast_storm_s broad_storm;
 
 typedef int (*gw_funcptr)(void *arg);
 

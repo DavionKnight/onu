@@ -20,5 +20,6 @@ void plat_init()
 	init_pkt_proc();
 
 	gwd_onu_init();
+	gwd_thread_init();
 
 }

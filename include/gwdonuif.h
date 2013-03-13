@@ -8,7 +8,6 @@
 #ifndef GWDONUIF_H_
 #define GWDONUIF_H_
 
-#include "gw_types.h"
 
 typedef enum{
 	PORT_ADMIN_DOWN,
@@ -32,6 +31,14 @@ typedef enum{
 	GWD_PORT_DUPLEX_FULL,
 	GWD_PORT_DUPLEX_HALF
 }gwd_port_mode_duplex_t;
+
+typedef enum {
+        PORT_INGRESS_LIMIT_ALL = 0,
+        PORT_INGRESS_LIMIT_MC_BC_FLOODEDUC,
+        PORT_INGRESS_LIMIT_BC_MC,
+        PORT_INGRESS_LIMIT_BC, 
+        PORT_INGRESS_LIMIT_UC
+}gwd_sw_port_inratelimit_mode_t;
 
 typedef struct {
         gw_uint64 RxFramesOk;
@@ -84,6 +91,20 @@ typedef struct {
         gw_uint64 TxOctetsOk;
         gw_uint64 TxError;
 } __attribute__((packed)) gw_onu_counter_t;
+typedef struct gw_tm {
+    int tm_sec;      // seconds after the minute - [0..61] 
+                     //   (note 61 allows for two leap seconds)
+    int tm_min;      // minutes after the hour - [0..59]
+    int tm_hour;     // hours since midnight - [0..23]
+    int tm_mday;     // days of the month - [1..31]
+    int tm_mon;      // months since January - [0..11]
+    int tm_year;     // years since 1900
+    int tm_wday;     // days since Sunday - [0..6]
+    int tm_yday;     // days since January 1 - [0..365]
+    int tm_isdst;    // Daylight Saving Time flag - positive if DST is in
+                     // effect, 0 if not in effect, and negative if the info
+                     // is not available
+}localtime_tm;
 
 typedef struct{
 	gw_uint32 rxrate;
@@ -124,7 +145,11 @@ typedef gw_status (*libgwdonu_opm_get_t)(gw_uint16 *temp,gw_uint16 *vcc,gw_uint1
 
 typedef gw_status (*libgwdonu_port_loop_event_post_t)(gw_uint32 status);
 typedef gw_status (*libgwdonu_onu_register_special_frame_hanler_t)(libgwdonu_special_frame_handler_t handler);
-
+typedef gw_status (*libgwdonu_onu_current_timer_get_t)(gw_uint32* gw_time);
+typedef gw_status (*libgwdonu_onu_broadcast_speed_limit_set_t)(gw_uint32 gw_port,gwd_sw_port_inratelimit_mode_t gw_mode,gw_uint32 gw_rate);
+typedef gw_status (*libgwdonu_onu_localtime_get_t)(localtime_tm * tm);
+typedef gw_status (*libgwdonu_onu_static_mac_add_t)(gw_int8* gw_mac,gw_uint32 gw_port,gw_uint32 gw_vlan);
+typedef gw_status (*libgwdonu_onu_static_mac_del_t)(gw_int8* gw_mac,gw_uint32 gw_vlan);
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -160,6 +185,12 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_port_loop_event_post_t portloopnotify;
 
 	libgwdonu_onu_register_special_frame_hanler_t specialpkthandler;
+
+	libgwdonu_onu_current_timer_get_t currenttimeget;
+	libgwdonu_onu_broadcast_speed_limit_set_t broadlimit;
+	libgwdonu_onu_localtime_get_t localtimeget;
+	libgwdonu_onu_static_mac_add_t staticmacadd;
+	libgwdonu_onu_static_mac_del_t staticmacdel;
 
 }gwdonu_im_if_t;
 

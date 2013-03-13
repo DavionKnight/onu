@@ -25,6 +25,7 @@
 #include "mqueue.h"
 #include "../include/gw_os_common.h"
 #include "../include/gw_os_api_core.h"
+#include "../include/gw_types.h"
 
 #define GW_OSAL_MAX_PRI         31
 #define GW_OSAL_UNINIT          0
@@ -2168,7 +2169,7 @@ gw_int32 gw_pri_queue_put (gw_uint32 queue_id, void *data, gw_uint32 size, gw_in
 {
     gw_uint8 *pbuf = NULL;
     gw_uint32 total = 0;
-
+	gw_uint32 count_gw;
     /* Check Parameters */
 
     if(queue_id >= GW_OSAL_MAX_QUEUE || gw_osal_queue_table[queue_id].free == TRUE ||

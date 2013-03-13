@@ -23,7 +23,7 @@ gw_pkt_cb_func_t gw_pkt_cb_func_tab[GW_PKT_MAX];
 static gw_uint32 gw_pkt_threadid, gw_pkt_thread_prio = 13;
 static gw_uint8 gw_pkt_thread_name[]="GW_PKT_THREAD";
 
-static gw_uint32 gw_pkt_queueid, gw_pkt_queue_depth = 128, gw_pkt_msg_size = sizeof(queue_para_t);
+static gw_uint32 gw_pkt_queueid, gw_pkt_queue_depth = 400, gw_pkt_msg_size = sizeof(queue_para_t);
 static gw_uint8 gw_pkt_queue_name[]="GW_PKT_QUEUE";
 
 
@@ -74,7 +74,7 @@ void gw_pkt_proc_main(gw_uint32 * para)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "get queue error\r\n");
 
-			gw_thread_delay(50);
+			gw_thread_delay(5);
 		}
 		free(buf);
 	}
@@ -152,7 +152,6 @@ gw_status gw_pkt_handler_call(GW_PKT_TYPE type, gw_int8 *pkt, const gw_int32 len
 
 	return ret;
 }
-
 gw_int32 gwlib_sendPktToQueue(gw_int8 *pkt, const gw_int32 len, gw_int32 portid)
 {
 	gw_int32 ret = GW_OK;
@@ -166,7 +165,6 @@ gw_int32 gwlib_sendPktToQueue(gw_int8 *pkt, const gw_int32 len, gw_int32 portid)
 		gw_log(GW_LOG_LEVEL_DEBUG,("gwlib_sendPktToQueue malloc fail!\r\n"));
 		ret = GW_ERROR;
 	}
-
 	if(ret == GW_OK)
 	{
 		queue_para_t pdata;
