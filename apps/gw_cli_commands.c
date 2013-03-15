@@ -24,11 +24,16 @@ static void show_port_statistic(struct cli_def * cli, int portid)
 
 #define DUMP_PORT_STAT_FMT "  %-24s:  %-22llu  %-24s:  %-22llu"
 #define DUMP_PORT_STAT_FMT32 "  %-24s:  %-22u  %-24s:  %-22u"
+#if 0
 	if (portid == 0xff) {
 		int i = 0;
-		for (i = 1; i <= gw_onu_read_port_num(); i++)
-			show_port_statistic(cli, i);
+		for (i = 1; i <= 4; i++)
+			{
+				gw_cli_print(cli,"===========================port %d stat===========================",i);
+				show_port_statistic(cli, i);
+			}
 	} else {
+#endif
 		int len = sizeof(gw_onu_port_counter_t);
 		char *data = malloc(len);
 
@@ -41,13 +46,13 @@ static void show_port_statistic(struct cli_def * cli, int portid)
 			else {
 				gw_onu_port_counter_t * pd = (gw_onu_port_counter_t*) data;
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT32,
-						"In bit rate", pd->rxrate, "Out bit rate", pd->txrate);
+						"In bytes rate", pd->rxrate, "Out bytes rate", pd->txrate);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In bytes", pd->counter.RxOctetsOKLsb, "Out bytes", pd->counter.TxOctetsOk);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
-						"In total pkts", pd->counter.RxFramesOk, "Out bytes", pd->counter.TxFramesOk);
+						"In total pkts", pd->counter.RxFramesOk, "Out total pkts", pd->counter.TxFramesOk);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
-						"In unicast pkts",  pd->counter.RxUnicasts, "Out bytes", pd->counter.TxUnicasts);
+						"In unicast pkts",  pd->counter.RxUnicasts, "Out unicast pkts", pd->counter.TxUnicasts);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In multicast pkts",  pd->counter.RxMulticasts, "Out multicast pkts", pd->counter.TxMulticasts);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
@@ -55,20 +60,19 @@ static void show_port_statistic(struct cli_def * cli, int portid)
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT, "In pause pkts", pd->counter.RxPause, "Out pause pkts", pd->counter.TxPause);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In crc error pkts", pd->counter.RxError, "Out crc error pkts", pd->counter.TxError);
-				gw_cli_print(cli, DUMP_PORT_STAT_FMT,	"In jumbo pkts", pd->counter.RxOversize, "Out jumbo pkts", pd->counter.TxTooLongFrames);
+				gw_cli_print(cli, DUMP_PORT_STAT_FMT,	"In jumbo pkts", pd->counter.RxJumboOctets, "Out jumbo pkts", pd->counter.TxJumboOctets);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT, "In undersize pkts", pd->counter.RxUndersize, "Out undersize pkts", (long long unsigned int)0);
 
 			}
 			free(data);
 		}
-	}
 }
 
 int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
 	int portid = 0;
-
+	int i = 0;
 	if(CLI_HELP_REQUESTED)
 	{
 		switch (argc)
@@ -87,13 +91,25 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 	if(argc == 1)
 	{
 		portid = atoi(argv[0]);
+		show_port_statistic(cli, portid);
 	}
 	else
-	{
-		portid = 0xff;
+	{		
+		for (i = 1; i <= 2; i++)
+			{
+				gw_cli_print(cli,"===========================port %d stat===========================",i);
+				show_port_statistic(cli, i);
+				gw_thread_delay(5);
+			}
+		for(i = 3; i <= 4; i++)
+			{
+				gw_cli_print(cli,"===========================port %d stat===========================",i);
+				show_port_statistic(cli, i);
+				gw_thread_delay(5);
+			}
 	}
 
-	show_port_statistic(cli, portid);
+	
 
 	return CLI_OK;
 }

@@ -220,21 +220,11 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 	{
 		switch (argc)
 		{
-/*			
-			case 1:
-				return gw_cli_arg_help(cli, 0,
-					"<1-4>", "port id selected", NULL);
-				break;
-
-			case 2:
-*/
 			case 1:
 				return gw_cli_arg_help(cli, 0, 
 					"{[0|1]}*1", "isolate 1 enable; 0 disable", NULL);
-				break;
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
-				break;
 		}
 	}
 
@@ -242,32 +232,19 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 
 	if(argc >= 1)
 	{
-		#if 0
-		port = atoi(argv[0]);
-		if(argc > 1)
-			en = atoi(argv[1]);
-
-		if(argc == 1 )
-		{
-			if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_GET, 2, port, &en) != GW_OK)
-				gw_cli_print(cli, "get port isolate fail!\r\n");
-			else
-				gw_cli_print(cli, "get port isolate: %s\r\n", en?"enable":"disable");
-		}
-		else
-		{		
-			if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
-				gw_cli_print(cli, "port %d set isolate %d fail!\r\n", port, en?"enable":"disable");
-		}
-		#else
 		if(argc == 1)
-			en = atoi(argv[1]);
+			en = atoi(argv[0]);
 
 
 		if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
 			gw_cli_print(cli, "port %d set isolate %s fail!\r\n", port, en?"enabled":"disabled");
-	
-		#endif
+		else
+			{
+				if(en)
+					gw_cli_print(cli,"set all port isolate enable success\n");
+				else
+					gw_cli_print(cli,"set all port isolate disable success\n");
+			}
 	}
 	else
 	{	
@@ -293,7 +270,7 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0, 
-					"{<portlist>}*1", "Input one fe port number", NULL );
+					"<portlist>", "Input one fe port number", NULL );
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0,
@@ -349,28 +326,31 @@ int cmd_oam_atu_age(struct cli_def *cli, char *command, char *argv[], int argc)
 			case 1:
 				return gw_cli_arg_help(cli, 0,
 					"<0-600>", "l2 age time unit sec, 0: disable aging", NULL);
-				break;
 
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
-				break;
 		}
 	}
 
 	if(argc == 1)
 	{
 		age = atoi(argv[0]);
-		gw_printf("argv[0] == %d\r\n", age);
+		if(age < 0 ||age > 600)
+			{
+				gw_cli_print(cli,"set aging time error \n");
+				return CLI_ERROR;
+			}
 		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_AGE_SET, 1, age))
 			gw_cli_print(cli, "atu age set %d fail!\r\n", age);
+		else
+			gw_cli_print(cli,"atu aging time set %d sucess",age);
 	}
 	else
 	{
-		gw_printf("no argv set!\r\n");
 		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_AGE_GET, 1, &age))
-			gw_cli_print(cli, "get atu age fail!\r\n");
+			gw_cli_print(cli, "get atu aging time fail!\r\n");
 		else
-			gw_cli_print(cli, "atu age %d\r\n", age);
+			gw_cli_print(cli, "Mac table aging time is %d seconds (PAS & BCM).\r\n", age);
 	}
 	
 
@@ -457,7 +437,10 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 				{
 					gw_cli_print(cli,"pri error\n");
 				}
-			call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,argv[0],gw_port,gw_vlan);
+			if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,argv[0],gw_port,gw_vlan) != GW_OK)
+				gw_cli_print(cli,"add static mac fail\n");
+			else
+				gw_cli_print(cli,"add static mac success\n");
 		}
 	else
 		{
@@ -479,6 +462,7 @@ int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int
 					NULL );
 		default:
 			return gw_cli_arg_help(cli, argc > 1, NULL );
+			}
 
 		}
 		if(argc == 2)
@@ -489,15 +473,15 @@ int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int
 						gw_cli_print(cli,"vlan error\n");
 						return -1;
 					}	
-				call_gwdonu_if_api(LIB_IF_STATIC_MAC_DEL, 2,argv[0],gw_vlan);
+				if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_DEL, 2,argv[0],gw_vlan) != GW_OK)
+					gw_cli_print(cli,"del static mac fail\n");
+				else
+					gw_cli_print(cli,"del static mac success\n");
 			}
 		else
 			{
 				gw_cli_print(cli,"%%input error\n");
-			}
-		return 0;
-	}
-		
+			}		
 	return CLI_OK;
 }
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)

@@ -200,8 +200,8 @@ struct cli_command *gw_cli_tree_init()
     // build-in standard commands
     gw_cli_register_command(&cmd_root, 0, "help",    gw_cli_int_help,       PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Show available commands");
     gw_cli_register_command(&cmd_root, 0, "history", gw_cli_int_history,    PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Show a list of previously run commands");
-    gw_cli_register_command(&cmd_root, 0, "enable",  gw_cli_int_enable,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC,  "Turn on privileged commands");
-    gw_cli_register_command(&cmd_root, 0, "disable", gw_cli_int_disable,    PRIVILEGE_PRIVILEGED,   MODE_EXEC,  "Turn off privileged commands");
+    gw_cli_register_command(&cmd_root, 0, "t_enable",  gw_cli_int_enable,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC,  "Turn on privileged commands");
+    gw_cli_register_command(&cmd_root, 0, "t_disable", gw_cli_int_disable,    PRIVILEGE_PRIVILEGED,   MODE_EXEC,  "Turn off privileged commands");
     gw_cli_register_command(&cmd_root, 0, "quit",    gw_cli_int_quit,       PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Disconnect");
     gw_cli_register_command(&cmd_root, 0, "logout",  gw_cli_int_quit,       PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Disconnect");
     gw_cli_register_command(&cmd_root, 0, "exit",    gw_cli_int_exit,       PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Exit from current mode");

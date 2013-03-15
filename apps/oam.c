@@ -1896,7 +1896,7 @@ int GW_Onu_Sysinfo_Save_To_Flash(VOID)
     buff=(unsigned char  *)&gw_onu_system_info_total;
     size =sizeof (gw_onu_system_info_total);
 
-    gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
+  //  gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
 
     ret = call_gwdonu_if_api(LIB_IF_SYSCONF_SAVE, 2, buff, size);
 
@@ -2107,7 +2107,7 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
 int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int  len, i;
-	unsigned char tmpStr[64];
+	unsigned char tmpStr[128];
 
         
     // deal with help
@@ -2117,7 +2117,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "<string>", "Device name(length<15)",
+                "<string>", "Device name(length<128)",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -2126,7 +2126,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
 
     if(1 == argc)
     {   
-		if((len = strlen(argv[0])) > 15)
+		if((len = strlen(argv[0])) > 128)
 		{
 			gw_cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
 			return CLI_OK;
@@ -2271,7 +2271,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 
     gw_uint32 vid = 0, egports = 0, idx = 0;
 	gw_uint8 mac[GW_MACADDR_LEN]={0,0,0,0,0,0};
-
+	gw_uint32 statics=0;
     // deal with help
     if(CLI_HELP_REQUESTED)
     {
@@ -2282,25 +2282,27 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
         }
     }
 
-    gw_cli_print(cli, "====== FDB SW table is shown:======");
-    gw_cli_print(cli, "index   mac_address        vid   port type ");
+    gw_cli_print(cli, " no     mac                   portlist       static         vid        priority");
+	gw_cli_print(cli,"----------------------------------------------------------------------------------");
 
-    while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 5, vid, mac, &vid, mac, &egports) == GW_OK)
+    while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
 
-        gw_cli_print(cli, " %2d   %02x:%02x:%02x:%02x:%02x:%02x %6d   %2d   %2d  ", idx,
+        gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", idx,
             mac[0],
             mac[1],
             mac[2],
             mac[3],
             mac[4],
             mac[5],
-            vid,
             egports,
-            0);
+            statics-1,
+            vid
+        	);
 		idx++;
     }
-    gw_cli_print(cli, "====== Totally %2d SW entries====\n", idx);
+	gw_cli_print(cli,"----------------------------------------------------------------------------------");
+	gw_cli_print(cli,"                       Total number of ATU table is %2d.",idx);
 #endif
 	return ret;
 }

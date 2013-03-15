@@ -217,7 +217,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 		case LIB_IF_FDB_ENTRY_GETNEXT:
 			if(g_im_ifs->fdbentrygetnext)
 				ret = (*g_im_ifs->fdbentrygetnext)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8*),
-				va_arg(ap, gw_uint32*), va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*));
+				va_arg(ap, gw_uint32*), va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*),va_arg(ap,gw_uint32*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry getnext if is null!\r\n");
 			break;			
@@ -241,7 +241,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;			
 		case LIB_IF_ATU_AGE_SET:
 			if(g_im_ifs->atuageget)
-				ret = (*g_im_ifs->atuageget)(va_arg(ap, gw_uint32));
+				ret = (*g_im_ifs->atuageset)(va_arg(ap, gw_uint32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "atu age set if is null!\r\n");
 			break;				

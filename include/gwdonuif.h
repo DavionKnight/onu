@@ -133,12 +133,12 @@ typedef gw_status (*libgwdonu_port_statistic_get_t)(gw_int32 portid, gw_int8 * d
 typedef gw_status (*libgwdonu_vlan_entry_getnext_t)(gw_uint32 index, gw_uint16 *vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
 typedef gw_status (*libgwdonu_vlan_entry_get_t)(gw_uint32 vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
 typedef gw_status (*libgwdonu_fdb_entry_get_t)(gw_uint32 vid, gw_uint8 * macaddr, gw_uint32 *eg_portlist);
-typedef gw_status (*libgwdonu_fdb_entry_getnext_t)(gw_uint32 vid, gw_uint8 * macaddr, gw_uint32 *nextvid, gw_uint8 *nextmac, gw_uint32 * eg_portlist);
+typedef gw_status (*libgwdonu_fdb_entry_getnext_t)(gw_uint32 vid, gw_uint8 * macaddr, gw_uint32 *nextvid, gw_uint8 *nextmac, gw_uint32 * eg_portlist,gw_uint32*statics);
 typedef gw_status (*libgwdonu_fdb_mgt_mac_set_t)(gw_uint8 * mac);
 typedef gw_status (*libgwdonu_atu_learn_get_t)(gw_int32 portid, gw_int32 *en);
 typedef gw_status (*libgwdonu_atu_learn_set_t)(gw_int32 portid, gw_int32 en);
-typedef gw_status (*libgwdonu_atu_age_get_t)(gw_int32 *age);
-typedef gw_status (*libgwdonu_atu_age_set_t)(gw_int32 age);
+typedef gw_status (*libgwdonu_atu_age_get_t)(gw_uint32 *age);
+typedef gw_status (*libgwdonu_atu_age_set_t)(gw_uint32 age);
 typedef gw_status(*libgwdonu_set_mac_t)(gw_int8 *mac);
 
 typedef gw_status (*libgwdonu_opm_get_t)(gw_uint16 *temp,gw_uint16 *vcc,gw_uint16 *bias,gw_uint16 *txpow,gw_uint16 *rxpow);
