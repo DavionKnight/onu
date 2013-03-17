@@ -1896,7 +1896,7 @@ int GW_Onu_Sysinfo_Save_To_Flash(VOID)
     buff=(unsigned char  *)&gw_onu_system_info_total;
     size =sizeof (gw_onu_system_info_total);
 
-  //  gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
+   // gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
 
     ret = call_gwdonu_if_api(LIB_IF_SYSCONF_SAVE, 2, buff, size);
 
@@ -2107,7 +2107,7 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
 int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int  len, i;
-	unsigned char tmpStr[128];
+	unsigned char tmpStr[64];
 
         
     // deal with help
@@ -2117,7 +2117,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "<string>", "Device name(length<128)",
+                "<string>", "Device name(length< 64)",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -2126,7 +2126,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
 
     if(1 == argc)
     {   
-		if((len = strlen(argv[0])) > 128)
+		if((len = strlen(argv[0])) > 64)
 		{
 			gw_cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
 			return CLI_OK;
@@ -2322,7 +2322,7 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "<xxxx.xxxx.xxxx>", "ONU  MAC Address",
+                "<xx:xx:xx:xx:xx:xx>", "ONU  MAC Address",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -2337,10 +2337,10 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
             return CLI_ERROR;
         }
         
-        ret = sscanf(argv[0], "%02x%02x.%02x02.%02x%02x", 
+        ret = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", 
             &mac1[0], &mac1[1], &mac1[2], &mac1[3],&mac1[4],&mac1[5]);
         
-        if(ret != 3 || mac1[0]&0x01){
+        if(ret != 6 || mac1[0]&0x01){
             gw_cli_print(cli,"Input MAC is not a unicast MAC\n");
             return CLI_ERROR;
         }

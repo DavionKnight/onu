@@ -255,7 +255,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 
 		case LIB_IF_ONU_MAC_SET:
 			if(g_im_ifs->onumacset)
-				ret = (*g_im_ifs->onumacset)(va_arg(ap, gw_int8 *));
+				ret = (*g_im_ifs->onumacset)(va_arg(ap, gw_uint8 *));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "onu mac set if is null!\r\n");
 			break;

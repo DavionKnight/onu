@@ -5940,8 +5940,8 @@ void cli_reg_rcp_cmd(struct cli_command **cmd_root)
 {
     struct cli_command *gwd_switch;
     // switch cmds in config mode
-    gwd_switch = gw_cli_register_command(cmd_root, NULL, "switch", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Switch remote management");
-		gw_cli_register_command(cmd_root, gwd_switch, "show",    cmd_switch_show,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Show switch found");
+    gwd_switch = gw_cli_register_command(cmd_root, NULL, "show", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Switch remote management");
+		gw_cli_register_command(cmd_root, gwd_switch, "switch",    cmd_switch_show,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Show switch found");
 
     return;
 }
