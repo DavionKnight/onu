@@ -72,7 +72,6 @@ void gw_pkt_proc_main(gw_uint32 * para)
 				}
 			}
 			else
-				gw_log(GW_LOG_LEVEL_DEBUG, "get queue error\r\n");
 
 			gw_thread_delay(5);
 		}

@@ -128,7 +128,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 		case LIB_IF_SYSCONF_RESTORE:
 			if(g_im_ifs->sysconfrestore)
-				ret = (*g_im_ifs->sysconfrestore)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
+				ret = (*g_im_ifs->sysconfrestore)(va_arg(ap,gw_uint8*),va_arg(ap,gw_uint32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf restore if is null!\r\n");
 			break;
@@ -220,7 +220,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				va_arg(ap, gw_uint32*), va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*),va_arg(ap,gw_uint32*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry getnext if is null!\r\n");
-			break;			
+			break;	
+		case LIB_IF_FDB_MGT_MAC_SET:
+			if(g_im_ifs->fdbmgtmacset)
+				ret = (*g_im_ifs->fdbmgtmacset)(va_arg(ap,gw_uint8*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "fdb mgt mac set if is null!\r\n");
+			break;
 		case LIB_IF_ATU_LEARN_GET:
 			if(g_im_ifs->atulearnget)
 				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_int32), va_arg(ap, gw_uint32*));
@@ -245,14 +251,6 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "atu age set if is null!\r\n");
 			break;				
-
-		case LIB_IF_FDB_MGT_MAC_SET:
-			if(g_im_ifs->fdbmgtmacset)
-				ret = (*g_im_ifs->fdbmgtmacset)(va_arg(ap, gw_uint8*));
-			else
-				gw_log(GW_LOG_LEVEL_DEBUG, "fdb mgt mac set if is null!\r\n");
-			break;		
-
 		case LIB_IF_ONU_MAC_SET:
 			if(g_im_ifs->onumacset)
 				ret = (*g_im_ifs->onumacset)(va_arg(ap, gw_uint8 *));

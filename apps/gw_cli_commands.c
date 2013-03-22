@@ -173,7 +173,6 @@ int cmd_bsctrl_policy(struct cli_def *cli, char *command, char *argv[], int argc
 int cmd_bsctrl_threshold(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
-	int portid = 0;
 	gw_uint32 gw_threshold = 0;
 
 	gw_threshold = atoi(argv[0]);
@@ -291,7 +290,6 @@ int cmd_timer_show(struct cli_def *cli, char *command, char *argv[], int argc)
 	
 	gw_cli_print(cli,"======================================================================\n");
 	localtime_tm tm;
-	gw_uint32 tim_tic;
 	memcpy(&tm,&w_gw_tim,sizeof(localtime_tm));
 	gw_cli_print(cli, "one:%.4d-%.2d-%.2d %.2d:%.2d:%.2d \n",
     tm.tm_year, tm.tm_mon+1, tm.tm_mday,tm.tm_hour, tm.tm_min, tm.tm_sec);

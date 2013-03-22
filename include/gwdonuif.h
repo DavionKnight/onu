@@ -172,7 +172,7 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_vlan_entry_get_t		vlanentryget;
 	libgwdonu_fdb_entry_get_t		fdbentryget;
 	libgwdonu_fdb_entry_getnext_t	fdbentrygetnext;
-	libgwdonu_fdb_mgt_mac_set_t	fdbmgtmacset;
+	libgwdonu_fdb_mgt_mac_set_t	    fdbmgtmacset;
 	libgwdonu_atu_learn_get_t		atulearnget;
 	libgwdonu_atu_learn_set_t		atulearnset;
 	libgwdonu_atu_age_get_t			atuageget;

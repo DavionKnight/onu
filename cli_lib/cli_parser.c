@@ -782,7 +782,7 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
                     gw_cli_error(cli, "No callback for \"%s\"", gw_cli_command_name(cli, c));
                     return CLI_ERROR;
                 }
-                gw_log(GW_LOG_LEVEL_DEBUG, "found command!!!\r\n");
+            //    gw_log(GW_LOG_LEVEL_CRI, "found command!!!\r\n");
             }
             else
             {
@@ -2830,6 +2830,7 @@ int gw_do_telnet_legacy_cmd(struct cli_def *cli,char * p)
 
                         default:
                             c = 0;
+                            break;
                     }
 
                     esc = 0;
