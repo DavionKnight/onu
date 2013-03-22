@@ -308,6 +308,11 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,"del static mac if is null!\r\n");
 			break;
+		case LIB_IF_ONU_REGISTER_GET:
+			if(g_im_ifs->registerget)
+				ret = (*g_im_ifs->registerget)(va_arg(ap,gw_uint8*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");
 			break;

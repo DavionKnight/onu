@@ -5687,15 +5687,14 @@ int rcp_dev_status_check(void)
 			}
 		}
 	}
-
-	if(GW_OK == epon_onu_register_status_read(&onuRegister))
-	{
+	if(GW_OK == call_gwdonu_if_api(LIB_IF_ONU_REGISTER_GET, 1, &onuRegister))
+	{	
 		if(onuRegister)
 		{
 			if(RCP_OK != (ret = popAllSwitchStatusChgMsg()))
 			{
 				if(RCP_NO_MORE != ret)
-					gw_log(GW_LOG_LEVEL_CRI, "Send switch status change oam failed.(%d)\n", ret);
+					gw_log(GW_LOG_LEVEL_DEBUG, "Send switch status change oam failed.(%d)\n", ret);
 			}
 		}
 	}

@@ -6208,7 +6208,6 @@ int popAllSwitchStatusChgMsg(void)
 {
 	unsigned char oamSession[8];
 	ALARM_FIFO_ENTRY *pMsg;
-	
 	if(NULL == gpstAlmFifo)
 		return RCP_NOT_INITIALIZED;
 

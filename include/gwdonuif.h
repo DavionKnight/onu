@@ -150,6 +150,10 @@ typedef gw_status (*libgwdonu_onu_broadcast_speed_limit_set_t)(gw_uint32 gw_port
 typedef gw_status (*libgwdonu_onu_localtime_get_t)(localtime_tm * tm);
 typedef gw_status (*libgwdonu_onu_static_mac_add_t)(gw_int8* gw_mac,gw_uint32 gw_port,gw_uint32 gw_vlan);
 typedef gw_status (*libgwdonu_onu_static_mac_del_t)(gw_int8* gw_mac,gw_uint32 gw_vlan);
+typedef gw_status (*libgwdonu_onu_register_stat_get)(gw_uint8* onuregister);
+
+
+
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -191,6 +195,7 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_onu_localtime_get_t localtimeget;
 	libgwdonu_onu_static_mac_add_t staticmacadd;
 	libgwdonu_onu_static_mac_del_t staticmacdel;
+	libgwdonu_onu_register_stat_get registerget;
 
 }gwdonu_im_if_t;
 
