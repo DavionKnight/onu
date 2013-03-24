@@ -108,7 +108,6 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 					duplex = GWD_PORT_DUPLEX_AUNEG;
 					break;
 			}
-			
 			if(call_gwdonu_if_api(LIB_IF_PORT_MODE_SET, 3, port, spd, duplex) != GW_OK)
 				gw_cli_print(cli, "port %d set mode %d fail!\r\n", port, mode);
 		}
@@ -484,9 +483,47 @@ int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int
 			}		
 	return CLI_OK;
 }
+extern int gwd_onu_reboot(int a);
+int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int a = 10;
+#if 0
+	int a = 10;
+	int enable;
+	if (CLI_HELP_REQUESTED) {
+	switch (argc) {
+	case 1:
+		return gw_cli_arg_help(cli, 0, "[0|1]", "reboot enable",
+				NULL );
+	default:
+		return gw_cli_arg_help(cli, argc > 1, NULL );
+		}
+
+	}
+
+	enable = atoi(argv[0]);
+	gw_printf("................................cmd_onu_reboot\n");
+    if(argc == 1)
+    {
+		if(enable)
+		call_gwdonu_if_api(LIB_IF_ONU_REBOOT, 1,a);
+		else
+			gw_printf("reboot error\n");
+
+    }
+	else
+	{
+		cli_print(cli, "%% Invalid input.");
+        return CLI_OK;
+	}
+	#else
+	gwd_onu_reboot(a);
+	#endif
+	return CLI_OK;
+}
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 {
-	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL;
+	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL,*reboot= NULL;
 
 	portcmd = gw_cli_register_command(cmd_root, NULL, "port", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port config or get");
 	gw_cli_register_command(cmd_root, portcmd, "mode", cmd_oam_port_mode, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
@@ -506,6 +543,8 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 
 	c = gw_cli_register_command(cmd_root, NULL, "event", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "event show");
 	gw_cli_register_command(cmd_root, c, "show", cmd_oam_event_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show");
+	reboot = gw_cli_register_command(cmd_root, NULL, "ONU",NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
+	gw_cli_register_command(cmd_root,reboot, "reboot", cmd_onu_reboot, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
 
 
     return;

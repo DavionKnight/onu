@@ -73,6 +73,11 @@ int Debug_Print_Rx_OAM(GWTT_OAM_MESSAGE_NODE *pMessage);
 int Debug_Print_Tx_OAM(GWTT_OAM_HEADER *avender, unsigned char *pSentData);
 int Debug_Print_Rx_OAM_Unkown(unsigned char *pBuffer, unsigned short len);
 
+
+
+extern int cli_arg_help(struct cli_def *cli, int cr_ok, char *entry, ...);
+extern void cli_print(struct cli_def *cli, char *format, ...);
+
 unsigned long   gulDebugOamRx = 0;
 unsigned long   gulDebugOamTx = 0;
 unsigned long   gulDebugOamRxCount = 0;
@@ -1965,6 +1970,53 @@ int GW_Onu_Sysinfo_Get(void)
     return GW_Onu_Sysinfo_Get_From_Flash();
 }
 
+int cmd_onu_mgt_config_product_date_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int year, month, date;
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return cli_arg_help(cli, 0,
+                "<2007-2100>", "Year",
+                 NULL);
+        case 2:
+            return cli_arg_help(cli, 0,
+                "<1-12>", "Month",
+                 NULL);
+        case 3:
+            return cli_arg_help(cli, 0,
+                "<1-31>", "date",
+                 NULL);
+        default:
+            return cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(3 == argc)
+    {   
+		year = atoi(argv[0]);
+		month = atoi(argv[1]);
+		date = atoi(argv[2]);
+
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.hw_manufature_date, 
+			   	"%d-%02d-%02d", year, month, date);
+        
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			cli_print(cli, "  System information save error!\r\n");
+		}
+    } else
+    {
+        cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
 int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int year, month, date;
@@ -2012,6 +2064,47 @@ int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *ar
     
     return CLI_OK;
 }
+int cmd_onu_mgt_config_product_hw_version_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int v_major, v_rel;
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return cli_arg_help(cli, 0,
+                "<1-9>", "Major version",
+                 NULL);
+        case 2:
+            return cli_arg_help(cli, 0,
+                "<1-9>", "Release version",
+                 NULL);
+        default:
+            return cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(2 == argc)
+    {   
+		v_major = atoi(argv[0]);
+		v_rel = atoi(argv[1]);
+
+		sprintf(gw_onu_system_info_total.hw_version, "V%d.%d", 
+			v_major, v_rel);
+        
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			cli_print(cli, "  System information save error!\r\n");
+		}
+    } else
+    {
+        cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
 
 int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -2050,6 +2143,54 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
     } else
     {
         gw_cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
+int cmd_onu_mgt_config_product_sn_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int  len, i;
+	unsigned char tmpStr[18];
+
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return cli_arg_help(cli, 0,
+                "<string>", "Manufacture serial number(length<16)",
+                 NULL);
+        default:
+            return cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(1 == argc)
+    {   
+		if((len = strlen(argv[0])) > 16)
+		{
+			cli_print(cli, "  The length of serial number must be less than %d.\r\n", 16);
+			return CLI_OK;
+		}
+
+		for(i=0; i<len; i++)
+			tmpStr[i] = TOUPPER(argv[0][i]);
+		tmpStr[i] = '\0';
+		
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.serial_no, "%s", tmpStr);
+
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			cli_print(cli, "  System information save error!\r\n");
+		}
+
+		return CLI_OK;
+    } else
+    {
+        cli_print(cli, "%% Invalid input.");
     }
     
     return CLI_OK;
@@ -2103,6 +2244,54 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
     
     return CLI_OK;
 }
+int cmd_onu_mgt_config_device_name_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int  len, i;
+	unsigned char tmpStr[64];
+
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return cli_arg_help(cli, 0,
+                "<string>", "Device name(length< 64)",
+                 NULL);
+        default:
+            return cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(1 == argc)
+    {   
+		if((len = strlen(argv[0])) > 64)
+		{
+			cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
+			return CLI_OK;
+		}
+
+		for(i=0; i<len; i++)
+			tmpStr[i] = TOUPPER(argv[0][i]);
+		tmpStr[i] = '\0';
+		
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.device_name, "%s", tmpStr);
+
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			cli_print(cli, "  System information save error!\r\n");
+		}
+
+		return CLI_OK;
+    } else
+    {
+        cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
 
 int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -2152,6 +2341,37 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
     
     return CLI_OK;
 }
+int cmd_show_system_information_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	long lRet = GWD_RETURN_OK;
+    char strMac[32];
+	extern int cli_get_onu_mac_addr(char *mac);
+	extern char const iros_version[];
+	
+    cli_get_onu_mac_addr(strMac);
+        
+	lRet = GW_Onu_Sysinfo_Get();
+	if (lRet != GWD_RETURN_OK)
+	{
+		cli_print(cli, "  Get product information from flash with error.\r\n");
+		return CLI_OK;
+	}
+	else
+	{
+		cli_print(cli,  "\n  Product information as following--");
+		cli_print(cli,  "    ONU type         : %s", "GT811C");
+		cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
+		cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
+		cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
+		cli_print(cli,  "    Firmware version : %s", iros_version);
+		cli_print(cli,  "    Bootload version : %s", irosbootver);
+		cli_print(cli,  "    Manufature date  : %s", gw_onu_system_info_total.hw_manufature_date);
+		cli_print(cli,  "    Serial number    : %s", gw_onu_system_info_total.serial_no);
+    	cli_print(cli,  "    Onu mac address  : %s", strMac);
+
+		return CLI_OK;
+	}
+}
 
 int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -2183,6 +2403,48 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 
 		return CLI_OK;
 	}
+}
+int cmd_show_opm_diagnostic_variables_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	gw_uint16 temp=0, vcc = 0, bias =0, txpow =0, rxpow=0;
+
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        default:
+            return cli_arg_help(cli, 1, NULL);
+        }
+    }
+
+         if(call_gwdonu_if_api(LIB_IF_OPM_GET, 5, &temp, &vcc, &bias, &txpow, &rxpow) != GW_OK)
+	{
+		cli_print(cli, "  Get optical module diagnostics from I2C with error.\r\n");
+		return CLI_OK;
+	}
+	else
+	{
+		double txdbm = 0.9, rxdbm = 0.0;
+		temp = temp/256;
+		vcc = (gw_uint16)(vcc*0.1);
+		bias = bias*0.002;
+		txdbm = txpow;
+		rxdbm = rxpow;
+
+		txdbm = 10*log10(txdbm*0.0001);
+		rxdbm = 10*log10(rxdbm*0.0001);
+		cli_print(cli,  "\n  optical module diagnostics as following--");
+		cli_print(cli,  "    temperature      : %d  cel", temp);
+		cli_print(cli,  "    voltage          : %d  mV", vcc);
+		cli_print(cli,  "    bias current     : %d  mA", bias);
+		cli_print(cli,  "    tx power         : %4.1f  dbm", txdbm);
+		cli_print(cli,  "    rx power         : %4.1f  dbm", rxdbm);
+
+		return CLI_OK;
+	}
+
 }
 
 int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -2306,6 +2568,61 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 #endif
 	return ret;
 }
+int cmd_set_onu_mac_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int mac1[6];
+    unsigned char mac2[6];
+    int ret ;
+
+    int i;
+    
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return cli_arg_help(cli, 0,
+                "<xx:xx:xx:xx:xx:xx>", "ONU  MAC Address",
+                 NULL);
+        default:
+            return cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+
+    if(1 == argc)
+    {   
+        if(strlen(argv[0]) > 18){
+            cli_print(cli,"MAC address configuration is not OK\n");
+            return CLI_ERROR;
+        }
+        
+        ret = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", 
+            &mac1[0], &mac1[1], &mac1[2], &mac1[3],&mac1[4],&mac1[5]);
+        
+        if(ret != 6 || mac1[0]&0x01){
+            cli_print(cli,"Input MAC is not a unicast MAC\n");
+            return CLI_ERROR;
+        }
+
+        for(i = 0 ; i < 6; i ++){
+            mac2[i] = (unsigned char)mac1[i];
+        }
+
+	ret = call_gwdonu_if_api(LIB_IF_ONU_MAC_SET, 1, mac2);
+
+	if(ret == GW_OK)
+		return CLI_OK;
+        
+    } else
+    {
+        cli_print(cli, "%% Invalid input.");
+		return CLI_ERROR;
+    }
+    
+    return CLI_OK;
+}
 
 int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -2390,7 +2707,34 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 //	cli_reg_rcp_cmd(cmd_root);
     return;
 }
+extern struct cli_command *cli_register_command(struct cli_command **cmd_root, struct cli_command *parent, char *command, int (*callback)(struct cli_def *cli, char *, char **, int), int privilege, int mode, char *help);
+void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
+{
+	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
+    struct cli_command *set;
+    struct cli_command *show, *sys, *atu;
+    // set cmds in config mode
+    set = cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
+    	cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
+    	cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
+    	cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
+    	cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
+	cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
 
+    // display cmds in config mode
+    show  = cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");
+    sys  = cli_register_command(cmd_root, show, "product", cmd_show_system_information_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
+	cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
+
+/*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
+	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
+
+
+
+    // RCP switch cmds in config mode
+//	cli_reg_rcp_cmd(cmd_root);
+    return;
+}
 
 gw_int32 gw_oam_parser(gw_int8 * pkt, const gw_int32 len)
 {

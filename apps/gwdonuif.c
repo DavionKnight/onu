@@ -313,8 +313,15 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				ret = (*g_im_ifs->registerget)(va_arg(ap,gw_uint8*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
+			#if 0
+		case LIB_IF_ONU_REBOOT:
+			if(g_im_ifs->onureset)
+				ret = (*g_im_ifs->onureset)(va_arg(ap,gw_int32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
+			#endif
 		default:
-//			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");
+//			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
 	}
 
