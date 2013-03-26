@@ -9,6 +9,7 @@
 #include "oam.h"
 #include "gwdonuif_interval.h"
 #include "pkt_main.h"
+#include "oamsnmp.h"
 
 //#include "sdl_api.h"
 
@@ -773,10 +774,14 @@ void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
 			GwOamMessageListNodeFree(pMessage);
 			break;
 
+		case SNMP_TRAN_REQ:
+			gwd_oamsnmp_handle(pMessage);
+			GwOamMessageListNodeFree(pMessage);
+			break;
+
 		case FILE_READ_WRITE_REQ:
 		case FILE_TRANSFER_DATA:
 		case FILE_TRANSFER_ACK:
-		case SNMP_TRAN_REQ:
 
 		case IGMP_AUTH_TRAN_REQ:
 	    case IGMP_AUTH_TRAN_RESP:
@@ -1189,9 +1194,9 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
 #if (RPU_YES == RPU_MODULE_TIMING_PKT)
 
-            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*ֻ��ʹ��ʱ����һ��*/
+            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*只锟斤拷使锟斤拷时锟斤拷锟斤拷一锟斤拷*/
             {
-                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*�������ȼ�= port monitor*/
+                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*锟斤拷锟斤拷锟斤拷锟饺硷拷= port monitor*/
                 VOS_ASSERT(TimingPkt_TaskID != 0);
             }
 #endif
@@ -1231,11 +1236,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
             
             if (*pReq > PPPOE_DSL_FORUM_MODE)
             {
-                *(ptr ++) = 2;/*ʧ��*/
+                *(ptr ++) = 2;/*失锟斤拷*/
                 break;
             }
             
-            if(PPPOE_RELAY_DISABLE == *pReq)/*���Ϊ0����ʾ��ֹ״̬*/
+            if(PPPOE_RELAY_DISABLE == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
             {
                 if (PPPOE_RELAY_DISABLE == g_PPPOE_relay)
                 {
@@ -1267,7 +1272,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                         break;
                     }
 
-#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812��������*/
+#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812锟斤拷锟斤拷锟斤拷锟斤拷*/
                     if (S_OK != PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 1, 0))
                     {
                         PPPOE_RELAY_PACKET_DEBUG(("\r\n pppoe relay is disabled failed! \r\n"));
@@ -1323,7 +1328,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                         break;
                     }
 
-#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812��GT863��GT866��������*/
+#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812锟斤拷GT863锟斤拷GT866锟斤拷锟斤拷锟斤拷锟斤拷*/
                     if (S_OK != PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 1, 63))
                     {
                         PPPOE_RELAY_PACKET_DEBUG(("\r\n pppoe relay is enabled failed! \r\n"));
@@ -1348,7 +1353,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
       
             pReq ++;
       
-            /*��ȡ�ַ�*/
+            /*锟斤拷取锟街凤拷*/
 
             PPPOE_RELAY_PACKET_DEBUG(("\r\n olt-relay-string = %s\r\n",pReq));
             
@@ -1358,19 +1363,19 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 PASONU_CLASSIFIER_remove_filter(PASONU_UPSTREAM, FRAME_ETHERTYPE, 0x8863);
                 PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 1, 0);
                 PasOnuClassL2RuleAdd(PASONU_UPSTREAM, FRAME_ETHERTYPE, 0x8863, 0, 1);
-                g_PPPOE_relay = PPPOE_RELAY_DISABLE;/*�ָ���disable��״̬��mode�Ͳ�����*/
+                g_PPPOE_relay = PPPOE_RELAY_DISABLE;/*锟街革拷锟斤拷disable锟斤拷状态锟斤拷mode锟酵诧拷锟斤拷锟斤拷*/
                 *(ptr ++) = 2;
                 break;
             }
         
-            pppoe_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4���ֽڷֱ���msg_type,result,relay_type,relay_mode*/
+            pppoe_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4锟斤拷锟街节分憋拷锟斤拷msg_type,result,relay_type,relay_mode*/
             memcpy(pppoe_circuitid_value_head, pReq, pppoe_circuitid_value_lenth);
-            *(pppoe_circuitid_value_head + pppoe_circuitid_value_lenth) = '\0';/*���ڴ�ӡstring*/        
+            *(pppoe_circuitid_value_head + pppoe_circuitid_value_lenth) = '\0';/*锟斤拷锟节达拷印string*/
 
         }
 #endif
 
-        if(RELAY_TYPE_DHCP == *pReq)/*����pppoe_relay������*/
+        if(RELAY_TYPE_DHCP == *pReq)/*锟斤拷锟斤拷pppoe_relay锟斤拷锟斤拷锟斤拷*/
         {
             DHCP_RELAY_PACKET_DEBUG(("\r\n received dhcp relay-OAM pkt!\r\n"));
             
@@ -1380,11 +1385,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
             
             if (*pReq > DHCP_OPTION82_RELAY_MODE_STD)
             {
-                *(ptr ++) = 2;/*ʧ��*/
+                *(ptr ++) = 2;/*失锟斤拷*/
                 break;
             }
             
-            if(0 == *pReq)/*���Ϊ0����ʾ��ֹ״̬*/
+            if(0 == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
             {
                 if (0 == g_DHCP_OPTION82_Relay)
                 {
@@ -1395,7 +1400,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 {
     				PasOnuFilterL3L4RuleDelete(PASONU_UPSTREAM, PASONU_TRAFFIC_UDP_PORT,
     					PASONU_TRAFFIC_SOURCE, 0, DHCP_SERVER_PORT);					
-#if (!FOR_812_SERIES)/*GT812��������*/
+#if (!FOR_812_SERIES)/*GT812锟斤拷锟斤拷锟斤拷锟斤拷*/
                     PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 0, 0);
 #endif
                     g_DHCP_OPTION82_Relay = 0;
@@ -1416,7 +1421,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 {
         			PasOnuFilterL3L4RuleAdd(PASONU_UPSTREAM, PASONU_TRAFFIC_UDP_PORT,
         				PASONU_TRAFFIC_SOURCE, 0, DHCP_SERVER_PORT, PASONU_PASS_CPU);
-#if (!FOR_812_SERIES)/*GT812��������*/
+#if (!FOR_812_SERIES)/*GT812锟斤拷锟斤拷锟斤拷锟斤拷*/
                     PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 0, 13);
 #endif
                     
@@ -1436,7 +1441,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
       
             pReq ++;
       
-            /*��ȡ�ַ�*/
+            /*锟斤拷取锟街凤拷*/
 
             DHCP_RELAY_PACKET_DEBUG(("\r\n olt-relay-string=%s\r\n",pReq));
             
@@ -1447,9 +1452,9 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
         
-            dhcp_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4���ֽڷֱ���msg_type,result,relay_type,relay_mode*/
+            dhcp_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4锟斤拷锟街节分憋拷锟斤拷msg_type,result,relay_type,relay_mode*/
             memcpy(dhcp_circuitid_value_head, pReq, dhcp_circuitid_value_lenth);
-            *(dhcp_circuitid_value_head + dhcp_circuitid_value_lenth) = '\0';/*���ڴ�ӡstring*/        
+            *(dhcp_circuitid_value_head + dhcp_circuitid_value_lenth) = '\0';/*锟斤拷锟节达拷印string*/
 
         }
       
@@ -2778,6 +2783,8 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 	init_gw_oam_async();
 
 	init_oam_pty();
+
+	init_oamsnmp();
 
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
 	gw_reg_pkt_handler(GW_PKT_OAM, gw_oam_handler);
