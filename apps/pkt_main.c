@@ -64,7 +64,7 @@ void gw_pkt_proc_main(gw_uint32 * para)
 						{
 							gw_log(GW_LOG_LEVEL_MINOR, "pkt handler fail, type %d\r\n", type);
 
-							gw_dump_pkt(p->pkt, p->pkt_len, 16);
+							//gw_dump_pkt(p->pkt, p->pkt_len, 16);
 						}
 					}
 

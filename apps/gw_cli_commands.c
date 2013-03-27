@@ -46,7 +46,7 @@ static void show_port_statistic(struct cli_def * cli, int portid)
 			else {
 				gw_onu_port_counter_t * pd = (gw_onu_port_counter_t*) data;
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT32,
-						"In bytes rate", pd->rxrate, "Out bytes rate", pd->txrate);
+						"In bit rate", pd->rxrate, "Out bit rate", pd->txrate);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In bytes", pd->counter.RxOctetsOKLsb, "Out bytes", pd->counter.TxOctetsOk);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
@@ -60,7 +60,7 @@ static void show_port_statistic(struct cli_def * cli, int portid)
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT, "In pause pkts", pd->counter.RxPause, "Out pause pkts", pd->counter.TxPause);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In crc error pkts", pd->counter.RxError, "Out crc error pkts", pd->counter.TxError);
-				gw_cli_print(cli, DUMP_PORT_STAT_FMT,	"In jumbo pkts", pd->counter.RxJumboOctets, "Out jumbo pkts", pd->counter.TxJumboOctets);
+				gw_cli_print(cli, DUMP_PORT_STAT_FMT,	"In jumbo pkts", pd->counter.RxOversize, "Out jumbo pkts", pd->counter.TxTooLongFrames);
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT, "In undersize pkts", pd->counter.RxUndersize, "Out undersize pkts", (long long unsigned int)0);
 
 			}
