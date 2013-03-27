@@ -37,7 +37,7 @@ void gw_dump_pkt(gw_int8 *pkt, gw_int16 len, gw_uint8 width)
 		gw_log(GW_LOG_LEVEL_DEBUG, "%02X ", pkt[i]);
 	}
 }
-
+/*my pass version */
 void gw_pkt_proc_main(gw_uint32 * para)
 {
 	gw_uint8 * buf = malloc(gw_pkt_msg_size);
