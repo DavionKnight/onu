@@ -13,10 +13,21 @@
 #define perror(s) gw_printf(s)
 void gw_telnet_diag_print_unregister(void);
 extern gw_uint32 app_ip_changed;
+#ifdef CYG_LINUX
 extern void (*_putc)(char c, void **param);
+#else
+// _putc func not surppoted
+void test_putc(char c, void ** p)
+{
+	return;
+}
+
+void (*_putc)(char c, void **param) = test_putc;
+#endif
+
 static void (*_putcFunc)(char c, void **param) = NULL;
 
-extern struct cli_def *telnet_cli;
+struct cli_def *gw_telnet_cli;
 
 #ifdef CYG_LINUX
 
@@ -24,9 +35,29 @@ extern void mon_read_char(char *c);
 extern bool mon_read_char_with_timeout(char *c);
 extern void mon_write_chars(char* s, int n);
 
+#else
+
+// mon_x func not surppoted
+void mon_read_char(char *c)
+{
+	return;
+}
+int mon_read_char_with_timeout(char *c)
+{
+	return TRUE;
+}
+void mon_write_chars(char* s, int n)
+{
+	return;
+}
+
 #endif
 
+#ifdef CYG_LINUX
+
 extern int cmd_exe(int argc, char **argv);
+
+#endif
 
 extern int g_pty_master;
 
@@ -102,9 +133,9 @@ struct cli_filter_cmds
 int gw_cli_match_filter_init(struct cli_def *cli, int argc, char **argv, struct cli_filter *filt);
 int gw_cli_range_filter_init(struct cli_def *cli, int argc, char **argv, struct cli_filter *filt);
 int gw_cli_count_filter_init(struct cli_def *cli, int argc, char **argv, struct cli_filter *filt);
-int cli_match_filter(struct cli_def *cli, char *string, void *data);
-int cli_range_filter(struct cli_def *cli, char *string, void *data);
-int cli_count_filter(struct cli_def *cli, char *string, void *data);
+int gw_cli_match_filter(struct cli_def *cli, char *string, void *data);
+int gw_cli_range_filter(struct cli_def *cli, char *string, void *data);
+int gw_cli_count_filter(struct cli_def *cli, char *string, void *data);
 
 static struct cli_filter_cmds filter_cmds[] =
 {
@@ -791,7 +822,7 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
                     gw_cli_error(cli, "No callback for \"%s\"", gw_cli_command_name(cli, c));
                     return CLI_ERROR;
                 }
-                gw_log(GW_LOG_LEVEL_DEBUG, "found command!!!\r\n");
+            //    gw_log(GW_LOG_LEVEL_CRI, "found command!!!\r\n");
             }
             else
             {
@@ -1389,7 +1420,7 @@ int gw_cli_loop(struct cli_def *cli)
                     {
                         gw_cur_chan = CHANNEL_SERIAL;
                         gw_telnet_diag_print_unregister();
-                        telnet_cli = NULL; 
+                        gw_telnet_cli = NULL; 
                         continue;
                     }
 
@@ -1427,7 +1458,7 @@ int gw_cli_loop(struct cli_def *cli)
                         perror("ERR: sockfd broken, switch to Console\n");
                         gw_cur_chan = CHANNEL_SERIAL;
                         gw_telnet_diag_print_unregister();
-                        telnet_cli = NULL; 
+                        gw_telnet_cli = NULL; 
                         continue;
                     }
 
@@ -2097,7 +2128,7 @@ int gw_cli_loop(struct cli_def *cli)
         cli->client = 0;
         gw_cur_chan = CHANNEL_SERIAL;
 		gw_telnet_diag_print_unregister();
-		telnet_cli = NULL; 
+		gw_telnet_cli = NULL; 
     }
 #endif
 
@@ -2174,7 +2205,7 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
 
     p = buffer;
 
-    gw_dump_pkt(p, n+len, 16);
+//    gw_dump_pkt(p, n+len, 16);
 
     do
     {
@@ -2316,7 +2347,7 @@ int gw_cli_match_filter_init(struct cli_def *cli, int argc, char **argv, struct 
         return CLI_ERROR;
     }
 
-    filt->filter = cli_match_filter;
+    filt->filter = gw_cli_match_filter;
     filt->data = state = malloc(sizeof(struct cli_match_filter_state));
 	if(!state) return CLI_ERROR;
 
@@ -2473,7 +2504,7 @@ int gw_cli_range_filter_init(struct cli_def *cli, int argc, char **argv, struct 
         from = join_words(argc-1, argv+1);
     }
 
-    filt->filter = cli_range_filter;
+    filt->filter = gw_cli_range_filter;
     filt->data = state = malloc(sizeof(struct cli_range_filter_state));
 	if(!state) return CLI_ERROR;
 
@@ -2521,7 +2552,7 @@ int gw_cli_count_filter_init(struct cli_def *cli, int argc, char **argv, struct 
         return CLI_ERROR;
     }
 
-    filt->filter = cli_count_filter;
+    filt->filter = gw_cli_count_filter;
     if (!(filt->data = malloc(sizeof(int))))
         return CLI_ERROR;
 
@@ -2630,9 +2661,9 @@ static void _telnet_write_char(char c, void **param)
 	
 	if( c == '\n' )
 	{
-		telnet_cli_raw_output(telnet_cli,"\r",1);
+		telnet_cli_raw_output(gw_telnet_cli,"\r",1);
 	}
-	telnet_cli_raw_output(telnet_cli,&c,1);
+	telnet_cli_raw_output(gw_telnet_cli,&c,1);
 }
 #endif
 
@@ -2659,6 +2690,7 @@ void gw_telnet_diag_print_unregister(void)
    _putc  = _putcFunc;
 }
 
+#ifdef CYG_LINUX
 int gw_do_telnet_legacy_cmd(struct cli_def *cli,char * p)
 {
     unsigned char c;
@@ -2730,7 +2762,7 @@ int gw_do_telnet_legacy_cmd(struct cli_def *cli,char * p)
                     {
                         gw_cur_chan = CHANNEL_SERIAL;
                         gw_telnet_diag_print_unregister();
-                        telnet_cli = NULL; 
+                        gw_telnet_cli = NULL; 
                         continue;
                     }
 
@@ -2839,6 +2871,7 @@ int gw_do_telnet_legacy_cmd(struct cli_def *cli,char * p)
 
                         default:
                             c = 0;
+                            break;
                     }
 
                     esc = 0;
@@ -3252,5 +3285,7 @@ int gw_do_telnet_legacy_cmd(struct cli_def *cli,char * p)
     free_z(cmd);
     return CLI_OK;
 }
+
+#endif
 
 #endif

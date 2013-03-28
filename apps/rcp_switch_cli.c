@@ -44,7 +44,7 @@ extern  "C"
 #include "oam.h"
 #include "gw_log.h"
 
-
+#include "gwdonuif_interval.h"
 #if 0
 #include "onu_uax.h"
 #include "onu_datetype.h"
@@ -190,7 +190,6 @@ extern unsigned long gulNumOfPortsPerSystem;
 /*
  ** Define the commands
  */
-
 int cli_int_interface_switch(struct cli_def *cli, char *command, char *argv[], int argc)
 {    
     extern  unsigned long vlan_dot_1q_enable;
@@ -249,7 +248,7 @@ int cli_int_interface_switch(struct cli_def *cli, char *command, char *argv[], i
 		my_onu_port = (void *)onuport;
 		
  		strcpy( prompt, ifName );
-		cli_set_switch_onuport_mode_enter(cli, MODE_SWITCH, prompt);
+		gw_cli_set_configmode(cli, MODE_SWITCH, prompt);
 		free(my_onu);
 	 }
 	 else
@@ -753,9 +752,10 @@ int cli_int_set_product_type(struct cli_def *cli, char *command, char *argv[], i
 			   gw_cli_arg_help(cli, 0,
                 "gh1532", "Product type GH1532\n",
                  NULL);
-			   gw_cli_arg_help(cli, 0,
+			 return  gw_cli_arg_help(cli, 0,
                 "unknown", "Product type UnKnow\n",
                  NULL);
+
         default:
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
@@ -3492,13 +3492,11 @@ int cli_int_vlan_info_show(struct cli_def *cli, char *command, char *argv[], int
 					}
 				}
 
-				gw_cli_print(cli,  "\r\n  %-2d   %-4d            %-48s %-48s",num++,vid[i],untag,tag);
+				gw_cli_print(cli,  "\r %-2d   %-4d            %-48s %-48s",num++,vid[i],untag,tag);
 
 			}
 		}
-    gw_cli_print(cli,  "\r\n---------------------------------------------------------------------------------");
-	time1 = gw_current_time();
-	gw_cli_print(cli,"%lld",(time1-time0));
+    gw_cli_print(cli,  "\r---------------------------------------------------------------------------------");
 	return CLI_OK;
 }
 
@@ -5247,7 +5245,7 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
 	unsigned long onuPort;
 	unsigned long slot, mgtPort;
 	int counter = 0;
-	
+	gwd_port_oper_status_t port_opr_status;
 	RCP_Say_Hello(-1, 1);
 //	cyg_thread_delay(IROS_TICK_PER_SECOND / 10);
 	gw_thread_delay(100);
@@ -5264,21 +5262,25 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
 		gw_cli_print(cli, "  NO.    Location     MgtPort      MAC(ports)          Status");
 		gw_cli_print(cli, "---------------------------------------------------------------");
 		ulIndex = 1;
-		for(onuPort = 1; onuPort < gulNumOfPortsPerSystem; onuPort++)
+		for(onuPort = 1; onuPort < 5; onuPort++)
 		{
-			if(1 == RCP_Dev_Is_Exist(onuPort))
-				status = 1;
-			else
-				status = 0;
-			if(RCP_Dev_Is_Valid(onuPort))
+			call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, onuPort, &port_opr_status);
+			if(port_opr_status == PORT_OPER_STATUS_UP)
 			{
-				rcpDevList[onuPort]->frcpPort2LPort(rcpDevList[onuPort], &slot, &mgtPort, 0, rcpDevList[onuPort]->upLinkPort);
-				gw_cli_print(cli,  "   %d      eth1/%lu       eth%lu       %02x%02x.%02x%02x.%02x%02x(%02d)    %s", ulIndex,onuPort, mgtPort,
-					rcpDevList[onuPort]->switchMac[0], rcpDevList[onuPort]->switchMac[1], rcpDevList[onuPort]->switchMac[2], 
-					rcpDevList[onuPort]->switchMac[3], rcpDevList[onuPort]->switchMac[4], rcpDevList[onuPort]->switchMac[5],
-					rcpDevList[onuPort]->numOfPorts,                                             
-					(status == 1) ? "UP" : "DOWN");                                            
-				ulIndex++;
+				if(1 == RCP_Dev_Is_Exist(onuPort))
+					status = 1;
+				else
+					status = 0;
+				if(RCP_Dev_Is_Valid(onuPort))
+				{
+					rcpDevList[onuPort]->frcpPort2LPort(rcpDevList[onuPort], &slot, &mgtPort, 0, rcpDevList[onuPort]->upLinkPort);
+					gw_cli_print(cli,  "   %d      eth1/%lu       eth%lu       %02x%02x.%02x%02x.%02x%02x(%02d)    %s", ulIndex,onuPort, mgtPort,
+						rcpDevList[onuPort]->switchMac[0], rcpDevList[onuPort]->switchMac[1], rcpDevList[onuPort]->switchMac[2], 
+						rcpDevList[onuPort]->switchMac[3], rcpDevList[onuPort]->switchMac[4], rcpDevList[onuPort]->switchMac[5],
+						rcpDevList[onuPort]->numOfPorts,                                             
+						(status == 1) ? "UP" : "DOWN");                                            
+					ulIndex++;
+				}
 			}
 		}
 		gw_cli_error(cli,  "---------------------------------------------------------------\r\n"); 
@@ -5407,9 +5409,10 @@ void rcp_dev_monitor(void * data)
 	RCP_DEV *pRcpDev;
 	unsigned short vlanum;
     unsigned short vid =0;
-	
-#define RCP_DISCOVERY_PERIOD_DEF	    10	
-#define RCP_KEEP_ALIVE_TIMEOUT_DEF		1
+	int port ;
+	gwd_port_oper_status_t port_opr_status;
+#define RCP_DISCOVERY_PERIOD_DEF	    5	
+#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
 
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
@@ -5418,13 +5421,24 @@ void rcp_dev_monitor(void * data)
     {
 		if(gulEnableEpswitchMgt)
 		{
-			for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
+			for(i=1; i< MAX_RRCP_SWITCH_TO_MANAGE; i++)
 			{
+			#if 0
+			for(port=1; port < MAX_RRCP_SWITCH_TO_MANAGE; port++)
+				{
+					call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, port, &port_opr_status);
+					if(port_opr_status != PORT_OPER_STATUS_UP)
+						{
+							if(rcpDevList[port] != NULL)
+								rcpDevList[port]->onlineStatus = 0;
+								
+						}
+				}
+			#endif
 				if(RCP_Dev_Is_Valid(i))
 				{
 					RCP_Say_Hello(i,vid);
-					pRcpDev = RCP_Get_Dev_Ptr(i);
-						
+					pRcpDev = RCP_Get_Dev_Ptr(i);	
 					if(pRcpDev->timeoutCounter < iKeepAliveTimeout)
 					{
 						pRcpDev->timeoutCounter++;
@@ -5465,7 +5479,9 @@ void rcp_dev_monitor(void * data)
 									error++;
 							}
 							if(error != 0)
-								printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+								{
+									//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+								}
 						}
 				    }
 				}
@@ -5474,8 +5490,8 @@ void rcp_dev_monitor(void * data)
 			}
 		}
 
-//		cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
-		gw_thread_delay(2000);
+		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
+		gw_thread_delay(200);
 
 		if(gulEnableEpswitchMgt)
 		{
@@ -5665,21 +5681,20 @@ int rcp_dev_status_check(void)
 							error++;
 					}
 					if(error != 0)
-						printf("rcp_dev_status_check: updata vlan failed(%d,%d)\r\n", ret, error);
+						gw_printf("rcp_dev_status_check: updata vlan failed(%d,%d)\r\n", ret, error);
 					rcpDevList[i]->previousUplinkPort = rcpDevList[i]->upLinkPort;
 				}
 			}
 		}
 	}
-
-	if(GW_OK == epon_onu_register_status_read(&onuRegister))
-	{
+	if(GW_OK == call_gwdonu_if_api(LIB_IF_ONU_REGISTER_GET, 1, &onuRegister))
+	{	
 		if(onuRegister)
 		{
 			if(RCP_OK != (ret = popAllSwitchStatusChgMsg()))
 			{
 				if(RCP_NO_MORE != ret)
-					gw_log(GW_LOG_LEVEL_CRI, "Send switch status change oam failed.(%d)\n", ret);
+					gw_log(GW_LOG_LEVEL_DEBUG, "Send switch status change oam failed.(%d)\n", ret);
 			}
 		}
 	}
@@ -5688,7 +5703,7 @@ int rcp_dev_status_check(void)
 
 extern gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
 extern gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
-
+//extern int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr);
 void start_rcp_device_monitor(void)
 {
 //	int iRet;
@@ -5714,7 +5729,10 @@ void start_rcp_device_monitor(void)
 #endif
 
 	gw_reg_pkt_parse(GW_PKT_RCP, gw_rcppktparser);
-	gw_reg_pkt_handler(GW_PKT_RCP, gw_rcppktHandler);
+	if(GW_OK == gw_reg_pkt_handler(GW_PKT_RCP, gw_rcppktHandler))
+		gulEthRxTaskReady = 1;
+	else
+		gulEthRxTaskReady = 0;
 	
        /*iRet = Onu_Loop_Detect_Set_FDB(1);
        if (iRet == 0)
@@ -5728,7 +5746,6 @@ void start_rcp_device_monitor(void)
            
        	gulRcpFrameHandleRegister = 1;
     }
-
     // create RCP application thread
     #if 0
     cyg_thread_create(TASK_PRIORITY_LOWEST,
@@ -5755,12 +5772,12 @@ void start_rcp_device_monitor(void)
 
 	//VOS_TaskCreateEx("tRcpM", rcp_dev_monitor, 220, 4*1024, NULL);
 	//VOS_TaskCreateEx("tLoopM", rcp_loopdetect, 220, 4*1024, NULL);
-
-	if(0 != Onu_Rcp_Detect_Set_FDB(1))
+#if 1
+	if(0 != gw_Onu_Rcp_Detect_Set_FDB(1))
 	{
     	printf("\r\nRCP MAC init failed!\r\n");
     }
-
+#endif
 	return;
 }  
 /*
@@ -5793,8 +5810,12 @@ void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
 	struct cli_command *mgt,*mgt_config,*mask,*maks_alarm,*clear,*rcp_switch;
 //	inter = gw_cli_register_command(cmd_root, 0,     "interface", NULL,					PRIVILEGE_PRIVILEGED, MODE_EXEC, "Select an interface to config");
 #if 1
+#ifdef __DEBUG__
 	c = gw_cli_register_command(cmd_root, 0, "configure", NULL,                         PRIVILEGE_PRIVILEGED, MODE_EXEC, "Enter configuration mode");
         gw_cli_register_command(cmd_root, c, "terminal", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
+#endif
+	//c = gw_cli_register_command(cmd_root, 0, "configure", NULL,                         PRIVILEGE_PRIVILEGED, MODE_EXEC, "Enter configuration mode");
+        gw_cli_register_command(cmd_root, NULL, "enable", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
 inter = gw_cli_register_command(cmd_root, NULL, "interface",    NULL,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Select an interface to configure");
 //		gw_cli_register_command(cmd_root, inter, "IFNAME",   cmd_config_int ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Interface name");
 		gw_cli_register_command(cmd_root, inter, "switch",   cli_int_interface_switch ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Config switch connected to the interface");
@@ -5936,8 +5957,8 @@ void cli_reg_rcp_cmd(struct cli_command **cmd_root)
 {
     struct cli_command *gwd_switch;
     // switch cmds in config mode
-    gwd_switch = gw_cli_register_command(cmd_root, NULL, "switch", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Switch remote management");
-		gw_cli_register_command(cmd_root, gwd_switch, "show",    cmd_switch_show,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Show switch found");
+    gwd_switch = gw_cli_register_command(cmd_root, NULL, "show", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Switch remote management");
+		gw_cli_register_command(cmd_root, gwd_switch, "switch",    cmd_switch_show,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Show switch found");
 
     return;
 }
@@ -5945,6 +5966,7 @@ void cli_reg_rcp_cmd(struct cli_command **cmd_root)
 
 void Rcp_Mgt_init(void)    /*externed in sys_main.c*/
 {
+	gw_printf("%s %d\n",__func__,__LINE__);
 	RCP_Init();
 	//Rcp_Device_Mgt_CliInit();
 	start_rcp_device_monitor();

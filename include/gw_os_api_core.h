@@ -244,4 +244,16 @@ gw_uint32 gw_memory_usage();
 
 gw_int32 gw_halt(gw_int8 *String,...);
 
+#ifndef diag_vprintf
+#define diag_vprintf vprintf
+#endif
+
+#ifndef diag_vsprintf
+#define diag_vsprintf vsprintf
+#endif
+
+#ifndef diag_printf
+#define diag_printf printf
+#endif
+
 #endif

@@ -10,7 +10,7 @@
 #include "pkt_main.h"
 
 void gwd_onu_init();
-
+extern void gwd_thread_init(void);
 void plat_init()
 {
 	gw_osal_core_init();
@@ -20,5 +20,6 @@ void plat_init()
 	init_pkt_proc();
 
 	gwd_onu_init();
+	gwd_thread_init();
 
 }

@@ -36,7 +36,8 @@
 #include "pkt_main.h"
 #include "rcp_gwd.h"
 #include "oam.h"
-
+#include "gw_log.h"
+extern gw_macaddr_t g_sys_mac;
 unsigned long gulGwdRcpAuth = 0;
 RCP_DEV *rcpDevList[MAX_RRCP_SWITCH_TO_MANAGE];
 
@@ -49,6 +50,19 @@ unsigned char   RcpAuthenKeyGWD[2] = { 0x23, 0x79 };
 unsigned char   RcpHelloDMacDefault[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 unsigned char   rrcpHWPortID[MAX_RCP_PORT_NUM+1] = {0, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30};
 unsigned char   rrcpSWPortID[MAX_RCP_PORT_NUM+1] = {17, 1, 18, 2, 19, 3, 20, 4, 21, 5, 22, 6, 23, 7, 24, 8, 25, 9, 26, 10, 27, 11, 28, 12, 29, 13, 30, 14, 31, 15, 32, 16, 0};
+#if 0
+#define SEM_WAIT_TICK_TO_TIME (RCP_RESPONSE_TIMEOUT/IROS_TICK_PER_SECOND*1000)
+
+
+int tick_to_time(int *wait_time)
+	{
+		int time = *wait_time;
+		time = time*1000;
+		time = time/IROS_TICK_PER_SECOND;
+		*wait_time = time;
+		return 0;
+	}
+#endif
 
 #if 1
 RCP_DEV_INFO gDevBoradInfo[] = {
@@ -162,19 +176,37 @@ extern int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsign
 extern int user_data_config_Read(unsigned int offset, unsigned char *buffer, unsigned int size);
 extern int user_data_config_Write(unsigned char *buffer, unsigned int size);
 
+extern int gwd_onu_sw_get_port_pvid(unsigned int port,unsigned short *pvid);
+
+
 unsigned long   gulDebugRcp = 0;
 #define RCP_DEBUG(str) if( gulDebugRcp ){ diag_printf str ;}
-#define DUMPRCPPKT(c, p, b, l)      if(gulDebugRcp) dumpPkt(c, p, b, l)
 
-void gw_rcp_sem_create(unsigned int * semid, unsigned int initval)
+#ifdef CYG_LINUX
+#define DUMPRCPPKT(c, p, b, l)      if(gulDebugRcp) dumpPkt(c, p, b, l)
+#else
+#define DUMPRCPPKT(c, p, b, l)      if(gulDebugRcp) \
+	{ \
+		diag_printf("\r\n%s    (%d)\r\n", c); \
+		gw_dump_buffer(b, l); \
+	}
+#endif
+
+void gw_rcp_sem_create(unsigned int * semid, unsigned char *name,unsigned int initval)
 {
+	int ret;
 	if(semid)
-		gw_semaphore_init(semid, "rcp_sem", initval, 0);
+		ret = gw_semaphore_init(semid, name, initval, 0);
+	if(ret)
+		gw_printf("%s create fail (line: %d)(sem_id:%d)\n",__func__,__LINE__,semid);
 }
 
 void gw_rcp_sem_delete(unsigned int semid)
 {
-	gw_semaphore_destroy(semid);
+	int ret;
+	ret = gw_semaphore_destroy(semid);
+	if(ret)
+		gw_printf("%s faile (line:%d)(semid:%d)\n",__func__,__LINE__,semid);
 }
 
 int gw_rcp_sem_take(unsigned int semid, unsigned int timeout)
@@ -267,8 +299,8 @@ int RCP_Init(void)
 	memset(gpusSwitchCfgFileBuf, 0, glSwitchCfgFileSizeMaxInFlash);
 	device_conf_read_switch_conf_from_flash((char *)gpusSwitchCfgFileBuf, &glSwitchCfgFileSizeMaxInFlash);
 
-	gw_rcp_sem_create(&semAccessRcpDevList, 1);
-	gw_rcp_sem_create(&semAccessRcpChannel, 1);
+	gw_rcp_sem_create(&semAccessRcpDevList,"rcp_devlst",1);
+	gw_rcp_sem_create(&semAccessRcpChannel, "rcp_chan",1);
 
 	return RCP_OK;
 }
@@ -277,7 +309,6 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 {
 	RCP_HELLO_PAYLOAD *payload;
 	unsigned short usAuthenkey;
-
 	gw_rcp_sem_give(semAccessRcpChannel);
 
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
@@ -287,7 +318,8 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 		return RCP_BAD_VALUE;
 	if(RCP_OK != Rcp_ChipId_AuthCheck(pkt))
 		return RCP_UNKOWN;
-	gw_rcp_sem_take(semAccessRcpDevList, GW_OSAL_WAIT_FOREVER);
+
+	gw_rcp_sem_take(semAccessRcpDevList, 2000);
 	
 	payload = (RCP_HELLO_PAYLOAD *)(pkt + RCP_HELLO_PAYLOAD_OFFSET); 
 	if(NULL == rcpDevList[parentPort])
@@ -298,7 +330,7 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 
 		/* Init access function */
 		if(vlan_dot_1q_enable == 1)
-			epon_onu_sw_get_port_pvid(parentPort, &(rcpDevList[parentPort]->mgtVid));
+			gwd_onu_sw_get_port_pvid(parentPort, &(rcpDevList[parentPort]->mgtVid));
 		else
 			rcpDevList[parentPort]->mgtVid = 0;
 		rcpDevList[parentPort]->frcpReadReg = RCP_Read_Reg;
@@ -324,7 +356,7 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 
 	rcpDevList[parentPort]->upLinkPort = payload->downLinkPort;
 	if(vlan_dot_1q_enable == 1)
-		epon_onu_sw_get_port_pvid(parentPort, &(rcpDevList[parentPort]->mgtVid));
+		gwd_onu_sw_get_port_pvid(parentPort, &(rcpDevList[parentPort]->mgtVid));
 	else
 		rcpDevList[parentPort]->mgtVid = 0;
 
@@ -344,7 +376,7 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 	rcpDevList[parentPort]->timeoutCounter = 0;
 	rcpDevList[parentPort]->phyAddr = 0x10;		/* useless . it depends on the phy port number */
 	rcpDevList[parentPort]->alarmMask = gucRcpAlarmMask;
-	
+
 	gw_rcp_sem_give(semAccessRcpDevList);
 	
 	return RCP_OK;
@@ -446,21 +478,27 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
     unsigned char   rcpRegAddr[2];
     unsigned char   RcpVid[2];
 	if((NULL == dev) || (NULL == data))
-		return RCP_BAD_PARAM;
+		{
+			return RCP_BAD_PARAM;
+		}
 
 	/* New Reg Access Node */
 	pReg = (RCP_REG *) malloc( sizeof(RCP_REG));
 	if(NULL == pReg)
+		{
 		return RCP_NO_MEM;
+		}
 
 	memset(pReg, 0, sizeof(RCP_REG));
 	pReg->address = regAddr;
-	dev->semCreate(&(pReg->semAccess), 0);
+	dev->semCreate(&(pReg->semAccess), "read_reg",0);
 	pReg->dev = dev;
 	
 	/* Insert the node to the list */
 	if(RCP_OK != (iRet = RCP_RegList_Insert(pReg)))
+		{
 		return iRet;
+		}
 
 	/* Send GET packet */
 	/*if(NULL == ctss_packet_send_by_port_hook)
@@ -508,8 +546,7 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
 		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
 	}
-	
-	if(!dev->semTake(semAccessRcpChannel, RCP_RESPONSE_TIMEOUT))
+	if(dev->semTake(semAccessRcpChannel,RCP_RESPONSE_TIMEOUT))
 	{
 		RCP_DEBUG(("\r\n  RCP_Read_Reg : semAccessRcpChannel timedout!"));
 	}
@@ -523,7 +560,7 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 	}
 
 	/* Wait until reply received */
-	if(!dev->semTake(&(pReg->semAccess), cyg_current_time() + RCP_RESPONSE_TIMEOUT))
+	if(dev->semTake(pReg->semAccess, RCP_RESPONSE_TIMEOUT))
 	{
 		iRet = RCP_TIMEOUT;
 		goto ERROR_RETURN;
@@ -539,15 +576,14 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		iRet = RCP_UNKOWN;
 	}
 
-	dev->semGive(&(pReg->semAccess));
+	dev->semGive(pReg->semAccess);
 
 ERROR_RETURN:
 	dev->semGive(semAccessRcpChannel);
 
-	dev->semDelete(&(pReg->semAccess));
+	dev->semDelete(pReg->semAccess);
 	RCP_RegList_Delete(pReg);
 	free(pReg);
-
 	return iRet;
 }
 
@@ -570,7 +606,7 @@ int RCP_Read_32bit_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned long *data
 
 	memset(pReg, 0, sizeof(RCP_REG));
 	pReg->address = regAddr;
-	dev->semCreate(&(pReg->semAccess), 0);
+	dev->semCreate(&(pReg->semAccess),"read_32bit", 0);
 	pReg->dev = dev;
 	
 	/* Insert the node to the list */
@@ -623,26 +659,33 @@ int RCP_Read_32bit_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned long *data
 		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
 		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
 	}
-	
-	if(!gw_rcp_sem_take(semAccessRcpChannel, cyg_current_time() + RCP_RESPONSE_TIMEOUT))
+	if(gw_rcp_sem_take(semAccessRcpChannel, RCP_RESPONSE_TIMEOUT))
 	{
 		RCP_DEBUG(("\r\n  RCP_Read_32bit_Reg : semAccessRcpChannel timedout!"));
 	}
-	
+	#if 0
 	if(0 != epon_onu_sw_send_frame(dev->paPort, rcpPktBuf, 64))
 	{
 		iRet = RCP_FAIL;
 		/*if(NULL != rcpPktBuf) free(rcpPktBuf);*/
 		goto ERROR_RETURN;
 	}
+	#else
+	if(0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64) )
+	{
+		gw_printf("send fail.............\n");
+		iRet = RCP_FAIL;
+		goto ERROR_RETURN;
+	}
+	
+	#endif
 
 	/* Wait until reply received */
-	if(!gw_rcp_sem_take(&(pReg->semAccess), cyg_current_time() + RCP_RESPONSE_TIMEOUT))
+	if(gw_rcp_sem_take(pReg->semAccess,RCP_RESPONSE_TIMEOUT))
 	{
 		iRet = RCP_TIMEOUT;
 		goto ERROR_RETURN;
 	}
-
 	if(1 == pReg->validFlag)
 	{
 		*data = pReg->value;
@@ -653,12 +696,12 @@ int RCP_Read_32bit_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned long *data
 		iRet = RCP_UNKOWN;
 	}
 
-	dev->semGive(&(pReg->semAccess));
+	dev->semGive(pReg->semAccess);
 
 ERROR_RETURN:
 	gw_rcp_sem_give(semAccessRcpChannel);
 
-	dev->semDelete(&(pReg->semAccess));
+	dev->semDelete(pReg->semAccess);
 	RCP_RegList_Delete(pReg);
 	free(pReg);
 
@@ -721,14 +764,26 @@ int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 		SET_SHORT_TO_RCP_PKT(rcpRegAddr, data);
 		memcpy(rcpPktBuf + 20, rcpRegAddr, 2);
 	}
-	
-	gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER);
+
+	if(gw_rcp_sem_take(semAccessRcpChannel, 1000))
+		{
+			gw_printf("wait error\n");
+		}
+	#if 0
 	if(0 != epon_onu_sw_send_frame(dev->paPort, rcpPktBuf, 64))
 	{
 		/*if(NULL != rcpPktBuf) free(rcpPktBuf);*/
 		gw_rcp_sem_give(semAccessRcpChannel);
 		return RCP_FAIL;
 	}
+	#else
+	if(0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64) )
+	{
+		gw_printf("send fail.............\n");
+		gw_rcp_sem_give(semAccessRcpChannel);
+		return RCP_FAIL;
+	}
+	#endif
 
 	gw_rcp_sem_give(semAccessRcpChannel);
 	return RCP_OK;
@@ -749,6 +804,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 	
 	if(0 == gulEthRxTaskReady)
 	{
+		gw_printf("%s error %d\n",__func__,__LINE__);
 		return RCP_NOT_INITIALIZED;
 	}
 	switchMac = RcpHelloDMacDefault;
@@ -771,7 +827,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 		lport = parentPort;
 
 //        epon_onu_sw_read_port_oper_status(lport, &port_opr_status);
-	call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, lport, &port_opr_status);
+		call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, lport, &port_opr_status);
         if (port_opr_status != PORT_OPER_STATUS_UP) return RCP_OK;
 
 		memset(rcpPktBuf, 0, RCP_PKT_MAX_LENGTH);
@@ -797,7 +853,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 			memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 			memcpy(rcpPktBuf + 16, authKey, 2);
 		}
-		if(!gw_rcp_sem_take(semAccessRcpChannel, cyg_current_time() + 2))
+		if(gw_rcp_sem_take(semAccessRcpChannel, 200))
 		{
 			RCP_DEBUG(("\r\n  Unicast Hello semAccessRcpChannel timedout! "));
 		}
@@ -819,8 +875,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 		{
 	        call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, lport, &port_opr_status);
 	        if (port_opr_status != PORT_OPER_STATUS_UP) continue;
-	                
-			epon_onu_sw_get_port_pvid(lport, &(broadcastVid));
+			gwd_onu_sw_get_port_pvid(lport, &(broadcastVid));
 			RcpVid[0] = (((0xff00 & broadcastVid) >> 8) | 0xf0);
 			RcpVid[1] = (0xff & broadcastVid);
 
@@ -846,16 +901,25 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 				memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 				memcpy(rcpPktBuf + 16, authKey, 2);
 			}
-
-			if(!gw_rcp_sem_take(semAccessRcpChannel, cyg_current_time() + 20))
+			if(gw_rcp_sem_take(semAccessRcpChannel,200))
 			{
 				RCP_DEBUG(("\r\n  Braodcast Hello semAccessRcpChannel timedout!"));
 			}
+			#if 0
 		    if(0 != (eponRet = epon_onu_sw_send_frame(lport, rcpPktBuf, 64)))
 			{
+				gw_printf("send fail.............\n");
 				RCP_DEBUG(("\r\nepon_onu_sw_send_frame return : %d ", eponRet));
 				iRet = RCP_FAIL;
 			}
+			#else
+			if(0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, lport, rcpPktBuf, 64) )
+			{
+				gw_printf("send fail.............\n");
+				RCP_DEBUG(("\r\nepon_onu_sw_send_frame return : %d ", eponRet));
+				iRet = RCP_FAIL;
+			}
+			#endif
 			gw_rcp_sem_give(semAccessRcpChannel);
 		}
 	}
@@ -882,9 +946,9 @@ int RCP_Dev_Is_Exist(unsigned long parentPort)
 		}
 	}
 
-	epon_onu_sw_get_port_pvid(parentPort, &(mgtPvid[parentPort]));
+	gwd_onu_sw_get_port_pvid(parentPort, &(mgtPvid[parentPort]));
 	RCP_Say_Hello(parentPort, mgtPvid[parentPort]);		/*Unicast Hello*/
-	cyg_thread_delay(IROS_TICK_PER_SECOND/10);
+	gw_thread_delay(IROS_TICK_PER_SECOND/10);
 	if(NULL != rcpDevList[parentPort])
 	{
 		return 1;
@@ -6075,7 +6139,7 @@ int sendOamRcpLpbDetectNotifyMsg(unsigned char onuPort, unsigned char rcpPort, u
 {
 	int ret; 
 	/*modified by wangxiaoyu 2008-06-06
-	ÐÞÕý¶ÑÕ»Òç³ö²Ù×÷´íÎó£¬temp[4]-->temp[16]
+	ï¿½ï¿½ï¿½ï¿½ï¿½Õ»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½temp[4]-->temp[16]
 	*/
 	char temp[16]={0};
 
@@ -6153,7 +6217,6 @@ int popAllSwitchStatusChgMsg(void)
 {
 	unsigned char oamSession[8];
 	ALARM_FIFO_ENTRY *pMsg;
-	
 	if(NULL == gpstAlmFifo)
 		return RCP_NOT_INITIALIZED;
 
@@ -6478,7 +6541,7 @@ RCP_DEV *RCP_Get_Dev_Ptr_For_Flash(unsigned long parentPort)
 		memset(rcpDevList[0], 0, sizeof(RCP_DEV));
 		/* Init access function */
 		if(vlan_dot_1q_enable == 1)
-			epon_onu_sw_get_port_pvid(parentPort, &(rcpDevList[0]->mgtVid));
+			gwd_onu_sw_get_port_pvid(parentPort, &(rcpDevList[0]->mgtVid));
 		else
 			rcpDevList[0]->mgtVid = 0;
 		rcpDevList[0]->frcpReadReg = RCP_Read_Reg;
@@ -6526,7 +6589,6 @@ int rrcp_packet_handler(unsigned int srcPort, unsigned int len, unsigned char *p
 	int iRet = RCP_OK;
 	enet_format_t *p_stEnetParse;
     unsigned char oui[3] = {0x00, 0x0f, 0xe9};
-	
 	if(NULL == packet)
 		return RCP_BAD_VALUE;
 
@@ -6560,14 +6622,14 @@ gw_int32 gw_rcppktparser(gw_int8 *pkt, gw_int32 len)
 {
 	gw_int32 ret = GW_PKT_MAX;
 
-	gw_int16 eth_type = 0;
+	gw_uint16 eth_type = 0;
 
 	if(pkt && len > 18)
 	{
 		if(pkt[12] == 0x81 && pkt[13] == 0x00)
-			eth_type = ntohs(*(gw_int16*)(pkt+16));
+			eth_type = ntohs(*(gw_uint16*)(pkt+16));
 		else
-			eth_type = ntohs(*(gw_int16*)(pkt+12));
+			eth_type = ntohs(*(gw_uint16*)(pkt+12));
 
 		if(eth_type == ETH_TYPE_RRCP)
 			ret = GW_PKT_RCP;
@@ -6624,51 +6686,33 @@ gw_int32 RcpFrameRevHandle(gw_uint32 portid ,gw_uint32  len, gw_uint8  *frame)
     }
 }
 
-#if 0
-int Onu_Rcp_Detect_Set_FDB(unsigned char  opr)
+int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr)
 {
-        int iRet = GW_OK; 
-    	unsigned char cMac[6];
-        epon_sw_fdb_entry_t fdb_entry;
-        epon_switch_chiptype_t sw_chiptype = epon_onu_get_swith_chiptype();
-        if (sw_chiptype && (sw_chiptype != 1))
-        {
-               return 1;
-        }
-        RCP_DEBUG(("\r\nOnu_RCP_Detect_Set_FDB func sw_chiptype is : 0x%x\r\n", sw_chiptype));
-     
-        if (opr)
-        {
-            /*add fdb*/
-            memset(&fdb_entry, 0, sizeof(fdb_entry));
-			epon_onu_get_local_mac(cMac);
-            memcpy(fdb_entry.addr, cMac, 6);
-            fdb_entry.status = FDB_ENTRY_MGMT;
-            
-            if (sw_chiptype == EPON_SWITCH_6045)
-                fdb_entry.egress_portmap = 0x10;
-            
-            else if (sw_chiptype == EPON_SWITCH_6046)
-                fdb_entry.egress_portmap = 0x400;
-            
-            iRet = epon_onu_sw_add_fdb_entry(&fdb_entry);
-            if (iRet != GW_OK)
-            {
-                RCP_DEBUG(("\r\nOnu_Rcp_Detect_Set_FDB func fdb add error."));
-            }
-        }
-
-        return iRet;
-}
-#else
-int Onu_Rcp_Detect_Set_FDB(unsigned char  opr)
-{
-        int iRet = GW_OK; 
+	int iRet = GW_OK;
+	gw_uint32 port_num;
+	if(opr)
+		{
+		#if 0
+			if(GW_OK != call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &port_num))
+				{
+					iRet = GW_ERROR;
+					gw_log(GW_LOG_LEVEL_DEBUG,"%s get local mac fail\r\n",__func__);
+				}
+		#endif
+			if(GW_OK != call_gwdonu_if_api(LIB_IF_FDB_MGT_MAC_SET,1,g_sys_mac))
+				{
+					iRet = GW_OK;
+					gw_log(GW_LOG_LEVEL_DEBUG,"%s set mgt mac to fdb fail\r\n",__func__);
+				}
+		}
+	else
+		{
+			iRet = GW_ERROR;
+		}
 
         return iRet;
 }
 
-#endif
 
 int device_conf_write_switch_conf_to_flash(char * buf, long int length)
 {
@@ -6684,7 +6728,7 @@ int device_conf_write_switch_conf_to_flash(char * buf, long int length)
 
     tempBuff = malloc( FLASH_USER_DATA_MAX_SIZE);
 	if(tempBuff == NULL) {
-       diag_printf("Config save failed\n");
+       gw_printf("Config save failed\n");
        ret= GWD_RETURN_ERR;
 	   goto END;
 	}
@@ -6719,7 +6763,7 @@ int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
 
     tempBuff = malloc( FLASH_USER_DATA_MAX_SIZE);
 	if(tempBuff == NULL) {
-       diag_printf("Config save failed\n");
+       gw_printf("Config save failed\n");
        ret= GWD_RETURN_ERR;
 	   goto END;
 	}
@@ -6810,7 +6854,7 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 else if ( isspace( cToken ) )
                 {}
 	/********************************************************************************************************
-	ÅÐ¶Ï°å¼¶ºÅ£¬¼ì²é°å¼¶µÄÓÐÐ§ÐÔ¡£
+	ï¿½Ð¶Ï°å¼¶ï¿½Å£ï¿½ï¿½ï¿½ï¿½å¼¶ï¿½ï¿½ï¿½ï¿½Ð§ï¿½Ô¡ï¿½
 	*********************************************************************************************************/
                 else if ( cToken == '/' )
                 {
@@ -6832,8 +6876,8 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 }
 
 /***************************************************************************************************************
-ÅÐ¶Ï°å¼¶ÉÏµÄPORT µÄºÅ£¬²¢¼ì²éPORT µÄÓÐÐ§ÐÔ£¬Í¨¹ý°å¼¶µÄºÅÀ´ÅÐ¶Ï°å¼¶µÄÀàÐÍ£¬
-²¢ÇÒ´´½¨Ë÷Òý¡£
+ï¿½Ð¶Ï°å¼¶ï¿½Ïµï¿½PORT ï¿½ÄºÅ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½PORT ï¿½ï¿½ï¿½ï¿½Ð§ï¿½Ô£ï¿½Í¨ï¿½ï¿½å¼¶ï¿½Äºï¿½ï¿½ï¿½ï¿½Ð¶Ï°å¼¶ï¿½ï¿½ï¿½ï¿½ï¿½Í£ï¿½
+ï¿½ï¿½ï¿½Ò´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ****************************************************************************************************************/
                 else if ( cToken == ',' )
                 {
@@ -7251,7 +7295,7 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
     char cTmp[ 3 ];
     unsigned long int i = 0, j = 0, k = 0;
 
-    /* ¼ì²é×Ö·û´®³¤¶ÈÊÇ·ñÕý³£ */
+    /* ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ */
     if ( 14 != strlen( szStr ) )
     {
         return GW_ERROR;
@@ -7262,7 +7306,7 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
     {
         if ( i != 2 )
         {
-            /* ²é¿´ÓÐÎÞ'.' */
+            /* ï¿½é¿´ï¿½ï¿½ï¿½ï¿½'.' */
             q = strchr( p, '.' );
             if ( NULL == p )
             {
@@ -7274,12 +7318,12 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
             q = szStr + strlen( szStr );
         }
 
-        /* Ò»¸öH²»ÊÇ4¸ö×Ö·û */
+        /* Ò»ï¿½ï¿½Hï¿½ï¿½ï¿½ï¿½4ï¿½ï¿½ï¿½Ö·ï¿½ */
         if ( 4 != q - p )
         {
             return GW_ERROR;
         }
-        /* ¼ì²éÊÇ·ñÊÇ16½øÖÆµÄÊý×Ö */
+        /* ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½16ï¿½ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½ï¿½ */
         for ( j = 0; j < 4; j++ )
         {
             if ( !( ( *( p + j ) >= '0' && *( p + j ) <= '9' ) || ( *( p + j 
@@ -7305,7 +7349,7 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
         p = q + 1;
     }
 
-    /* ÅÐ¶ÏÊÇ·ñÈ«²¿Îª0 */
+    /* ï¿½Ð¶ï¿½ï¿½Ç·ï¿½È«ï¿½ï¿½Îª0 */
     if ( 0x0 == pucMacAddr[ 0 ] && 0x0 == pucMacAddr[ 1 ] && 0x0 == pucMacAddr
 [ 2 ]
             && 0x0 == pucMacAddr[ 3 ] && 0x0 == pucMacAddr[ 4 ] && 0x0 == 
@@ -7314,7 +7358,7 @@ pucMacAddr[ 5 ] )
         return GW_ERROR;
     }
 
-    /* ÅÐ¶ÏÊÇ·ñÈ«²¿Îªff */
+    /* ï¿½Ð¶ï¿½ï¿½Ç·ï¿½È«ï¿½ï¿½Îªff */
     if ( 0xff == pucMacAddr[ 0 ] && 0xff == pucMacAddr[ 1 ] && 0xff == 
 pucMacAddr[ 2 ]
             && 0xff == pucMacAddr[ 3 ] && 0xff == pucMacAddr[ 4 ] && 0xff == 
@@ -7323,7 +7367,7 @@ pucMacAddr[ 5 ] )
         return GW_ERROR;
     }
 
-    /* ÅÐ¶ÏÊÇ·ñÎª¶à²¥ */
+    /* ï¿½Ð¶ï¿½ï¿½Ç·ï¿½Îªï¿½à²¥ */
     if ( 0 != ( pucMacAddr[ 0 ] & 0x01 ) )
     {
         return GW_ERROR;

@@ -12,12 +12,13 @@
 #include "gw_log.h"
 #include "gwdonuif_interval.h"
 #include "pkt_main.h"
+#include "../include/gwdonuif.h"
+#include "../cli_lib/cli_common.h"
 
 static gwdonu_im_if_t * g_im_ifs = NULL;
 
-
-static gw_uint32 g_uni_port_num = 0;
-static gw_macaddr_t g_sys_mac;
+gw_uint32 g_uni_port_num = 0;
+gw_macaddr_t g_sys_mac;
 
 gw_uint8 gw_onu_read_port_num()
 {
@@ -56,7 +57,6 @@ gw_status init_im_interfaces()
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 {
 	gw_status ret = GW_E_ERROR;
-
 	if(ifs)
 	{
 		if(init_im_interfaces() == GW_OK)
@@ -83,12 +83,11 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 				call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
 				call_gwdonu_if_api(LIB_IF_SPECIAL_PKT_HANDLER_REGIST, 1, gwlib_sendPktToQueue);
 				GW_Onu_Sysinfo_Get();
-
 				ret = GW_E_OK;
 			}
 		}
 	}
-
+	
 	return ret;
 }
 
@@ -96,7 +95,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 {
 	va_list ap;
 	gw_status ret = GW_ERROR;
-
+	struct cli_def *cli = NULL;
 	if(!g_im_ifs)
 	{
 		gw_log(GW_LOG_LEVEL_DEBUG, ("onu import api ifs not init!\r\n"));
@@ -129,7 +128,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 		case LIB_IF_SYSCONF_RESTORE:
 			if(g_im_ifs->sysconfrestore)
-				ret = (*g_im_ifs->sysconfrestore)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
+				ret = (*g_im_ifs->sysconfrestore)(va_arg(ap,gw_uint8*),va_arg(ap,gw_uint32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf restore if is null!\r\n");
 			break;
@@ -218,10 +217,16 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 		case LIB_IF_FDB_ENTRY_GETNEXT:
 			if(g_im_ifs->fdbentrygetnext)
 				ret = (*g_im_ifs->fdbentrygetnext)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8*),
-				va_arg(ap, gw_uint32*), va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*));
+				va_arg(ap, gw_uint32*), va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32*),va_arg(ap,gw_uint32*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "fdb entry getnext if is null!\r\n");
-			break;			
+			break;	
+		case LIB_IF_FDB_MGT_MAC_SET:
+			if(g_im_ifs->fdbmgtmacset)
+				ret = (*g_im_ifs->fdbmgtmacset)(va_arg(ap,gw_uint8*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "fdb mgt mac set if is null!\r\n");
+			break;
 		case LIB_IF_ATU_LEARN_GET:
 			if(g_im_ifs->atulearnget)
 				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_int32), va_arg(ap, gw_uint32*));
@@ -242,21 +247,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;			
 		case LIB_IF_ATU_AGE_SET:
 			if(g_im_ifs->atuageget)
-				ret = (*g_im_ifs->atuageget)(va_arg(ap, gw_uint32));
+				ret = (*g_im_ifs->atuageset)(va_arg(ap, gw_uint32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "atu age set if is null!\r\n");
 			break;				
-
-		case LIB_IF_FDB_MGT_MAC_SET:
-			if(g_im_ifs->fdbmgtmacset)
-				ret = (*g_im_ifs->fdbmgtmacset)(va_arg(ap, gw_uint8*));
-			else
-				gw_log(GW_LOG_LEVEL_DEBUG, "fdb mgt mac set if is null!\r\n");
-			break;		
-
 		case LIB_IF_ONU_MAC_SET:
 			if(g_im_ifs->onumacset)
-				ret = (*g_im_ifs->onumacset)(va_arg(ap, gw_int8 *));
+				ret = (*g_im_ifs->onumacset)(va_arg(ap, gw_uint8 *));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "onu mac set if is null!\r\n");
 			break;
@@ -281,9 +278,50 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "special pkt handler register if is null!\r\n");
 			break;
-						
+		case LIB_IF_SYSTERM_CURRENT_TIME_GET:
+			if(g_im_ifs->currenttimeget)
+				ret = (*g_im_ifs->currenttimeget)(va_arg(ap,gw_uint32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"current timer get if is null!\r\n");
+			break;
+		case LIB_IF_BROADCAST_SPEED_LIMIT:
+			if(g_im_ifs->broadlimit)
+				ret = (*g_im_ifs->broadlimit)(va_arg(ap,gw_uint32),va_arg(ap,gwd_sw_port_inratelimit_mode_t),va_arg(ap,gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"set broadcast speed limit if is null!\r\n");
+			break;
+		case LIB_IF_LOCALTIME_GET:
+			if(g_im_ifs->localtimeget)
+				ret = (*g_im_ifs->localtimeget)(va_arg(ap,localtime_tm*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"get local time if is null!\r\n");
+			break;
+		case LIB_IF_STATIC_MAC_ADD:
+			if(g_im_ifs->staticmacadd)
+				ret = (*g_im_ifs->staticmacadd)(va_arg(ap,gw_int8*),va_arg(ap,gw_uint32),va_arg(ap,gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"add static mac if is null!\r\n");
+			break;
+		case LIB_IF_STATIC_MAC_DEL:
+			if(g_im_ifs->staticmacdel)
+				ret = (*g_im_ifs->staticmacdel)(va_arg(ap,gw_int8*),va_arg(ap,gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"del static mac if is null!\r\n");
+			break;
+		case LIB_IF_ONU_REGISTER_GET:
+			if(g_im_ifs->registerget)
+				ret = (*g_im_ifs->registerget)(va_arg(ap,gw_uint8*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
+			#if 0
+		case LIB_IF_ONU_REBOOT:
+			if(g_im_ifs->onureset)
+				ret = (*g_im_ifs->onureset)(va_arg(ap,gw_int32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
+			#endif
 		default:
-//			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");
+//			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
 	}
 

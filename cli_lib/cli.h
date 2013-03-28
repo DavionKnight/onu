@@ -3,10 +3,13 @@
 #ifndef _CLI_H_
 #define _CLI_H_
 
+#ifdef CYG_LINUX
 #include <cyg/kernel/kapi.h>
 #include <cyg/hal/hal_diag.h>
+#endif
 
-extern int diag_printf(const char *fmt, ...);
+//extern int diag_printf(const char *fmt, ...);
+#define diag_printf printf
 
 #define cli_printf  diag_printf
 

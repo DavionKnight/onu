@@ -9,11 +9,12 @@
 #include "oam.h"
 #include "gwdonuif_interval.h"
 #include "pkt_main.h"
+#include "oamsnmp.h"
 
 //#include "sdl_api.h"
 
 #define OAMDBGERR               diag_printf
-
+extern broadcast_storm_s broad_storm;
 //cs_llid_t active_pon_port = CS_PON_PORT_ID;
 
 unsigned char gwdOamTrace = 0;
@@ -45,9 +46,9 @@ unsigned long	gulGwOamConnect = 0;
 #define DHCP_RELAY_PACKET_DEBUG(str) if( gulDebugEthDhcpSwitch ){ OAMDBGERR str ;}
 #endif
 
-const unsigned char SYS_SOFTWARE_MAJOR_VERSION_NO = 1;
-const unsigned char SYS_SOFTWARE_RELEASE_VERSION_NO = 1;
-const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 3;
+const unsigned char SYS_SOFTWARE_MAJOR_VERSION_NO = 2;
+const unsigned char SYS_SOFTWARE_RELEASE_VERSION_NO = 3;
+const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 2;
 const unsigned char SYS_SOFTWARE_DEBUG_VERSION_NO = 1;
 
 const unsigned char SYS_HARDWARE_MAJOR_VERSION_NO = 2;
@@ -73,6 +74,11 @@ int Debug_Print_Rx_OAM(GWTT_OAM_MESSAGE_NODE *pMessage);
 int Debug_Print_Tx_OAM(GWTT_OAM_HEADER *avender, unsigned char *pSentData);
 int Debug_Print_Rx_OAM_Unkown(unsigned char *pBuffer, unsigned short len);
 
+
+
+extern int gw_cli_arg_help(struct cli_def *cli, int cr_ok, char *entry, ...);
+extern void gw_cli_print(struct cli_def *cli, char *format, ...);
+
 unsigned long   gulDebugOamRx = 0;
 unsigned long   gulDebugOamTx = 0;
 unsigned long   gulDebugOamRxCount = 0;
@@ -95,6 +101,7 @@ struct {
 #endif
 
 unsigned char *irosbootver = "iROSBoot ONU 02.08.01 1286761672 Oct 11 2010";
+unsigned char *iros_version = "";
 int GW_Onu_Sysinfo_Get(void);
 int GW_Onu_Sysinfo_Save(void);
 
@@ -598,6 +605,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 			memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,usOAMPayloadLenGW);
 //			oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
 			GWDOAMTRC("CommOnuMsgSend -- call port send if\r\n");
+			//gw_printf("oam storm alarm send 1 \n");
 			call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8 *)avender,(gw_uint32)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
 			gulDebugOamTxCount++;
             OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
@@ -616,6 +624,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 		memset(OamFrame+sizeof(GWTT_OAM_HEADER), '\0',2048-sizeof(GWTT_OAM_HEADER));
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,SendDataSize-DataLenSended);
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
+		//gw_printf("oam storm alarm send 2 \n");
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
@@ -628,6 +637,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData,SendDataSize);
 
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
+		//gw_printf("oam storm alarm send 3 \n");
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData));
@@ -765,10 +775,14 @@ void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
 			GwOamMessageListNodeFree(pMessage);
 			break;
 
+		case SNMP_TRAN_REQ:
+			gwd_oamsnmp_handle(pMessage);
+			GwOamMessageListNodeFree(pMessage);
+			break;
+
 		case FILE_READ_WRITE_REQ:
 		case FILE_TRANSFER_DATA:
 		case FILE_TRANSFER_ACK:
-		case SNMP_TRAN_REQ:
 
 		case IGMP_AUTH_TRAN_REQ:
 	    case IGMP_AUTH_TRAN_RESP:
@@ -860,6 +874,7 @@ int GwGetPonSlotPort(unsigned char *mac, GWD_OLT_TYPE type, unsigned long *slot,
 
 	return GWD_RETURN_OK;
 }
+localtime_tm w_gw_tim;
 static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 {
 	unsigned char ver[4] = {1, 1, 1, 1};
@@ -1098,7 +1113,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 		}
 		case ONU_REALTIME_SYNC:
 		{
-#if 0
+#if 1
 			unsigned short usValue;
 			unsigned char ucValue;
 			int	i = 0;
@@ -1108,7 +1123,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			pReq = pRequest->pPayLoad+1;
 
 			ptr = g_cSetTime;
-
+			memset(&w_gw_tim,0,sizeof(localtime_tm));
 			/* Year */
 			/*usValue = *((unsigned short *)pReq);*//* Will cause exception: maybe because pReq not odd address */
 			usValue = pReq[i];
@@ -1116,65 +1131,77 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			usValue = usValue << 8;
 			usValue += pReq[i];
 			if (usValue < 1980 ||usValue > 2079)   //according to OLT system time range, added by dushb 2009-11-12
-				return (tmpRet|S_OUT_OF_RANGE);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%4d/",usValue);
+			w_gw_tim.tm_year = usValue;
+			//diag_printf("year len:%d,year:%d\n",ResLen,w_gw_tim.tm_year);
 			ptr += ResLen;
 			i++;
 
 			/* Month */
 			ucValue = pReq[i];
 			if (ucValue > 12) 
-				return (tmpRet|S_BAD_PARAM);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d/",ucValue);
+			w_gw_tim.tm_mon = ucValue;
+			//diag_printf("mon len:%d mon:%d\n",ResLen,w_gw_tim.tm_mon);
 			ptr += ResLen;
 			i++;
 
 			/* Day */
 			ucValue = pReq[i];
 			if (ucValue > 31) 
-				return (tmpRet|S_BAD_CONFIGURATION);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d:",ucValue);
+			w_gw_tim.tm_mday = ucValue;
+			//diag_printf("day len:%d day:%d\n",ResLen,w_gw_tim.tm_mday);
 			ptr += ResLen;
 			i++;
 
 			/* Hour */
 			ucValue = pReq[i];
 			if (ucValue > 24) 
-				return (tmpRet|S_NO_RESOURCES);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d:",ucValue);
+			w_gw_tim.tm_hour = ucValue;
+			//diag_printf("hour len:%d hour:%d\n",ResLen,w_gw_tim.tm_hour);
 			ptr += ResLen;
 			i++;
 			
 			/* Minute */
 			ucValue = pReq[i];
 			if (ucValue > 59) 
-				return (tmpRet|S_NOT_FOUND);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d:",ucValue);
+			w_gw_tim.tm_min = ucValue;
+			//diag_printf("min len:%d min:%d\n",ResLen,w_gw_tim.tm_min);
 			ptr += ResLen;
 			i++;
 			
 			/* Second */
 			ucValue = pReq[i];
 			if (ucValue > 59) 
-				return (tmpRet|S_ALREADY_EXISTS);
+				return GWD_RETURN_ERR;
 			ResLen = sprintf(ptr,"%02d",ucValue);
+			w_gw_tim.tm_sec = ucValue;
+			//diag_printf("sec len:%d sec:%d\n",ResLen,w_gw_tim.tm_sec);
 			ptr += ResLen;
 			i++;
 
 			ResLen = i+1;
-			memcpy(Response,pRequest->pPayLoad,ResLen);
-
+			//memcpy(Response,pRequest->pPayLoad,ResLen);
+#ifdef __DEBUG__
 			cl_do_set_time_nouser(NULL);
 
 #if (RPU_YES == RPU_MODULE_TIMING_PKT)
 
-            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*ֻ��ʹ��ʱ����һ��*/
+            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*只锟斤拷使锟斤拷时锟斤拷锟斤拷一锟斤拷*/
             {
-                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*�������ȼ�= port monitor*/
+                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*锟斤拷锟斤拷锟斤拷锟饺硷拷= port monitor*/
                 VOS_ASSERT(TimingPkt_TaskID != 0);
             }
 #endif
-			
+#endif		
 #endif
 			break;
 		}
@@ -1210,11 +1237,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
             
             if (*pReq > PPPOE_DSL_FORUM_MODE)
             {
-                *(ptr ++) = 2;/*ʧ��*/
+                *(ptr ++) = 2;/*失锟斤拷*/
                 break;
             }
             
-            if(PPPOE_RELAY_DISABLE == *pReq)/*���Ϊ0����ʾ��ֹ״̬*/
+            if(PPPOE_RELAY_DISABLE == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
             {
                 if (PPPOE_RELAY_DISABLE == g_PPPOE_relay)
                 {
@@ -1246,7 +1273,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                         break;
                     }
 
-#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812��������*/
+#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812锟斤拷锟斤拷锟斤拷锟斤拷*/
                     if (S_OK != PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 1, 0))
                     {
                         PPPOE_RELAY_PACKET_DEBUG(("\r\n pppoe relay is disabled failed! \r\n"));
@@ -1302,7 +1329,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                         break;
                     }
 
-#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812��GT863��GT866��������*/
+#if ((!FOR_812_SERIES)&&(!FOR_BCM_ONU_PON_VOICE))/*GT812锟斤拷GT863锟斤拷GT866锟斤拷锟斤拷锟斤拷锟斤拷*/
                     if (S_OK != PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 1, 63))
                     {
                         PPPOE_RELAY_PACKET_DEBUG(("\r\n pppoe relay is enabled failed! \r\n"));
@@ -1327,7 +1354,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
       
             pReq ++;
       
-            /*��ȡ�ַ�*/
+            /*锟斤拷取锟街凤拷*/
 
             PPPOE_RELAY_PACKET_DEBUG(("\r\n olt-relay-string = %s\r\n",pReq));
             
@@ -1337,19 +1364,19 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 PASONU_CLASSIFIER_remove_filter(PASONU_UPSTREAM, FRAME_ETHERTYPE, 0x8863);
                 PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 1, 0);
                 PasOnuClassL2RuleAdd(PASONU_UPSTREAM, FRAME_ETHERTYPE, 0x8863, 0, 1);
-                g_PPPOE_relay = PPPOE_RELAY_DISABLE;/*�ָ���disable��״̬��mode�Ͳ�����*/
+                g_PPPOE_relay = PPPOE_RELAY_DISABLE;/*锟街革拷锟斤拷disable锟斤拷状态锟斤拷mode锟酵诧拷锟斤拷锟斤拷*/
                 *(ptr ++) = 2;
                 break;
             }
         
-            pppoe_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4���ֽڷֱ���msg_type,result,relay_type,relay_mode*/
+            pppoe_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4锟斤拷锟街节分憋拷锟斤拷msg_type,result,relay_type,relay_mode*/
             memcpy(pppoe_circuitid_value_head, pReq, pppoe_circuitid_value_lenth);
-            *(pppoe_circuitid_value_head + pppoe_circuitid_value_lenth) = '\0';/*���ڴ�ӡstring*/        
+            *(pppoe_circuitid_value_head + pppoe_circuitid_value_lenth) = '\0';/*锟斤拷锟节达拷印string*/
 
         }
 #endif
 
-        if(RELAY_TYPE_DHCP == *pReq)/*����pppoe_relay������*/
+        if(RELAY_TYPE_DHCP == *pReq)/*锟斤拷锟斤拷pppoe_relay锟斤拷锟斤拷锟斤拷*/
         {
             DHCP_RELAY_PACKET_DEBUG(("\r\n received dhcp relay-OAM pkt!\r\n"));
             
@@ -1359,11 +1386,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
             
             if (*pReq > DHCP_OPTION82_RELAY_MODE_STD)
             {
-                *(ptr ++) = 2;/*ʧ��*/
+                *(ptr ++) = 2;/*失锟斤拷*/
                 break;
             }
             
-            if(0 == *pReq)/*���Ϊ0����ʾ��ֹ״̬*/
+            if(0 == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
             {
                 if (0 == g_DHCP_OPTION82_Relay)
                 {
@@ -1374,7 +1401,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 {
     				PasOnuFilterL3L4RuleDelete(PASONU_UPSTREAM, PASONU_TRAFFIC_UDP_PORT,
     					PASONU_TRAFFIC_SOURCE, 0, DHCP_SERVER_PORT);					
-#if (!FOR_812_SERIES)/*GT812��������*/
+#if (!FOR_812_SERIES)/*GT812锟斤拷锟斤拷锟斤拷锟斤拷*/
                     PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 0, 0);
 #endif
                     g_DHCP_OPTION82_Relay = 0;
@@ -1395,7 +1422,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 {
         			PasOnuFilterL3L4RuleAdd(PASONU_UPSTREAM, PASONU_TRAFFIC_UDP_PORT,
         				PASONU_TRAFFIC_SOURCE, 0, DHCP_SERVER_PORT, PASONU_PASS_CPU);
-#if (!FOR_812_SERIES)/*GT812��������*/
+#if (!FOR_812_SERIES)/*GT812锟斤拷锟斤拷锟斤拷锟斤拷*/
                     PASONU_PQUEUE_set_ingress_limit(PQ_RX_CPU_UNI, 0, 13);
 #endif
                     
@@ -1415,7 +1442,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
       
             pReq ++;
       
-            /*��ȡ�ַ�*/
+            /*锟斤拷取锟街凤拷*/
 
             DHCP_RELAY_PACKET_DEBUG(("\r\n olt-relay-string=%s\r\n",pReq));
             
@@ -1426,9 +1453,9 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
         
-            dhcp_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4���ֽڷֱ���msg_type,result,relay_type,relay_mode*/
+            dhcp_circuitid_value_lenth = pRequest->RevPktLen - 4;/*4锟斤拷锟街节分憋拷锟斤拷msg_type,result,relay_type,relay_mode*/
             memcpy(dhcp_circuitid_value_head, pReq, dhcp_circuitid_value_lenth);
-            *(dhcp_circuitid_value_head + dhcp_circuitid_value_lenth) = '\0';/*���ڴ�ӡstring*/        
+            *(dhcp_circuitid_value_head + dhcp_circuitid_value_lenth) = '\0';/*锟斤拷锟节达拷印string*/
 
         }
       
@@ -1880,7 +1907,7 @@ int GW_Onu_Sysinfo_Save_To_Flash(VOID)
     buff=(unsigned char  *)&gw_onu_system_info_total;
     size =sizeof (gw_onu_system_info_total);
 
-    gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
+   // gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
 
     ret = call_gwdonu_if_api(LIB_IF_SYSCONF_SAVE, 2, buff, size);
 
@@ -1891,7 +1918,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 {
 	int ret=GWD_RETURN_OK;
 	int iLastChar;
-	unsigned char ucsDeviceNameDef[] = "GT810_A";
+	unsigned char ucsDeviceNameDef[] = "GT811_C";
 
 	memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 
@@ -1904,7 +1931,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 	}
 	else
 	{
-		gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
+		//gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
 	}
 		
 	/* Avoid invalid string data */
@@ -1949,6 +1976,53 @@ int GW_Onu_Sysinfo_Get(void)
     return GW_Onu_Sysinfo_Get_From_Flash();
 }
 
+int cmd_onu_mgt_config_product_date_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int year, month, date;
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "<2007-2100>", "Year",
+                 NULL);
+        case 2:
+            return gw_cli_arg_help(cli, 0,
+                "<1-12>", "Month",
+                 NULL);
+        case 3:
+            return gw_cli_arg_help(cli, 0,
+                "<1-31>", "date",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(3 == argc)
+    {   
+		year = atoi(argv[0]);
+		month = atoi(argv[1]);
+		date = atoi(argv[2]);
+
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.hw_manufature_date, 
+			   	"%d-%02d-%02d", year, month, date);
+        
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			gw_cli_print(cli, "  System information save error!\r\n");
+		}
+    } else
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
 int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int year, month, date;
@@ -1996,6 +2070,47 @@ int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *ar
     
     return CLI_OK;
 }
+int cmd_onu_mgt_config_product_hw_version_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int v_major, v_rel;
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "<1-9>", "Major version",
+                 NULL);
+        case 2:
+            return gw_cli_arg_help(cli, 0,
+                "<1-9>", "Release version",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(2 == argc)
+    {   
+		v_major = atoi(argv[0]);
+		v_rel = atoi(argv[1]);
+
+		sprintf(gw_onu_system_info_total.hw_version, "V%d.%d", 
+			v_major, v_rel);
+        
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			gw_cli_print(cli, "  System information save error!\r\n");
+		}
+    } else
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
 
 int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -2031,6 +2146,54 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
 		{
 			gw_cli_print(cli, "  System information save error!\r\n");
 		}
+    } else
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
+int cmd_onu_mgt_config_product_sn_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int  len, i;
+	unsigned char tmpStr[18];
+
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "<string>", "Manufacture serial number(length<16)",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(1 == argc)
+    {   
+		if((len = strlen(argv[0])) > 16)
+		{
+			gw_cli_print(cli, "  The length of serial number must be less than %d.\r\n", 16);
+			return CLI_OK;
+		}
+
+		for(i=0; i<len; i++)
+			tmpStr[i] = TOUPPER(argv[0][i]);
+		tmpStr[i] = '\0';
+		
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.serial_no, "%s", tmpStr);
+
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			gw_cli_print(cli, "  System information save error!\r\n");
+		}
+
+		return CLI_OK;
     } else
     {
         gw_cli_print(cli, "%% Invalid input.");
@@ -2087,8 +2250,7 @@ int cmd_onu_mgt_config_product_sn(struct cli_def *cli, char *command, char *argv
     
     return CLI_OK;
 }
-
-int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *argv[], int argc)
+int cmd_onu_mgt_config_device_name_local(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int  len, i;
 	unsigned char tmpStr[64];
@@ -2101,7 +2263,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "<string>", "Device name(length<15)",
+                "<string>", "Device name(length< 64)",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -2110,7 +2272,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
 
     if(1 == argc)
     {   
-		if((len = strlen(argv[0])) > 15)
+		if((len = strlen(argv[0])) > 64)
 		{
 			gw_cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
 			return CLI_OK;
@@ -2137,14 +2299,60 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
     return CLI_OK;
 }
 
-int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[], int argc)
+int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int  len, i;
+	unsigned char tmpStr[64];
+
+        
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "<string>", "Device name(length< 64)",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(1 == argc)
+    {   
+		if((len = strlen(argv[0])) > 64)
+		{
+			gw_cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
+			return CLI_OK;
+		}
+
+		for(i=0; i<len; i++)
+			tmpStr[i] = TOUPPER(argv[0][i]);
+		tmpStr[i] = '\0';
+		
+		GW_Onu_Sysinfo_Get();
+		sprintf(gw_onu_system_info_total.device_name, "%s", tmpStr);
+
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			gw_cli_print(cli, "  System information save error!\r\n");
+		}
+
+		return CLI_OK;
+    } else
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+    }
+    
+    return CLI_OK;
+}
+int cmd_show_system_information_local(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	long lRet = GWD_RETURN_OK;
     char strMac[32];
-	extern int cli_get_onu_mac_addr(char *mac);
-	extern char const iros_version[];
 	
-    cli_get_onu_mac_addr(strMac);
+    gw_onu_get_local_mac(strMac);
         
 	lRet = GW_Onu_Sysinfo_Get();
 	if (lRet != GWD_RETURN_OK)
@@ -2155,7 +2363,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT810A");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT811C");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
@@ -2167,6 +2375,79 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 
 		return CLI_OK;
 	}
+}
+
+int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	long lRet = GWD_RETURN_OK;
+    char strMac[32];
+	
+
+    gw_onu_get_local_mac(strMac);
+        
+	lRet = GW_Onu_Sysinfo_Get();
+	if (lRet != GWD_RETURN_OK)
+	{
+		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
+		return CLI_OK;
+	}
+	else
+	{
+		gw_cli_print(cli,  "\n  Product information as following--");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT811C");
+		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
+		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
+		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
+		gw_cli_print(cli,  "    Firmware version : %s", iros_version);
+		gw_cli_print(cli,  "    Bootload version : %s", irosbootver);
+		gw_cli_print(cli,  "    Manufature date  : %s", gw_onu_system_info_total.hw_manufature_date);
+		gw_cli_print(cli,  "    Serial number    : %s", gw_onu_system_info_total.serial_no);
+    	gw_cli_print(cli,  "    Onu mac address  : %s", strMac);
+
+		return CLI_OK;
+	}
+}
+int cmd_show_opm_diagnostic_variables_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	gw_uint16 temp=0, vcc = 0, bias =0, txpow =0, rxpow=0;
+
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        default:
+            return gw_cli_arg_help(cli, 1, NULL);
+        }
+    }
+
+         if(call_gwdonu_if_api(LIB_IF_OPM_GET, 5, &temp, &vcc, &bias, &txpow, &rxpow) != GW_OK)
+	{
+		gw_cli_print(cli, "  Get optical module diagnostics from I2C with error.\r\n");
+		return CLI_OK;
+	}
+	else
+	{
+		double txdbm = 0.9, rxdbm = 0.0;
+		temp = temp/256;
+		vcc = (gw_uint16)(vcc*0.1);
+		bias = bias*0.002;
+		txdbm = txpow;
+		rxdbm = rxpow;
+
+		txdbm = 10*log10(txdbm*0.0001);
+		rxdbm = 10*log10(rxdbm*0.0001);
+		gw_cli_print(cli,  "\n  optical module diagnostics as following--");
+		gw_cli_print(cli,  "    temperature      : %d  cel", temp);
+		gw_cli_print(cli,  "    voltage          : %d  mV", vcc);
+		gw_cli_print(cli,  "    bias current     : %d  mA", bias);
+		gw_cli_print(cli,  "    tx power         : %4.1f  dbm", txdbm);
+		gw_cli_print(cli,  "    rx power         : %4.1f  dbm", rxdbm);
+
+		return CLI_OK;
+	}
+
 }
 
 int cmd_show_opm_diagnostic_variables(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -2255,7 +2536,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 
     gw_uint32 vid = 0, egports = 0, idx = 0;
 	gw_uint8 mac[GW_MACADDR_LEN]={0,0,0,0,0,0};
-
+	gw_uint32 statics=0;
     // deal with help
     if(CLI_HELP_REQUESTED)
     {
@@ -2266,27 +2547,84 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
         }
     }
 
-    gw_cli_print(cli, "====== FDB SW table is shown:======");
-    gw_cli_print(cli, "index   mac_address        vid   port type ");
+    gw_cli_print(cli, " no     mac                   portlist       static         vid        priority");
+	gw_cli_print(cli,"----------------------------------------------------------------------------------");
 
-    while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 5, vid, mac, &vid, mac, &egports) == GW_OK)
+    while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
 
-        gw_cli_print(cli, " %2d   %02x:%02x:%02x:%02x:%02x:%02x %6d   %2d   %2d  ", idx,
+        gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", idx,
             mac[0],
             mac[1],
             mac[2],
             mac[3],
             mac[4],
             mac[5],
-            vid,
             egports,
-            0);
+            statics-1,
+            vid
+        	);
 		idx++;
     }
-    gw_cli_print(cli, "====== Totally %2d SW entries====\n", idx);
+	gw_cli_print(cli,"----------------------------------------------------------------------------------");
+	gw_cli_print(cli,"                       Total number of ATU table is %2d.",idx);
 #endif
 	return ret;
+}
+int cmd_set_onu_mac_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int mac1[6];
+    unsigned char mac2[6];
+    int ret ;
+
+    int i;
+    
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "<xx:xx:xx:xx:xx:xx>", "ONU  MAC Address",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+
+    if(1 == argc)
+    {   
+        if(strlen(argv[0]) > 18){
+            gw_cli_print(cli,"MAC address configuration is not OK\n");
+            return CLI_ERROR;
+        }
+        
+        ret = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", 
+            &mac1[0], &mac1[1], &mac1[2], &mac1[3],&mac1[4],&mac1[5]);
+        
+        if(ret != 6 || mac1[0]&0x01){
+            gw_cli_print(cli,"Input MAC is not a unicast MAC\n");
+            return CLI_ERROR;
+        }
+
+        for(i = 0 ; i < 6; i ++){
+            mac2[i] = (unsigned char)mac1[i];
+        }
+
+	ret = call_gwdonu_if_api(LIB_IF_ONU_MAC_SET, 1, mac2);
+
+	if(ret == GW_OK)
+		return CLI_OK;
+        
+    } else
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+		return CLI_ERROR;
+    }
+    
+    return CLI_OK;
 }
 
 int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -2304,7 +2642,7 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "<xxxx.xxxx.xxxx>", "ONU  MAC Address",
+                "<xx:xx:xx:xx:xx:xx>", "ONU  MAC Address",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -2319,10 +2657,10 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
             return CLI_ERROR;
         }
         
-        ret = sscanf(argv[0], "%02x%02x.%02x02.%02x%02x", 
+        ret = sscanf(argv[0], "%x:%x:%x:%x:%x:%x", 
             &mac1[0], &mac1[1], &mac1[2], &mac1[3],&mac1[4],&mac1[5]);
         
-        if(ret != 3 || mac1[0]&0x01){
+        if(ret != 6 || mac1[0]&0x01){
             gw_cli_print(cli,"Input MAC is not a unicast MAC\n");
             return CLI_ERROR;
         }
@@ -2349,7 +2687,7 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
     struct cli_command *set;
-    struct cli_command *show, *sys, *atu;
+    struct cli_command *show, *sys;
     // set cmds in config mode
     set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
     	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
@@ -2373,6 +2711,33 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     return;
 }
 
+void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
+{
+	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
+    struct cli_command *set;
+    struct cli_command *show, *sys;
+    // set cmds in config mode
+    set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
+    	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
+    	gw_cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
+    	gw_cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
+    	gw_cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
+	gw_cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
+
+    // display cmds in config mode
+    show  = gw_cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");
+    sys  = gw_cli_register_command(cmd_root, show, "product", cmd_show_system_information_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
+	gw_cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
+
+/*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
+	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
+
+
+
+    // RCP switch cmds in config mode
+//	cli_reg_rcp_cmd(cmd_root);
+    return;
+}
 
 gw_int32 gw_oam_parser(gw_int8 * pkt, const gw_int32 len)
 {
@@ -2394,7 +2759,12 @@ gw_status gw_oam_handler(gw_int8 * pkt, const gw_int32 len, gw_int32 portid)
 	Gwd_Oam_Handle(portid, pkt, len);
 	return GW_OK;
 }
-
+void gw_broadcast_storm_init()
+{
+	broad_storm.gulBcStormThreshold = 1000;
+	broad_storm.gulBcStormStat = 0;
+	return;
+}
 void gwd_onu_init(void)
 {
 extern void Rcp_Mgt_init(void);
@@ -2412,9 +2782,11 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 
 	init_oam_pty();
 
+	init_oamsnmp();
+
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
 	gw_reg_pkt_handler(GW_PKT_OAM, gw_oam_handler);
-
+	gw_broadcast_storm_init();
 #if _cmd_line_
 
 	GW_Onu_Sysinfo_Get();
@@ -2426,7 +2798,9 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 #endif
 
 	Rcp_Mgt_init();
-
+	gw_printf("=========================================================\n");
+	gw_printf("=		input libred.a success now ...                 =\n");
+	gw_printf("=========================================================\n");
 	userCmdInitHandlerInit();
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)

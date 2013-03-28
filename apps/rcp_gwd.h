@@ -18,6 +18,8 @@ typedef unsigned long	oid;
 #define FLASH_GWD_RCG_SWITCH_CFG_MAX_SIZE	(11*1024)	/*the end of the gwd rcg switch config file*/
 #define FLASH_GWD_RCG_SWITCH_CFG_OFFSET		(8*1024) /*the start of the gwd rc switch config file*/
 
+
+
 //platform added new type and micro define
 
 #define IFM_NAME_SIZE (31)
@@ -821,7 +823,7 @@ typedef enum {
 #define MAX_RCP_VLAN_NUM                32
 #define MAX_RCP_PORT_NUM                32
 #define RCP_PKT_MAX_LENGTH				80
-#define RCP_RESPONSE_TIMEOUT			1000
+#define RCP_RESPONSE_TIMEOUT			500
 #define RCP_HELLO_PAYLOAD_OFFSET		(RCP_MAC_SIZE + RCP_MAC_SIZE + 4 + 4)
 #define RCP_HELLO_CHIPID_OFFSET			(RCP_HELLO_PAYLOAD_OFFSET + 10)
 
@@ -871,7 +873,7 @@ typedef void (*RCP_SEM_GIVE)(
 						cyg_sem_t *semId);
 #else
 typedef void (*RCP_SEM_CREATE)(
-						unsigned int  *semId, int initVal);
+						unsigned int  *semId, unsigned char *name, int initVal);
 typedef void (*RCP_SEM_DELETE)(
 						unsigned int semId);
 typedef int (*RCP_SEM_TAKE)(
@@ -1102,7 +1104,7 @@ extern unsigned char rrcpSWPortID[33];
 #define RCP_LPORT_2_PORT(_lport)       (rrcpHWPortID[_lport])
 #define RCP_PORT_2_LPORT(_port)        (rrcpSWPortID[_port])
 
-void gw_rcp_sem_create(unsigned int * semid, unsigned int initval);
+void gw_rcp_sem_create(unsigned int * semid, unsigned char * name ,unsigned int initval);
 void gw_rcp_sem_delete(unsigned int semid);
 int gw_rcp_sem_take(unsigned int semid, unsigned int timeout);
 void gw_rcp_sem_give(unsigned int semid);
@@ -1321,7 +1323,7 @@ int RCP_GetDeviceID_InFlash(RCP_DEV  *rcpDev, unsigned short *data);
 RCP_DEV *RCP_Get_Dev_Ptr_For_Flash(unsigned long parentPort);
 int rrcp_packet_handler(unsigned int srcPort, unsigned int len, unsigned char *packet);
 int RcpFrameRevHandle(gw_uint32  portid ,gw_uint32  len, gw_uint8  *frame);
-int Onu_Rcp_Detect_Set_FDB(unsigned char  opr);
+int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr);
 
 int device_conf_write_switch_conf_to_flash(char * buf, long int length);
 int device_conf_read_switch_conf_from_flash(char *buf, long int *length);

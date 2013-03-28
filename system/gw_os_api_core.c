@@ -36,6 +36,7 @@
 
 #include "../include/gw_os_common.h"
 #include "../include/gw_os_api_core.h"
+#include "../include/gw_types.h"
 
 #define GW_OSAL_MAX_PRI         31
 #define GW_OSAL_UNINIT          0
@@ -462,6 +463,23 @@ gw_int32 gw_thread_delete(gw_uint32 thread_id)
 #endif
 	
     return GW_E_OSAL_OK;
+}
+
+gw_int32 gw_thread_delay(gw_uint32 milli_second)
+{
+#ifdef CYG_LINUX
+    gw_uint32 sys_ticks;
+
+    sys_ticks = gw_milli_to_ticks(milli_second);
+    if(sys_ticks == 0)
+        sys_ticks = 1;
+    cyg_thread_delay(sys_ticks);
+#else
+    usleep(milli_second*1000);
+#endif
+
+    return GW_E_OSAL_OK;
+
 }
 
 #ifdef CYG_LINUX
@@ -994,20 +1012,22 @@ int gw_semaphore_init
         if (gw_osal_count_sem_table[possible_semid].free == TRUE)
             break;
     }
-
     if (possible_semid >= GW_OSAL_MAX_COUNT_SEM) {
         gw_printf("\r\n no free semaphore slot");
+		diag_printf("%s %d sem_conut error\n",__func__,__LINE__);
         pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
         return GW_E_OSAL_ERR_NO_FREE_IDS;
     }
-
+#if 0
+// ȥ������ж� ���ڴ����ź�����ʱ������жϲ��Ϸ�    2013-03-21
     for (i = 0; i < GW_OSAL_MAX_COUNT_SEM; i++) {
-        if ((gw_osal_count_sem_table[i].free == FALSE) &&
-                strcmp((char*) sem_name, gw_osal_count_sem_table[i].name) == 0) {
+        if (gw_osal_count_sem_table[i].free == FALSE) {
             pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
+			diag_printf("%s %d sem_name error********\n",__func__,__LINE__);
             return GW_E_OSAL_ERR_NAME_TAKEN;
         }
     }
+#endif
 
     gw_osal_count_sem_table[possible_semid].free = FALSE;
     pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
@@ -1018,6 +1038,7 @@ int gw_semaphore_init
         memset(&gw_osal_count_sem_table[possible_semid] , 0 , sizeof(osal_count_sem_record_t));
         gw_osal_count_sem_table[possible_semid].free = TRUE;
         pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
+		diag_printf("%s %d sem_init error\n",__func__,__LINE__);
         return GW_E_OSAL_ERR;
     }
 
@@ -1062,7 +1083,7 @@ int gw_semaphore_post
     int    ret;
 
     if (sem_id >= GW_OSAL_MAX_COUNT_SEM || gw_osal_count_sem_table[sem_id].free == TRUE) {
-        gw_printf("\r\n can not post an invalid semaphore");
+        gw_printf("\r\n(sem_id %d ) can not post an invalid semaphore",sem_id);
         return GW_E_OSAL_ERR_INVALID_ID;
     }
 
@@ -1083,7 +1104,7 @@ int gw_semaphore_wait(unsigned int sem_id, int timeout)
     int timeloop;
 
     if (sem_id >= GW_OSAL_MAX_COUNT_SEM  || gw_osal_count_sem_table[sem_id].free == TRUE) {
-        gw_printf("\r\n wait an invalid semaphore");
+        gw_printf("\r\n(sen_id %d) wait an invalid semaphore",sem_id);
         return GW_E_OSAL_ERR_INVALID_ID;
     }
 
@@ -2246,7 +2267,7 @@ gw_int32 gw_pri_queue_put (gw_uint32 queue_id, void *data, gw_uint32 size, gw_in
 {
     gw_uint8 *pbuf = NULL;
     gw_uint32 total = 0;
-
+	gw_uint32 count_gw;
     /* Check Parameters */
 
     if(queue_id >= GW_OSAL_MAX_QUEUE || gw_osal_queue_table[queue_id].free == TRUE ||

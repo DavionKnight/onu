@@ -83,7 +83,15 @@ cyg_thread    loop_detect_thread_obj;
 
 unsigned long   gulDebugLoopBackDetect = 1;
 #define LOOPBACK_DETECT_DEBUG(str) if( gulDebugLoopBackDetect ){ gw_printf str ;}
+#ifdef CYG_LINUX
 #define DUMPGWDPKT(c, p, b, l)      if(gulDebugLoopBackDetect) dumpPkt(c, p, b, l)
+#else
+#define DUMPGWDPKT(c, p, b, l)      if(gulDebugLoopBackDetect) \
+{ \
+	diag_printf("\r\n%s    (%d)\r\n", c); \
+	gw_dump_buffer(b, l); \
+}
+#endif
 
 unsigned long gulNumOfPortsPerSystem = NUM_PORTS_PER_SYSTEM;
 

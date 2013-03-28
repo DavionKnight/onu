@@ -6,6 +6,16 @@
 #include "oam.h"
 #include "gwdonuif_interval.h"
 
+
+#define GW_VLAN_MAX 4094
+#define GW_VLAN_LAS 1
+
+#define GW_ONUPORT_MAX 4
+#define GW_ONUPORT_LAS 1
+
+#define GW_PORT_PRI_MAX 7
+#define GW_PORT_PRI_LAS 0
+
 extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
 
 int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -98,7 +108,6 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 					duplex = GWD_PORT_DUPLEX_AUNEG;
 					break;
 			}
-			
 			if(call_gwdonu_if_api(LIB_IF_PORT_MODE_SET, 3, port, spd, duplex) != GW_OK)
 				gw_cli_print(cli, "port %d set mode %d fail!\r\n", port, mode);
 		}
@@ -109,6 +118,39 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 
 	return CLI_OK;
 }
+
+
+int cmd_oam_port_mirror_src(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	int port, mode;
+
+	if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"[i|e|a]", "i: ingress; e: egress; a: both dir", NULL);
+				break;
+			case 2:
+				return gw_cli_arg_help(cli, 0,
+					"<port_list>", "port num", NULL);
+				break;
+			case 3:
+				return gw_cli_arg_help(cli, 0,
+									"[0|1]", "1: select as source port; 0: not source port", NULL);
+				break;
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				break;
+		}
+	}
+
+
+	return CLI_OK;
+}
+
 
 int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -177,21 +219,11 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 	{
 		switch (argc)
 		{
-/*			
-			case 1:
-				return gw_cli_arg_help(cli, 0,
-					"<1-4>", "port id selected", NULL);
-				break;
-
-			case 2:
-*/
 			case 1:
 				return gw_cli_arg_help(cli, 0, 
-					"[0|1]", "isolate 1 enable; 0 disable", NULL);
-				break;
+					"{[0|1]}*1", "isolate 1 enable; 0 disable", NULL);
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
-				break;
 		}
 	}
 
@@ -199,32 +231,19 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 
 	if(argc >= 1)
 	{
-		#if 0
-		port = atoi(argv[0]);
-		if(argc > 1)
-			en = atoi(argv[1]);
-
-		if(argc == 1 )
-		{
-			if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_GET, 2, port, &en) != GW_OK)
-				gw_cli_print(cli, "get port isolate fail!\r\n");
-			else
-				gw_cli_print(cli, "get port isolate: %s\r\n", en?"enable":"disable");
-		}
-		else
-		{		
-			if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
-				gw_cli_print(cli, "port %d set isolate %d fail!\r\n", port, en?"enable":"disable");
-		}
-		#else
 		if(argc == 1)
-			en = atoi(argv[1]);
+			en = atoi(argv[0]);
 
 
 		if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
 			gw_cli_print(cli, "port %d set isolate %s fail!\r\n", port, en?"enabled":"disabled");
-	
-		#endif
+		else
+			{
+				if(en)
+					gw_cli_print(cli,"set all port isolate enable success\n");
+				else
+					gw_cli_print(cli,"set all port isolate disable success\n");
+			}
 	}
 	else
 	{	
@@ -250,11 +269,11 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0, 
-					"<port_list>", "Input one fe port number", NULL );
+					"<portlist>", "Input one fe port number", NULL );
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0,
-					"[1|0]", "1 enable; 0 disable", NULL);
+					"{[1|0]}*1", "1 enable; 0 disable", NULL);
 				break;
 
 			default:
@@ -280,7 +299,7 @@ int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc
 			if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_LEARN_GET, 2,portid, &en))
 				gw_cli_print(cli, "get port %d atu learning fail!\r\n", portid);
 			else
-				gw_cli_print(cli, "port %d atu learning %s\r\n", portid, en?"enable":"disable");
+				gw_cli_print(cli,"Port %d source mac address learn is %s\r\n",portid,en?"enable":"disable");
 		}
 	}
 	else
@@ -306,28 +325,31 @@ int cmd_oam_atu_age(struct cli_def *cli, char *command, char *argv[], int argc)
 			case 1:
 				return gw_cli_arg_help(cli, 0,
 					"<0-600>", "l2 age time unit sec, 0: disable aging", NULL);
-				break;
 
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
-				break;
 		}
 	}
 
 	if(argc == 1)
 	{
 		age = atoi(argv[0]);
-		gw_printf("argv[0] == %d\r\n", age);
+		if(age < 0 ||age > 600)
+			{
+				gw_cli_print(cli,"set aging time error \n");
+				return CLI_ERROR;
+			}
 		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_AGE_SET, 1, age))
 			gw_cli_print(cli, "atu age set %d fail!\r\n", age);
+		else
+			gw_cli_print(cli,"atu aging time set %d sucess",age);
 	}
 	else
 	{
-		gw_printf("no argv set!\r\n");
 		if(GW_OK != call_gwdonu_if_api(LIB_IF_ATU_AGE_GET, 1, &age))
-			gw_cli_print(cli, "get atu age fail!\r\n");
+			gw_cli_print(cli, "get atu aging time fail!\r\n");
 		else
-			gw_cli_print(cli, "atu age %d\r\n", age);
+			gw_cli_print(cli, "Mac table aging time is %d seconds (PAS & BCM).\r\n", age);
 	}
 	
 
@@ -370,27 +392,159 @@ int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
 
 	return CLI_OK;
 }
+int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	gw_uint32 gw_port;
+	gw_uint16 gw_vlan;
+	gw_uint32 gw_pri;
+	if (CLI_HELP_REQUESTED) {
+		switch (argc) {
+		case 1:
+			return gw_cli_arg_help(cli, 0, "xxxx.xxxx.xxxx", "Please input the mac address",
+					NULL );
+		case 2:
+		    return gw_cli_arg_help(cli, 0, "<port_list>", "Please input the port_list",
+					NULL );
+		case 3:
+			return gw_cli_arg_help(cli, 0, "<1-4094>", "Please input vlan id",
+					NULL );
+		case 4:
+			return gw_cli_arg_help(cli, 0, "<0-7>", "MAC address's priority",
+					NULL );			
+		default:
+			return gw_cli_arg_help(cli, argc > 3, NULL );
 
+		}
+	}
+
+	if(argc == 4)
+		{
+			gw_port = strtol(argv[1], NULL, 10);
+			if(gw_port > GW_ONUPORT_MAX || gw_port < GW_ONUPORT_LAS)
+				{
+					gw_cli_print(cli,"port error\n");
+					return -1;
+				}
+			gw_vlan = strtol(argv[2], NULL, 10);
+			if(gw_vlan >GW_VLAN_MAX ||gw_vlan < GW_VLAN_LAS)
+				{
+					gw_cli_print(cli,"vlan error\n");
+					return -1;
+				}	
+			gw_pri = strtol(argv[3], NULL, 10);
+			if(gw_pri < GW_PORT_PRI_LAS || gw_pri > GW_PORT_PRI_MAX)
+				{
+					gw_cli_print(cli,"pri error\n");
+				}
+			if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,argv[0],gw_port,gw_vlan) != GW_OK)
+				gw_cli_print(cli,"add static mac fail\n");
+			else
+				gw_cli_print(cli,"add static mac success\n");
+		}
+	else
+		{
+			gw_cli_print(cli,"%%input error\n");
+		}
+	return CLI_OK;
+}
+int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+		gw_uint8 * gw_buf = NULL;
+		gw_uint16 gw_vlan;
+		if (CLI_HELP_REQUESTED) {
+		switch (argc) {
+		case 1:
+			return gw_cli_arg_help(cli, 0, "xxxx.xxxx.xxxx", "Please input the mac address",
+					NULL );
+		case 2:
+			return gw_cli_arg_help(cli, 0, "<1-4094>", "Please input vlan id",
+					NULL );
+		default:
+			return gw_cli_arg_help(cli, argc > 1, NULL );
+			}
+
+		}
+		if(argc == 2)
+			{
+				gw_vlan = strtol(argv[1], NULL, 10);
+				if(gw_vlan >GW_VLAN_MAX ||gw_vlan < GW_VLAN_LAS)
+					{
+						gw_cli_print(cli,"vlan error\n");
+						return -1;
+					}	
+				if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_DEL, 2,argv[0],gw_vlan) != GW_OK)
+					gw_cli_print(cli,"del static mac fail\n");
+				else
+					gw_cli_print(cli,"del static mac success\n");
+			}
+		else
+			{
+				gw_cli_print(cli,"%%input error\n");
+			}		
+	return CLI_OK;
+}
+extern int gwd_onu_reboot(int a);
+int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int a = 10;
+#if 0
+	int a = 10;
+	int enable;
+	if (CLI_HELP_REQUESTED) {
+	switch (argc) {
+	case 1:
+		return gw_cli_arg_help(cli, 0, "[0|1]", "reboot enable",
+				NULL );
+	default:
+		return gw_cli_arg_help(cli, argc > 1, NULL );
+		}
+
+	}
+
+	enable = atoi(argv[0]);
+	gw_printf("................................cmd_onu_reboot\n");
+    if(argc == 1)
+    {
+		if(enable)
+		call_gwdonu_if_api(LIB_IF_ONU_REBOOT, 1,a);
+		else
+			gw_printf("reboot error\n");
+
+    }
+	else
+	{
+		cli_print(cli, "%% Invalid input.");
+        return CLI_OK;
+	}
+	#else
+	gwd_onu_reboot(a);
+	#endif
+	return CLI_OK;
+}
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 {
-	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL;
+	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL,*reboot= NULL;
 
 	portcmd = gw_cli_register_command(cmd_root, NULL, "port", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port config or get");
 	gw_cli_register_command(cmd_root, portcmd, "mode", cmd_oam_port_mode, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
 
-	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "atu command");
+	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "atu command");
 	gw_cli_register_command(cmd_root, atu, "learning", cmd_oam_atu_learn, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "learning enable");
 	gw_cli_register_command(cmd_root, atu, "aging", cmd_oam_atu_age, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "age set");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");
+	gw_cli_register_command(cmd_root, atu, "static_add", cmd_static_mac_add_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "static fdb mac add");
+	gw_cli_register_command(cmd_root, atu, "static_del", cmd_static_mac_del_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "static fdb mac del");
 
-	c = gw_cli_register_command(cmd_root, NULL, "vlan", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan command");
+	c = gw_cli_register_command(cmd_root, NULL, "vlan", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "vlan command");
 	gw_cli_register_command(cmd_root, c, "port_isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
 	
-	c = gw_cli_register_command(cmd_root, NULL, "mgt", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "ONU device management");
-	c = gw_cli_register_command(cmd_root, c, "laser", cmd_gw_laser, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Laser status");
+	c = gw_cli_register_command(cmd_root, NULL, "mgt", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "ONU device management");
+	c = gw_cli_register_command(cmd_root, c, "laser", cmd_gw_laser, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Laser status");
 
 	c = gw_cli_register_command(cmd_root, NULL, "event", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "event show");
 	gw_cli_register_command(cmd_root, c, "show", cmd_oam_event_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show");
+	reboot = gw_cli_register_command(cmd_root, NULL, "ONU",NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
+	gw_cli_register_command(cmd_root,reboot, "reboot", cmd_onu_reboot, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
 
 
     return;
