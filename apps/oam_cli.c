@@ -483,12 +483,15 @@ int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int
 			}		
 	return CLI_OK;
 }
+
+#ifdef CYG_LINUX
 extern int gwd_onu_reboot(int a);
+#endif
+
 int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int a = 10;
-#if 0
-	int a = 10;
+#ifndef CYG_LINUX
 	int enable;
 	if (CLI_HELP_REQUESTED) {
 	switch (argc) {
@@ -502,7 +505,6 @@ int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 	}
 
 	enable = atoi(argv[0]);
-	gw_printf("................................cmd_onu_reboot\n");
     if(argc == 1)
     {
 		if(enable)
@@ -513,7 +515,7 @@ int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
     }
 	else
 	{
-		cli_print(cli, "%% Invalid input.");
+		gw_cli_print(cli, "%% Invalid input.");
         return CLI_OK;
 	}
 	#else

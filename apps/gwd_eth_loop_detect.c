@@ -88,7 +88,7 @@ unsigned long   gulDebugLoopBackDetect = 1;
 #else
 #define DUMPGWDPKT(c, p, b, l)      if(gulDebugLoopBackDetect) \
 { \
-	diag_printf("\r\n%s    (%d)\r\n", c); \
+	diag_printf("\r\n%s    (%d)\r\n", c, p); \
 	gw_dump_buffer(b, l); \
 }
 #endif
@@ -1020,7 +1020,11 @@ void lpbDetectWakeupPorts(unsigned short usVid)
         }
     }
 }
+
+#if 0
 extern gw_macaddr_t olt_mac_addr;
+#endif
+
 int lpbDetectTransFrames(unsigned short usVid)
 #if 1
 {
@@ -1028,7 +1032,7 @@ int lpbDetectTransFrames(unsigned short usVid)
     GWD_OLT_TYPE type;
     unsigned long ulSlot, ulPon;
     
-    char sysMac[6] = {0};
+    char sysMac[6] = {0}, olt_mac_addr[6]={0};
     char loopVid[2] = { 0 };
     unsigned char   LoopBackDetectPktBuffer[64], DevId;
     
@@ -1040,6 +1044,8 @@ int lpbDetectTransFrames(unsigned short usVid)
 
 //	dport = ifm_port_id_make(ONU_GE_PORT, 0, EPON_PORT_UNI);
     
+    call_gwdonu_if_api(LIB_IF_OLT_MAC_GET, 1, olt_mac_addr);
+
     gw_onu_get_local_mac(sysMac);    
     GwGetOltType(olt_mac_addr, &type);
     GwGetPonSlotPort(olt_mac_addr, type, &ulSlot, &ulPon);
@@ -1603,9 +1609,10 @@ int gw_loopbackFrameRevHandle(gw_uint8  *frame, gw_uint32  len, gw_uint32  porti
 }
 
 
-
+#if 0
 extern void epon_onu_start_alarm_led();
 extern void epon_onu_stop_alarm_led();
+#endif
 
 //static unsigned long int g_portloopstatus = 0;
 void
@@ -1613,8 +1620,11 @@ onu_event_port_loop(gwd_ethloop_msg_t *msg)
 {
 
 //    g_portloopstatus |= 1<<msg->portid;
-
+#if 0
     epon_onu_start_alarm_led();
+#else
+    call_gwdonu_if_api(LIB_IF_ONU_START_LOOP_LED, 0, NULL);
+#endif
 }
 
 void
@@ -1624,7 +1634,11 @@ onu_event_port_loop_clear(gwd_ethloop_msg_t *msg)
 //	g_portloopstatus &= ~(1<<msg->portid);
 
 //    if(!g_portloopstatus)
+#if 0
     	epon_onu_stop_alarm_led();
+#else
+    	call_gwdonu_if_api(LIB_IF_ONU_STOP_LOOP_LED, 0, NULL);
+#endif
 
 }
 

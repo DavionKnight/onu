@@ -119,6 +119,20 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				gw_log(GW_LOG_LEVEL_DEBUG,("sys info get if is null!\r\n"));			
 //				strcpy(ifname, "sys info get");
 			break;	
+		case LIB_IF_SWCONF_SAVE:
+			if(g_im_ifs->swconfsave)
+				ret = (*g_im_ifs->swconfsave)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "sw conf save if is null!\r\n");
+//				strcpy(ifname, "sys conf save");
+			break;
+		case LIB_IF_SWCONF_RESTORE:
+			if(g_im_ifs->swconfrestore)
+				ret = (*g_im_ifs->swconfrestore)(va_arg(ap,gw_uint8*),va_arg(ap,gw_uint32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "sw conf restore if is null!\r\n");
+			break;
+
 		case LIB_IF_SYSCONF_SAVE:
 			if(g_im_ifs->sysconfsave)
 				ret = (*g_im_ifs->sysconfsave)(va_arg(ap, gw_uint8*), va_arg(ap, gw_uint32));
@@ -132,6 +146,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "sys conf restore if is null!\r\n");
 			break;
+
 		case LIB_IF_PORTSEND:
 			if(g_im_ifs->portsend)
 				ret = (*g_im_ifs->portsend)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8 *), va_arg(ap, gw_uint32));
@@ -313,13 +328,46 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				ret = (*g_im_ifs->registerget)(va_arg(ap,gw_uint8*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
-			#if 0
+			#ifndef CYG_LINUX
 		case LIB_IF_ONU_REBOOT:
 			if(g_im_ifs->onureset)
 				ret = (*g_im_ifs->onureset)(va_arg(ap,gw_int32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
 			#endif
+
+		case LIB_IF_ONU_START_LOOP_LED:
+			if(g_im_ifs->startloopled)
+			{
+				(*g_im_ifs->startloopled)();
+				ret = GW_OK;
+			}
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"get start loop led if is null!\r\n");
+
+		case LIB_IF_ONU_STOP_LOOP_LED:
+			if(g_im_ifs->stoploopled)
+			{
+				(*g_im_ifs->stoploopled)();
+				ret = GW_OK;
+			}
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"get stop loop led if is null!\r\n");
+
+		case LIB_IF_PORT_PVID_GET:
+			if(g_im_ifs->portpvidget)
+				ret = (*g_im_ifs->portpvidget)(va_arg(ap, gw_int32), va_arg(ap, gw_int16*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "pvid get if is null!\r\n");
+			break;
+
+		case LIB_IF_OLT_MAC_GET:
+			if(g_im_ifs->oltmacget)
+				ret = (*g_im_ifs->oltmacget)(va_arg(ap, gw_uint8*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "olt mac get if is null!\r\n");
+			break;
+
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

@@ -37,7 +37,6 @@
 #include "rcp_gwd.h"
 #include "oam.h"
 #include "gw_log.h"
-extern gw_macaddr_t g_sys_mac;
 unsigned long gulGwdRcpAuth = 0;
 RCP_DEV *rcpDevList[MAX_RRCP_SWITCH_TO_MANAGE];
 
@@ -172,12 +171,13 @@ unsigned char gucRxRcpPktBuf[RCP_PKT_MAX_LENGTH];
 //extern long device_conf_erase_switch_conf_from_flash( void );
 extern int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char *pSentData,const unsigned short SendDataSize, unsigned char  *pSessionIdfield);
 
+#ifdef CYG_LINUX
 /* Import functions from FLASH driver */
 extern int user_data_config_Read(unsigned int offset, unsigned char *buffer, unsigned int size);
 extern int user_data_config_Write(unsigned char *buffer, unsigned int size);
 
 extern int gwd_onu_sw_get_port_pvid(unsigned int port,unsigned short *pvid);
-
+#endif
 
 unsigned long   gulDebugRcp = 0;
 #define RCP_DEBUG(str) if( gulDebugRcp ){ diag_printf str ;}
@@ -187,7 +187,7 @@ unsigned long   gulDebugRcp = 0;
 #else
 #define DUMPRCPPKT(c, p, b, l)      if(gulDebugRcp) \
 	{ \
-		diag_printf("\r\n%s    (%d)\r\n", c); \
+		diag_printf("\r\n%s    (%d)\r\n", c, p); \
 		gw_dump_buffer(b, l); \
 	}
 #endif
@@ -330,7 +330,11 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 
 		/* Init access function */
 		if(vlan_dot_1q_enable == 1)
+#if 0
 			gwd_onu_sw_get_port_pvid(parentPort, &(rcpDevList[parentPort]->mgtVid));
+#else
+			call_gwdonu_if_api(LIB_IF_PORT_PVID_GET, 2, parentPort,  &(rcpDevList[parentPort]->mgtVid));
+#endif
 		else
 			rcpDevList[parentPort]->mgtVid = 0;
 		rcpDevList[parentPort]->frcpReadReg = RCP_Read_Reg;
@@ -356,7 +360,11 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 
 	rcpDevList[parentPort]->upLinkPort = payload->downLinkPort;
 	if(vlan_dot_1q_enable == 1)
-		gwd_onu_sw_get_port_pvid(parentPort, &(rcpDevList[parentPort]->mgtVid));
+#if 0
+			gwd_onu_sw_get_port_pvid(parentPort, &(rcpDevList[parentPort]->mgtVid));
+#else
+			call_gwdonu_if_api(LIB_IF_PORT_PVID_GET, 2, parentPort,  &(rcpDevList[parentPort]->mgtVid));
+#endif
 	else
 		rcpDevList[parentPort]->mgtVid = 0;
 
@@ -875,7 +883,12 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 		{
 	        call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, lport, &port_opr_status);
 	        if (port_opr_status != PORT_OPER_STATUS_UP) continue;
-			gwd_onu_sw_get_port_pvid(lport, &(broadcastVid));
+
+#if 0
+	        gwd_onu_sw_get_port_pvid(lport, &(broadcastVid));
+#else
+			call_gwdonu_if_api(LIB_IF_PORT_PVID_GET, 2, lport,  &broadcastVid);
+#endif
 			RcpVid[0] = (((0xff00 & broadcastVid) >> 8) | 0xf0);
 			RcpVid[1] = (0xff & broadcastVid);
 
@@ -946,7 +959,12 @@ int RCP_Dev_Is_Exist(unsigned long parentPort)
 		}
 	}
 
-	gwd_onu_sw_get_port_pvid(parentPort, &(mgtPvid[parentPort]));
+#if 0
+			gwd_onu_sw_get_port_pvid(parentPort, &(mgtPvid[parentPort]));
+#else
+			call_gwdonu_if_api(LIB_IF_PORT_PVID_GET, 2, parentPort,  &(mgtPvid[parentPort]));
+#endif
+
 	RCP_Say_Hello(parentPort, mgtPvid[parentPort]);		/*Unicast Hello*/
 	gw_thread_delay(IROS_TICK_PER_SECOND/10);
 	if(NULL != rcpDevList[parentPort])
@@ -6541,7 +6559,12 @@ RCP_DEV *RCP_Get_Dev_Ptr_For_Flash(unsigned long parentPort)
 		memset(rcpDevList[0], 0, sizeof(RCP_DEV));
 		/* Init access function */
 		if(vlan_dot_1q_enable == 1)
+#if 0
 			gwd_onu_sw_get_port_pvid(parentPort, &(rcpDevList[0]->mgtVid));
+#else
+			call_gwdonu_if_api(LIB_IF_PORT_PVID_GET, 2, parentPort, &(rcpDevList[0]->mgtVid));
+#endif
+
 		else
 			rcpDevList[0]->mgtVid = 0;
 		rcpDevList[0]->frcpReadReg = RCP_Read_Reg;
@@ -6692,14 +6715,9 @@ int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr)
 	gw_uint32 port_num;
 	if(opr)
 		{
-		#if 0
-			if(GW_OK != call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &port_num))
-				{
-					iRet = GW_ERROR;
-					gw_log(GW_LOG_LEVEL_DEBUG,"%s get local mac fail\r\n",__func__);
-				}
-		#endif
-			if(GW_OK != call_gwdonu_if_api(LIB_IF_FDB_MGT_MAC_SET,1,g_sys_mac))
+			gw_macaddr_t mymac;
+			gw_onu_get_local_mac(&mymac);
+			if(GW_OK != call_gwdonu_if_api(LIB_IF_FDB_MGT_MAC_SET,1,mymac))
 				{
 					iRet = GW_OK;
 					gw_log(GW_LOG_LEVEL_DEBUG,"%s set mgt mac to fdb fail\r\n",__func__);
@@ -6716,6 +6734,7 @@ int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr)
 
 int device_conf_write_switch_conf_to_flash(char * buf, long int length)
 {
+#ifdef CYG_LINUX
 	unsigned char *tempBuff = NULL;
 	unsigned char *pConfig = NULL;
     int ret=0;
@@ -6746,13 +6765,19 @@ int device_conf_write_switch_conf_to_flash(char * buf, long int length)
 
 END:
     return ret;
+#else
+    return call_gwdonu_if_api(LIB_IF_SWCONF_SAVE, 2, buf, length);
+#endif
 }
 
 int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
 {
+
+#ifdef CYG_LINUX
 	unsigned char *tempBuff = NULL;
 	unsigned char *pConfig = NULL;
     int ret=0;
+
 
     if(buf == NULL || length == NULL ||
     		(length != NULL && (*length < 0 || *length > (FLASH_GWD_RCG_SWITCH_CFG_MAX_SIZE))))
@@ -6761,12 +6786,15 @@ int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
     	goto END;
     }
 
+
+
     tempBuff = malloc( FLASH_USER_DATA_MAX_SIZE);
 	if(tempBuff == NULL) {
        gw_printf("Config save failed\n");
        ret= GWD_RETURN_ERR;
 	   goto END;
 	}
+
 
 	memset(tempBuff, 0x00, FLASH_USER_DATA_MAX_SIZE);
 	user_data_config_Read(0,tempBuff, FLASH_USER_DATA_MAX_SIZE);
@@ -6778,21 +6806,12 @@ int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
 	    free(tempBuff);
 	}
 
-#if 0
-	diag_printf("rcp switch cfg read ok!\r\n");
-	{
-		int i = 0;
-		for(i=0; i<*length; i++)
-		{
-			if(!(i&0xf))
-				diag_printf("\r\n");
-			diag_printf("%02x ", (int)buf[i]);
-		}
-	}
-#endif
 
 END:
     return ret;
+#else
+    return call_gwdonu_if_api(LIB_IF_SWCONF_RESTORE, 2, buf, *length);
+#endif
 }
 
 #define STATE_S 1

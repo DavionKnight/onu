@@ -120,6 +120,9 @@ typedef gw_status (*libgwdonu_onu_llid_get_t)(gw_uint32 *llid);
 typedef gw_status (*libgwdonu_sys_info_get_t)(gw_uint8 * sysmac, gw_uint32 *uniportnum);
 typedef gw_uint32 (*libgwdonu_sys_conf_save_t)(gw_uint8 * info, gw_uint32 len);
 typedef gw_uint32 (*libgwdonu_sys_conf_restore_t)(gw_uint8 *info, gw_uint32 len);
+typedef gw_uint32 (*libgwdonu_sw_conf_save_t)(gw_uint8 * info, gw_uint32 len);
+typedef gw_uint32 (*libgwdonu_sw_conf_restore_t)(gw_uint8 *info, gw_uint32 len);
+typedef gw_status (*libgwdonu_olt_mac_get_t)(gw_uint8 * mac);
 
 typedef gw_status (*libgwdonu_port_admin_status_get_t)(gw_int32 portid, gwd_port_admin_t *status);
 typedef gw_status (*libgwdonu_port_admin_status_set_t)(gw_int32 portid, gwd_port_admin_t status);
@@ -129,6 +132,7 @@ typedef gw_status (*libgwdonu_port_mode_set_t)(gw_int32 portid, gw_int32 spd, gw
 typedef gw_status (*libgwdonu_port_isolate_get_t)(gw_int32 portid, gw_int32 *en);
 typedef gw_status (*libgwdonu_port_isolate_set_t)(gw_int32 portid, gw_int32 en);
 typedef gw_status (*libgwdonu_port_statistic_get_t)(gw_int32 portid, gw_int8 * data, gw_int32 * len);
+typedef gw_status (*libgwdonu_port_pvid_get_t)(gw_int32 portid, gw_int16 *vlanid);
 
 typedef gw_status (*libgwdonu_vlan_entry_getnext_t)(gw_uint32 index, gw_uint16 *vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
 typedef gw_status (*libgwdonu_vlan_entry_get_t)(gw_uint32 vlanid, gw_uint32 *tag_portlist, gw_uint32 *untag_portlist);
@@ -151,8 +155,11 @@ typedef gw_status (*libgwdonu_onu_localtime_get_t)(localtime_tm * tm);
 typedef gw_status (*libgwdonu_onu_static_mac_add_t)(gw_int8* gw_mac,gw_uint32 gw_port,gw_uint32 gw_vlan);
 typedef gw_status (*libgwdonu_onu_static_mac_del_t)(gw_int8* gw_mac,gw_uint32 gw_vlan);
 typedef gw_status (*libgwdonu_onu_register_stat_get)(gw_uint8* onuregister);
-//typedef gw_status (*libgwdonu_onu_reset)(gw_int32 a);
+#ifndef CYG_LINUX
+typedef gw_status (*libgwdonu_onu_reset)(gw_int32 a);
+#endif
 
+typedef void      (*libgwdonu_onu_set_loopalm_led)();
 
 
 
@@ -163,6 +170,8 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_sys_info_get_t sysinfoget;
 	libgwdonu_sys_conf_save_t sysconfsave;
 	libgwdonu_sys_conf_restore_t sysconfrestore;
+	libgwdonu_sw_conf_save_t	swconfsave;
+	libgwdonu_sw_conf_restore_t swconfrestore;
 	libgwdonu_port_send_t portsend;
 	libgwdonu_oam_std_hdr_builer_t oamhdrbuilder;
 
@@ -174,6 +183,7 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_port_isolate_get_t		portisolateget;
 	libgwdonu_port_isolate_set_t		portisolateset;
 	libgwdonu_port_statistic_get_t	portstatget;
+	libgwdonu_port_pvid_get_t		portpvidget;
 
 	libgwdonu_vlan_entry_getnext_t		vlanentrygetnext;
 	libgwdonu_vlan_entry_get_t		vlanentryget;
@@ -199,7 +209,15 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_onu_static_mac_add_t staticmacadd;
 	libgwdonu_onu_static_mac_del_t staticmacdel;
 	libgwdonu_onu_register_stat_get registerget;
-	//libgwdonu_onu_reset onureset;
+#ifndef CYG_LINUX
+	libgwdonu_onu_reset onureset;
+#endif
+
+	libgwdonu_onu_set_loopalm_led startloopled;
+	libgwdonu_onu_set_loopalm_led stoploopled;
+
+	libgwdonu_olt_mac_get_t			oltmacget;
+
 
 }gwdonu_im_if_t;
 
