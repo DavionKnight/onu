@@ -18,7 +18,7 @@ typedef unsigned long	oid;
 #define FLASH_GWD_RCG_SWITCH_CFG_MAX_SIZE	(11*1024)	/*the end of the gwd rcg switch config file*/
 #define FLASH_GWD_RCG_SWITCH_CFG_OFFSET		(8*1024) /*the start of the gwd rc switch config file*/
 
-
+#define RCP_SW_MAX_PORT 33 
 
 //platform added new type and micro define
 
@@ -937,7 +937,9 @@ struct _RCP_DEV
     unsigned short  mgtVid;
     unsigned short  phyAddr;
     unsigned short  oamCounter;
-
+	
+    unsigned long	ingresslim[RCP_SW_MAX_PORT];
+    unsigned long   egresslim[RCP_SW_MAX_PORT];
 
     FRCP_READ_REG 	frcpReadReg;
     FRCP_WRITE_REG 	frcpWriteReg;

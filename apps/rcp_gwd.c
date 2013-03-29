@@ -338,6 +338,8 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 		rcpDevList[parentPort]->parentPort = (unsigned char)parentPort;
 		rcpDevList[parentPort]->paSlot = 1;
 		rcpDevList[parentPort]->paPort = parentPort;
+		memset(rcpDevList[parentPort]->ingresslim ,0 , RCP_SW_MAX_PORT);
+		memset(rcpDevList[parentPort]->egresslim ,0 , RCP_SW_MAX_PORT);
 	}
 
 	memcpy(rcpDevList[parentPort]->switchMac, pkt + RCP_MAC_SIZE, RCP_MAC_SIZE);
