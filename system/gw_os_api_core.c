@@ -316,6 +316,11 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
     gw_uint32 possible_taskid;
     gw_uint8 *stack_buf = NULL;
 
+#ifndef CYG_LINUX
+    pthread_t threadid;
+    pthread_attr_t p_attr;
+#endif
+
     /* we don't want to allow names too long*/
     /* if truncated, two names might be the same */
 
@@ -392,6 +397,11 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
                       &gw_osal_thread_table[possible_taskid].thread_ctrl);
     cyg_thread_resume(gw_osal_thread_table[possible_taskid].id);
 #else
+    pthread_attr_init(&p_attr);
+    p_attr.__stackaddr = stack_buf;
+    p_attr.__stacksize = stack_size;
+    pthread_create(&threadid, &p_attr, function_pointer, param);
+    gw_osal_thread_table[possible_taskid].id = (gw_uint32)threadid;
 #endif
 
     *thread_id = possible_taskid;
@@ -445,7 +455,7 @@ gw_int32 gw_thread_delete(gw_uint32 thread_id)
 #ifdef CYG_LINUX
     cyg_thread_kill(gw_osal_thread_table[thread_id].id);
 #else
-    pthread_cancel(thread_id);
+    pthread_cancel(gw_osal_thread_table[thread_id].id);
 #endif
 
     memset(gw_osal_thread_table[thread_id].name, 0, GW_OSAL_MAX_API_NAME);
