@@ -14,14 +14,14 @@
 #include "gwdonuif_interval.h"
 
 #include "oamsnmp.h"
-
+#define SNMP_P 0
 extern int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char *pSentData,const unsigned short SendDataSize, unsigned char  *pSessionIdfield);
 
 static gw_uint16 s_oamsnmp_ser_port = 8000;
 static gw_int32 s_oamsnmp_ser_sock = 0;
 static struct sockaddr_in s_oamsnmp_ser_sin;
 
-static gw_uint32 s_oamsnmp_rx_thread_id = 0, s_oamsnmp_rx_thread_stack_size = 4*1024,
+static gw_uint32 s_oamsnmp_rx_thread_id = 0, s_oamsnmp_rx_thread_stack_size = 8*1024,
 		s_oamsnmp_rx_thread_pri = 14;
 
 static gw_uint8 s_oamsnmp_rx_thread_name[] = "oamsnmprx";
@@ -37,6 +37,7 @@ static gw_status init_oamsnmp_ser_socket()
 		gw_log(GW_LOG_LEVEL_DEBUG, ("oamsnmp service sock fail!\r\n"));
 		return (GW_E_RESOURCE);
 	}
+	memset(&s_oamsnmp_ser_sin,0,sizeof(struct sockaddr_in));
 	s_oamsnmp_ser_sin.sin_family = AF_INET;
 	s_oamsnmp_ser_sin.sin_port = htons(s_oamsnmp_ser_port);
 	s_oamsnmp_ser_sin.sin_addr.s_addr = INADDR_ANY;
@@ -51,18 +52,42 @@ static gw_status init_oamsnmp_ser_socket()
 	return GW_E_OK;
 }
 
+int gw_snmp_rx_print(int rxnum,unsigned char *buf)
+{
+	int j = 0;
+	if(SNMP_P)
+	{
+		gw_printf("%s %d\n",__func__,__LINE__);
+
+		for(j=0;j<rxnum;j++)
+			{
+				if(j%20 ==0)
+					gw_printf("\n");
+				gw_printf("0x%02x ",*buf);
+				buf++;
+			}
+		gw_printf("\n");
+	}
+	return 0;
+
+}
 static void gw_oam_snmp_rx_thread_entry(gw_uint32 * para)
 {
 	gw_uint8 buf[2*1024] = "";
 	gw_int32 len = 2*1024;
-
+	gw_int32 i =0;
+	gw_int32 j =0;
+	gw_uint8 *pri_buf;
 	while(1)
 	{
 		socklen_t socklen = sizeof(struct sockaddr);
+		memset(buf,0,2048);
 		gw_int32 rxnum = recvfrom(s_oamsnmp_ser_sock, buf, len, 0, (struct sockaddr*)&s_oamsnmp_ser_sin, &socklen);
 
 		if(rxnum > 0)
-		{
+		{	
+			pri_buf = buf;
+			gw_snmp_rx_print(rxnum,pri_buf);
 			CommOnuMsgSend(SNMP_TRAN_RESP, get_oamsnmp_send_no(), buf, len+1, get_oamsnmp_session_id());
 		}
 
@@ -116,16 +141,30 @@ gw_status gwd_oamsnmp_handle(GWTT_OAM_MESSAGE_NODE * msg)
 {
 
 	struct sockaddr_in peer;
-
+	int ret;
+	memset(&peer, 0, sizeof(struct sockaddr_in));
 	peer.sin_family = AF_INET;
 	peer.sin_port = htons(161);
 	peer.sin_addr.s_addr = INADDR_ANY;
 
 	set_oamsnmp_send_no(msg->SendSerNo);
 	set_oamsnmp_session_id(msg->SessionID, sizeof(msg->SessionID));
+	if(SNMP_P)
+	{
+		gw_printf("%s %d\n",__func__,__LINE__);
+		gw_printf("msg->WholePktLen:%d\n",msg->WholePktLen);
+	}
+	ret = sendto(s_oamsnmp_ser_sock, msg->pPayLoad, msg->WholePktLen, 0, (struct sockaddr*)&peer, sizeof(struct sockaddr));
+	if(ret == -1)
+		{
+			if(SNMP_P)
+			{
+			    gw_printf("errno=%d\n",errno);
+				char * mesg = strerror(errno);
+	  			gw_printf("Mesg:%s\n",mesg);
+			}
 
-	sendto(s_oamsnmp_ser_sock, msg->pPayLoad, msg->WholePktLen, 0, (struct sockaddr*)&peer, sizeof(struct sockaddr));
-
+		}
 	return GW_OK;
 
 }

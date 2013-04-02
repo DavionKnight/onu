@@ -214,6 +214,8 @@ extern unsigned long   gulDebugOamRxCount;
 extern unsigned long   gulDebugOamTxCount;
 extern unsigned long   gulDebugOamFileOp;
 
+#define OAM_RX_PACKET_DEBUG_WANG(str) if(0){ Debug_Print_Rx_OAM str ;}
+#define OAM_TX_PACKET_DEBUG_WANG(str) if(0){ Debug_Print_Tx_OAM str ;}
 #define OAM_RX_PACKET_DEBUG(str) if( gulDebugOamRx ){ Debug_Print_Rx_OAM str ;}
 #define OAM_TX_PACKET_DEBUG(str) if( gulDebugOamTx ){ Debug_Print_Tx_OAM str ;}
 #define OAM_FILE_OP_DEBUG(str) if( gulDebugOamFileOp ){ cl_vty_all_out str ;}

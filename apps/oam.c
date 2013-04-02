@@ -48,7 +48,7 @@ unsigned long	gulGwOamConnect = 0;
 
 const unsigned char SYS_SOFTWARE_MAJOR_VERSION_NO = 2;
 const unsigned char SYS_SOFTWARE_RELEASE_VERSION_NO = 3;
-const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 4;
+const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 5;
 const unsigned char SYS_SOFTWARE_DEBUG_VERSION_NO = 1;
 
 const unsigned char SYS_HARDWARE_MAJOR_VERSION_NO = 2;
@@ -738,6 +738,7 @@ void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
 	}
 	if(NULL == pMessage)
 	{
+		gw_printf("GWD OAM RCV pMessage is NULL\n");
 		return;
 	}
 	/* Then process the packet */
@@ -775,6 +776,7 @@ void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
 			break;
 
 		case SNMP_TRAN_REQ:
+			OAM_RX_PACKET_DEBUG_WANG((pMessage));
 			gwd_oamsnmp_handle(pMessage);
 			GwOamMessageListNodeFree(pMessage);
 			break;
@@ -996,11 +998,19 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
 			/*maximum slot config set*/
 			*ptr ++ = 0;
-
+#if 0
 			/*extension capality*/
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
-			*ptr ++= 0x80; /*added ctc statistic function surpport*/			
+			*ptr ++= 0x80; /*added ctc statistic function surpport*/	
+#else
+			/*snmp Passthrough ability discovery*/
+			/*������VIAL ֵΪC0 */
+			*ptr ++ = 0xfe;
+			*ptr ++ = 3;
+			*ptr ++ = 0xc0;
+#endif
+			
 			
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
@@ -2715,21 +2725,42 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 extern struct cli_command *cli_register_command(struct cli_command **cmd_root, struct cli_command *parent, char *command, int (*callback)(struct cli_def *cli, char *, char **, int), int privilege, int mode, char *help);
 void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
 {
-	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
-    struct cli_command *set;
-    struct cli_command *show, *sys, *atu;
-    // set cmds in config mode
-    set = cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
-    	cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
-    	cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
-    	cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
-    	cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
-	cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
+    struct cli_command *set=NULL;
+    struct cli_command *show =NULL, *sys=NULL;
 
-    // display cmds in config mode
+
+    set = cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
+    	cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date_local,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Manufacture date");
+    	cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn_local,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Manufacture serial number(<16)");
+    	cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name_local,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Device name(<15)");
+    	cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version_local,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Hardware version");
+		cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
+
     show  = cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");
     sys  = cli_register_command(cmd_root, show, "product", cmd_show_system_information_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
-	cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
+    		cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables_local, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Optical module diagnostics");
+#if 0
+	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
+    struct cli_command *set_loc=NULL;
+    struct cli_command *show, *sys;
+    // set cmds in config mode
+    set_loc = cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Set system information");
+		if(NULL == cli_register_command(cmd_root, set_loc, "date",    cmd_onu_mgt_config_product_date_local,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Manufacture date"))
+		{
+			diag_printf("date install error\n");
+		}
+    	cli_register_command(cmd_root, set_loc, "serial",    cmd_onu_mgt_config_product_sn_local,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Manufacture serial number(<16)");
+    	cli_register_command(cmd_root, set_loc, "devicename",    cmd_onu_mgt_config_device_name_local,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Device name(<15)");
+    	cli_register_command(cmd_root, set_loc, "hw-version",    cmd_onu_mgt_config_product_hw_version_local,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Hardware version");
+		if(NULL == cli_register_command(cmd_root, set_loc, "mac", cmd_set_onu_mac_local, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "set mac address"))
+		{
+			diag_printf("mac install error\n");
+		}
+
+    // display cmds in config mode
+    show  = cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Show information");
+    sys  = cli_register_command(cmd_root, show, "product", cmd_show_system_information_local, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "System information");
+	cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables_local, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "optical module diagnostic variables");
 
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
@@ -2738,6 +2769,7 @@ void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
 
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
+#endif
     return;
 }
 
