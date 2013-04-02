@@ -48,7 +48,7 @@ unsigned long	gulGwOamConnect = 0;
 
 const unsigned char SYS_SOFTWARE_MAJOR_VERSION_NO = 2;
 const unsigned char SYS_SOFTWARE_RELEASE_VERSION_NO = 3;
-const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 5;
+const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 2;
 const unsigned char SYS_SOFTWARE_DEBUG_VERSION_NO = 1;
 
 const unsigned char SYS_HARDWARE_MAJOR_VERSION_NO = 2;
@@ -2694,14 +2694,34 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
     
     return CLI_OK;
 }
+#if 1
+int cmd_onu_set(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    gw_cli_arg_help(cli, 0,
+        "data", "Manufacture date",
+         NULL);
+	return gw_cli_arg_help(cli, 0,
+        "mac", "set mac address",
+         NULL);
+}
+int cmd_onu_set_local(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    cli_arg_help(cli, 0,
+        "data", "Manufacture date",
+         NULL);
+	return cli_arg_help(cli, 0,
+        "mac", "set mac address",
+         NULL);
 
+}
+#endif
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
     struct cli_command *set;
     struct cli_command *show, *sys, *atu;
     // set cmds in config mode
-    set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
+    set = gw_cli_register_command(cmd_root, NULL, "set", cmd_onu_set, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
     	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
     	gw_cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
     	gw_cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
@@ -2729,7 +2749,7 @@ void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
     struct cli_command *show =NULL, *sys=NULL;
 
 
-    set = cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
+    set = cli_register_command(cmd_root, NULL, "set", cmd_onu_set_local, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
     	cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date_local,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Manufacture date");
     	cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn_local,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Manufacture serial number(<16)");
     	cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name_local,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Device name(<15)");
