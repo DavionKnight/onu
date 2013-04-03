@@ -15,7 +15,11 @@
 
 #include "gw_log.h"
 
-#define OAM_VCONPTY_DEBUG(x) gw_log(GW_LOG_LEVEL_DEBUG, x)
+#ifdef CYG_LINUX
+#define OAM_VCONPTY_DEBUG(x) gw_log(GW_LOG_LEVEL_DEBUG, (x))
+#else
+#define OAM_VCONPTY_DEBUG(x) printf x
+#endif
 
 #define NAME_LEN 8
 
@@ -488,7 +492,7 @@ int OpenSlaveDev(int pty_num)
 int pty_write(int fd,char *str,int length)
 {
     fd_set writefd;
-	int ret,write_num = 0, sel = 0;
+	int write_num = 0, sel = 0;
 	struct timeval tv;
 	Pty *pty_dev = head_pty;
 

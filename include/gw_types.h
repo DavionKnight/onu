@@ -11,6 +11,8 @@
 #ifndef _GW_TYPES_H_
 #define _GW_TYPES_H_
 
+#include "gw_os_config.h"
+
 typedef unsigned long long      gw_uint64;
 typedef long long               gw_int64;
 typedef unsigned int            gw_uint32;

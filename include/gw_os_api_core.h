@@ -4,7 +4,6 @@
 #define _GW_OS_API_CORE_H_
 
 #include "gw_types.h"
-#include "gw_os_config.h"
 #include "stdarg.h"   /* for va_list */
 #include "string.h"
 #include "stdlib.h"
@@ -14,6 +13,16 @@
 /* Define constants for semaphore */
 #define GW_OSAL_SEM_FULL               (1)
 #define GW_OSAL_SEM_EMPTY              (0)
+
+/* define thread stack size class*/
+#define GW_OSAL_THREAD_STACK_SIZE_TINY     (4*1024)
+#define GW_OSAL_THREAD_STACK_SIZE_NORMAL	(8*1024)
+#define GW_OSAL_THREAD_STACK_SIZE_HUGE		(16*1024)
+
+/*define thread priority class*/
+#define GW_OSAL_THREAD_PRIO_NORMAL		(10)
+#define GW_OSAL_THREAD_PRIO_HIGH		(6)
+#define GW_OSAL_THREAD_PRIO_LOW			(15)
 
 
 /* Defines for Semaphore, Queue Timeout parameters */

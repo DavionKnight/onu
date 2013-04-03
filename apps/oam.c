@@ -6,6 +6,7 @@
 #include "../include/gw_timer.h"
 #include "../cli_lib/cli_common.h"
 #include "gw_log.h"
+#include "oam_core.h"
 #include "oam.h"
 #include "gwdonuif_interval.h"
 #include "pkt_main.h"
@@ -703,7 +704,7 @@ long GwOamIGMPRequireSend(char *pPkt, long lLen)
 	memset(pSessId, 0, sizeof(pSessId));
 	gulOamSendSerNo ++;
 	pSessId[6] = gulOamSendSerNo;
-	return(CommOnuMsgSend(IGMP_AUTH_TRAN_REQ, gulOamSendSerNo, pPkt, lLen, pSessId));
+	return(CommOnuMsgSend(IGMP_AUTH_TRAN_REQ, gulOamSendSerNo, (unsigned char*)pPkt, lLen, pSessId));
 }
 
 
@@ -714,7 +715,7 @@ long GwOamIGMPRespondSend(char *pPkt, long lLen)
 	memset(pSessId, 0, sizeof(pSessId));
 	gulOamSendSerNo ++;
 	pSessId[6] = gulOamSendSerNo;
-	return(CommOnuMsgSend(IGMP_AUTH_TRAN_RESP, gulOamSendSerNo, pPkt, lLen, pSessId));
+	return(CommOnuMsgSend(IGMP_AUTH_TRAN_RESP, gulOamSendSerNo, (unsigned char*)pPkt, lLen, pSessId));
 }
 
 void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
@@ -2798,9 +2799,7 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 #endif
 
 	Rcp_Mgt_init();
-	gw_printf("=========================================================\n");
-	gw_printf("=		input libred.a success now ...                 =\n");
-	gw_printf("=========================================================\n");
+
 	userCmdInitHandlerInit();
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)

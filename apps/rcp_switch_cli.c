@@ -157,12 +157,10 @@ typedef enum _RCP_EEPROM_PARAM_
     RCP_EEPROM_MANUFACTURE_DATE = 6,
     RCP_EEPROM_VALID_FLAG = 7
 }RCP_EEPROM_PARAM_T;
-void cli_print_w(struct cli_def *cli, char *format, ...);
+
 int Rcp_Get_Eeprom_Param(RCP_DEV *dev, RCP_EEPROM_PARAM_T type, unsigned char *data);
 int Rcp_Set_Eeprom_Param(RCP_DEV *dev, RCP_EEPROM_PARAM_T type, unsigned char *data);
-//void sendOamRcpLpbDetectNotifyMsg(unsigned char onuPort, unsigned char rcpPort, unsigned char state, unsigned short uvid, unsigned char *session);
-extern void sendOamLpbDetectNotifyMsg(unsigned char onuPort, unsigned char rcpPort, unsigned char state, unsigned short uvid,unsigned char *session);
-//int rcp_device_mgt_showrun(struct vty *vty, int source);
+
 int rcp_dev_status_check(void);
 RCP_RX_RATE Rcp_PortRateToEnum(unsigned long ulRate);
 int Rcp_Eeprom_Value_Set_Protect(struct cli_def *cli, RCP_DEV *pRcpDev, RCP_EEPROM_PARAM_T eeprm_param,  unsigned char *data, unsigned long datalen);
@@ -5409,8 +5407,6 @@ void rcp_dev_monitor(void * data)
 	RCP_DEV *pRcpDev;
 	unsigned short vlanum;
     unsigned short vid =0;
-	int port ;
-	gwd_port_oper_status_t port_opr_status;
 #define RCP_DISCOVERY_PERIOD_DEF	    5	
 #define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
 
@@ -5701,32 +5697,14 @@ int rcp_dev_status_check(void)
 	return GWD_RETURN_OK;
 }
 
-extern gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
-extern gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
+extern gw_int32 gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
+extern gw_int32 gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
 //extern int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr);
 void start_rcp_device_monitor(void)
 {
-//	int iRet;
 	
     if(!gulRcpFrameHandleRegister)
     {
-
-#if 0
-#ifdef HAVE_EXT_SW_DRIVER
-       iRet = epon_onu_sw_register_frame_handle(RcpFrameRevHandle);
-#else
-       iRet = epon_onu_register_special_frame_handle(RcpFrameRevHandle);
-#endif
-       if (iRet == GW_ERROR)
-       {
-             printf("\r\nRegister RCP frame handler failed!");
-       }
-       else if (iRet == GW_OK)
-       {
-             printf("\r\nRegister RCP frame handler success!");
-             gulEthRxTaskReady = 1;
-       }
-#endif
 
 	gw_reg_pkt_parse(GW_PKT_RCP, gw_rcppktparser);
 	if(GW_OK == gw_reg_pkt_handler(GW_PKT_RCP, gw_rcppktHandler))
@@ -5734,31 +5712,10 @@ void start_rcp_device_monitor(void)
 	else
 		gulEthRxTaskReady = 0;
 	
-       /*iRet = Onu_Loop_Detect_Set_FDB(1);
-       if (iRet == 0)
-       {
-             LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set success!"));
-       }
-       else
-       {
-             LOOPBACK_DETECT_DEBUG(("\r\nonu_loop_detect_set failed!"));
-       }*/
            
        	gulRcpFrameHandleRegister = 1;
     }
     // create RCP application thread
-    #if 0
-    cyg_thread_create(TASK_PRIORITY_LOWEST,
-                      rcp_dev_monitor,
-                      0,
-                      "tRcp",
-                      &rcp_thread_stack,
-                      RCP_THREAD_STACKSIZE,
-                      &rcp_thread_handle,
-                      &rcp_thread_obj);
-    printf("\r\nRCP moniter thread created!\r\n");
- 	cyg_thread_resume(rcp_thread_handle);
-#else
 	if( GW_OK != gw_thread_create( &rcp_thread_id, 
 	"RCP thread",
 	rcp_dev_monitor,
@@ -5768,7 +5725,6 @@ void start_rcp_device_monitor(void)
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp monitor thread created fail!\r\n");
-#endif
 
 	//VOS_TaskCreateEx("tRcpM", rcp_dev_monitor, 220, 4*1024, NULL);
 	//VOS_TaskCreateEx("tLoopM", rcp_loopdetect, 220, 4*1024, NULL);
@@ -5804,7 +5760,7 @@ int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv
 void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command *inter,*show,*show_mgt;
-	struct cli_command *show_system,*port,*vlan,*stat,*c;
+	struct cli_command *show_system,*port,*vlan,*stat;
 	struct cli_command *broadcast,*storm,*igmpsnooping,*multicast;
 	struct cli_command *qos,*loopback,*atu,*cable,*port_cable,*manage;
 	struct cli_command *mgt,*mgt_config,*mask,*maks_alarm,*clear,*rcp_switch;
@@ -5966,7 +5922,6 @@ void cli_reg_rcp_cmd(struct cli_command **cmd_root)
 
 void Rcp_Mgt_init(void)    /*externed in sys_main.c*/
 {
-	gw_printf("%s %d\n",__func__,__LINE__);
 	RCP_Init();
 	//Rcp_Device_Mgt_CliInit();
 	start_rcp_device_monitor();

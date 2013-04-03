@@ -27,7 +27,7 @@ static gw_uint32 gw_pkt_queueid, gw_pkt_queue_depth = 400, gw_pkt_msg_size = siz
 static gw_uint8 gw_pkt_queue_name[]="GW_PKT_QUEUE";
 
 
-void gw_dump_pkt(gw_int8 *pkt, gw_int16 len, gw_uint8 width)
+void gw_dump_pkt(gw_uint8 *pkt, gw_int16 len, gw_uint8 width)
 {
 	gw_int16 i;
 	for(i=0; i<len; i++)

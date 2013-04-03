@@ -23,8 +23,8 @@
 #include "stdlib.h"
 #include "string.h"
 
-#include "gw_types.h"
 #include "gw_os_config.h"
+#include "gw_types.h"
 #include "gw_os_api_core.h"
 #include "util_list.h"
 

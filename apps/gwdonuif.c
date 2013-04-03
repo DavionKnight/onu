@@ -166,7 +166,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				gw_log(GW_LOG_LEVEL_DEBUG, "port admin get if is null!\r\n");
 			break;
 		case LIB_IF_PORT_ADMIN_SET:
-			if(g_im_ifs->portadminget)
+			if(g_im_ifs->portadminset)
 				ret = (*g_im_ifs->portadminset)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "port admin set if is null!\r\n");
@@ -326,14 +326,16 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 		case LIB_IF_ONU_REGISTER_GET:
 			if(g_im_ifs->registerget)
 				ret = (*g_im_ifs->registerget)(va_arg(ap,gw_uint8*));
-			else
-				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
+//			else
+//				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
+			break;
 			#ifndef CYG_LINUX
 		case LIB_IF_ONU_REBOOT:
 			if(g_im_ifs->onureset)
 				ret = (*g_im_ifs->onureset)(va_arg(ap,gw_int32));
-			else
-				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
+//			else
+//				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
+			break;
 			#endif
 
 		case LIB_IF_ONU_START_LOOP_LED:
@@ -342,8 +344,9 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				(*g_im_ifs->startloopled)();
 				ret = GW_OK;
 			}
-			else
-				gw_log(GW_LOG_LEVEL_DEBUG,"get start loop led if is null!\r\n");
+//			else
+//				gw_log(GW_LOG_LEVEL_DEBUG,"get start loop led if is null!\r\n");
+			break;
 
 		case LIB_IF_ONU_STOP_LOOP_LED:
 			if(g_im_ifs->stoploopled)
@@ -351,14 +354,16 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				(*g_im_ifs->stoploopled)();
 				ret = GW_OK;
 			}
-			else
-				gw_log(GW_LOG_LEVEL_DEBUG,"get stop loop led if is null!\r\n");
+//			else
+//				gw_log(GW_LOG_LEVEL_DEBUG,"get stop loop led if is null!\r\n");
+			break;
+
 
 		case LIB_IF_PORT_PVID_GET:
 			if(g_im_ifs->portpvidget)
 				ret = (*g_im_ifs->portpvidget)(va_arg(ap, gw_int32), va_arg(ap, gw_int16*));
-			else
-				gw_log(GW_LOG_LEVEL_DEBUG, "pvid get if is null!\r\n");
+//			else
+//				gw_log(GW_LOG_LEVEL_DEBUG, "pvid get if is null!\r\n");
 			break;
 
 		case LIB_IF_OLT_MAC_GET:

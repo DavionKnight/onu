@@ -22,28 +22,26 @@
 				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.lib.debug.1130566954" name="Debug" parent="cdt.managedbuild.config.gnu.cross.lib.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.lib.debug.1130566954." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.cross.lib.debug.1207512239" name="Cross GCC" superClass="cdt.managedbuild.toolchain.gnu.cross.lib.debug">
-							<option id="cdt.managedbuild.option.gnu.cross.prefix.1582505102" name="前缀" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="mips-linux-" valueType="string"/>
-							<option id="cdt.managedbuild.option.gnu.cross.path.512335039" name="路径" superClass="cdt.managedbuild.option.gnu.cross.path" value="/opt/toolchains/uclibc-crosstools-gcc-4.4.2-1-voyager/usr/bin" valueType="string"/>
+							<option id="cdt.managedbuild.option.gnu.cross.prefix.1582505102" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="mips-linux-" valueType="string"/>
+							<option id="cdt.managedbuild.option.gnu.cross.path.512335039" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="/opt/toolchains/uclibc-crosstools-gcc-4.4.2-1-voyager/usr/bin" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.495625035" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
-							<builder buildPath="${workspace_loc:/gwdonu/Debug}" id="cdt.managedbuild.builder.gnu.cross.169785420" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GNU Make 构建器" superClass="cdt.managedbuild.builder.gnu.cross"/>
+							<builder buildPath="${workspace_loc:/gwdonu/Debug}" id="cdt.managedbuild.builder.gnu.cross.169785420" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.2115347165" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
-								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1260333040" name="优化级别" superClass="gnu.c.compiler.option.optimization.level" value="gnu.c.optimization.level.size" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.debugging.level.798141167" name="调试级别" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.include.paths.1574542709" name="包含路径（-I）" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1260333040" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" value="gnu.c.optimization.level.size" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.debugging.level.798141167" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.include.paths.1574542709" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/opt/toolchains/uclibc-crosstools-gcc-4.4.2-1-voyager/usr/include"/>
 								</option>
-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.484457447" name="已定义的符号（-D）" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.484457447" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="HAVE_CONFIG_H=1"/>
-									<listOptionValue builtIn="false" value="HAVE_TELNET_CLI"/>
-									<listOptionValue builtIn="false" value="__LITTLE_ENDIAN__"/>
 									<listOptionValue builtIn="false" value="HAVE_TELNET_CLI=1"/>
 								</option>
-								<option id="gnu.c.compiler.option.misc.other.860510783" name="其他标志" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0  -Wno-uninitialized -nostdlib -c  -fno-inline" valueType="string"/>
+								<option id="gnu.c.compiler.option.misc.other.860510783" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0  -Wno-uninitialized -nostdlib -c  -fno-inline" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.294382508" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.259318592" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
-								<option id="gnu.cpp.compiler.option.optimization.level.1622781259" name="优化级别" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.debugging.level.716446227" name="调试级别" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.optimization.level.1622781259" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.debugging.level.716446227" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.975405593" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1863268997" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker"/>
@@ -78,26 +76,26 @@
 				<configuration artifactExtension="a" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.staticLib" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.staticLib" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.lib.release.19370826" name="Release" parent="cdt.managedbuild.config.gnu.cross.lib.release">
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.lib.release.19370826." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.cross.lib.release.883616967" name="Cross GCC" superClass="cdt.managedbuild.toolchain.gnu.cross.lib.release">
-							<option id="cdt.managedbuild.option.gnu.cross.prefix.1478958899" name="前缀" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="arm-elf-" valueType="string"/>
-							<option id="cdt.managedbuild.option.gnu.cross.path.2073350232" name="路径" superClass="cdt.managedbuild.option.gnu.cross.path" value="/opt/toolchains/iros-tools/gnutools/bin" valueType="string"/>
+							<option id="cdt.managedbuild.option.gnu.cross.prefix.1478958899" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="arm-elf-" valueType="string"/>
+							<option id="cdt.managedbuild.option.gnu.cross.path.2073350232" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="/opt/toolchains/iros-tools/gnutools/bin" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.1970597294" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
-							<builder buildPath="${workspace_loc:/gwdonu/Release}" id="cdt.managedbuild.builder.gnu.cross.1201907324" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="GNU Make 构建器" superClass="cdt.managedbuild.builder.gnu.cross"/>
+							<builder buildPath="${workspace_loc:/gwdonu/Release}" id="cdt.managedbuild.builder.gnu.cross.1201907324" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.824362156" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
-								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1559569317" name="优化级别" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.debugging.level.550128426" name="调试级别" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1503668536" name="已定义的符号（-D）" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
+								<option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.option.optimization.level.1559569317" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.debugging.level.550128426" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1503668536" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="HAVE_CONFIG_H=1"/>
 									<listOptionValue builtIn="false" value="__LITTLE_ENDIAN__"/>
 									<listOptionValue builtIn="false" value="HAVE_TELNET_CLI=1"/>
 								</option>
-								<option id="gnu.c.compiler.option.include.paths.1735801918" name="包含路径（-I）" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+								<option id="gnu.c.compiler.option.include.paths.1735801918" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/home/tommy/works/Cortina4FE/iros/install/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1262305892" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.814615316" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
-								<option id="gnu.cpp.compiler.option.optimization.level.337319419" name="优化级别" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
-								<option id="gnu.cpp.compiler.option.debugging.level.1519936837" name="调试级别" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.optimization.level.337319419" name="Optimization Level" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+								<option id="gnu.cpp.compiler.option.debugging.level.1519936837" name="Debug Level" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.1290884355" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.linker.601981132" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker"/>

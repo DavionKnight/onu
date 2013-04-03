@@ -1005,7 +1005,6 @@ int gw_semaphore_init
 {
     unsigned int possible_semid;
     int Status;
-    int i;
 
     if (sem_id == NULL || sem_name == NULL) {
         gw_printf("\r\n semaphore create failed cause some NULL parameter");
@@ -1899,7 +1898,7 @@ int gw_queue_create
     queue_attr.mq_maxmsg = queue_depth;
     queue_attr.mq_msgsize = data_size;
     gw_osal_queue_table[possible_qid].id = mq_open(queue_name , O_CREAT | O_RDWR , 0777 , &queue_attr);
-    if (gw_osal_queue_table[possible_qid].id == NULL) {
+    if (gw_osal_queue_table[possible_qid].id == 0) {
         memset(&gw_osal_queue_table[possible_qid] , 0 , sizeof(osal_queue_record_t));
         gw_osal_queue_table[possible_qid].free = TRUE;
         pthread_mutex_unlock(&gw_os_queue_table_mut);
@@ -2277,7 +2276,6 @@ gw_int32 gw_pri_queue_put (gw_uint32 queue_id, void *data, gw_uint32 size, gw_in
 {
     gw_uint8 *pbuf = NULL;
     gw_uint32 total = 0;
-	gw_uint32 count_gw;
     /* Check Parameters */
 
     if(queue_id >= GW_OSAL_MAX_QUEUE || gw_osal_queue_table[queue_id].free == TRUE ||
@@ -2741,7 +2739,7 @@ void gw_printf(const gw_int8 *String, ...)
     va_list ap;
     int ret;
 	
-    extern int diag_vprintf(const char *fmt, va_list ap);
+//    extern int diag_vprintf(const char *fmt, va_list ap);
 
     va_start(ap, String);
     ret = diag_vprintf(String, ap);

@@ -50,7 +50,12 @@ typedef struct _CLI_PTY_CTRL_
 
 #define PTY_KPL_SENDINT        3
 
+#ifdef CYG_LINUX
 #define OAM_VCONPTY_DEBUG(x) gw_log(GW_LOG_LEVEL_DEBUG, x)
+#else
+#define OAM_VCONPTY_DEBUG(x) printf x
+#endif
+
 
 gw_uint8 g_oam_cli_out_buf[OAM_CLI_OUT_BUF_LENGTH];
 gw_uint32 g_oam_cli_out_len = 0;
@@ -60,15 +65,15 @@ static gw_uint32 g_oam_async_queue_id = 0,
 		g_oam_async_data_szie = 128,
 		g_oam_async_queue_pri = 3,
 		g_oam_async_thread_id,
-		g_oam_async_thread_stack_size = 4*1024,
-		g_oam_async_thread_pri = 13;
+		g_oam_async_thread_stack_size = GW_OSAL_THREAD_STACK_SIZE_HUGE,
+		g_oam_async_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL;
 
 gw_int8 g_oam_async_queue_name[]="oam_async_queue";
 
 gw_int8 g_oam_async_thread_name[] = "oam_async_thread";
 
 
-void gw_dump_buffer(const gw_int8 *buf, const gw_int32 len)
+void gw_dump_buffer(const gw_uint8 *buf, const gw_int32 len)
 {
 	gw_int32 i;
 
@@ -100,11 +105,11 @@ static gw_uint32 g_oam_pty_queue_id = 0,
 		g_oam_pty_data_szie = 128,
 		g_oam_pty_queue_pri = 3,
 		g_oam_pty_main_thread_id,
-		g_oam_pty_main_thread_stack_size = 4*1024,
-		g_oam_pty_main_thread_pri = 14,
+		g_oam_pty_main_thread_stack_size = GW_OSAL_THREAD_STACK_SIZE_HUGE,
+		g_oam_pty_main_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL,
 		g_oam_pty_sub_thread_id,
-		g_oam_pty_sub_thread_stack_size = 8*1024,
-		g_oam_pty_sub_thread_pri = 14;
+		g_oam_pty_sub_thread_stack_size = GW_OSAL_THREAD_STACK_SIZE_HUGE,
+		g_oam_pty_sub_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL;
 
 static gw_uint8 g_oam_pty_queue_name[]="ptyqueue";
 static gw_uint8 g_oam_pty_main_thread_name[]="ptymthread";

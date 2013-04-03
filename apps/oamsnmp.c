@@ -21,8 +21,8 @@ static gw_uint16 s_oamsnmp_ser_port = 8000;
 static gw_int32 s_oamsnmp_ser_sock = 0;
 static struct sockaddr_in s_oamsnmp_ser_sin;
 
-static gw_uint32 s_oamsnmp_rx_thread_id = 0, s_oamsnmp_rx_thread_stack_size = 4*1024,
-		s_oamsnmp_rx_thread_pri = 14;
+static gw_uint32 s_oamsnmp_rx_thread_id = 0, s_oamsnmp_rx_thread_stack_size = GW_OSAL_THREAD_STACK_SIZE_HUGE,
+		s_oamsnmp_rx_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL;
 
 static gw_uint8 s_oamsnmp_rx_thread_name[] = "oamsnmprx";
 
