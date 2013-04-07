@@ -501,12 +501,13 @@ static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 
 #if 0
                  {
+				 	unsigned char *p =(unsigned char*) pPayLoad;
 					 int i=0;
 					 gw_printf("pty data payload:\r\n");
 
 					 for(;i<lPayLen; i++)
 					 {
-						 gw_printf("%02X ", *(pPayLoad+1+i));
+						 gw_printf("%02X ", *(p+1+i));
 					 }
 					 gw_printf("\r\n");
                  }
