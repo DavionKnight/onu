@@ -204,6 +204,44 @@ typedef union {
 #error Endianness not defined
 #endif
 
+#ifndef gwd_ntohl
+#define gwd_ntohl(x)        ((((x) & 0x000000ff) << 24) | \
+                            (((x) & 0x0000ff00) <<  8) | \
+                            (((x) & 0x00ff0000) >>  8) | \
+                            (((x) & 0xff000000) >> 24))
+#endif
+
+#ifndef gwd_htonl
+#define gwd_htonl(x)        ((((unsigned long)(x) & 0x000000ff) << 24) | \
+                            (((unsigned long)(x) & 0x0000ff00) <<  8) | \
+                            (((unsigned long)(x) & 0x00ff0000) >>  8) | \
+                            (((unsigned long)(x) & 0xff000000) >> 24))
+#endif
+
+
+#ifndef gwd_ntohs
+#define gwd_ntohs(x)        ((((x) & 0x00ff) << 8) | \
+                            (((x) & 0xff00) >> 8))
+#endif
+
+#ifndef gwd_htons
+#define gwd_htons(x)        ((((x) & 0x00ff) << 8) | \
+                            (((x) & 0xff00) >> 8))
+
+#endif
+
+
+#ifndef gwd_ntohll
+#define gwd_ntohll(x)        ((((gw_uint64)ntohl(x)) << 32) | \
+                                       ntohl((x) >> 32))
+#endif
+
+
+#ifndef gwd_htonll
+#define gwd_htonll(x)        ((((gw_uint64)htonl(x)) << 32) | \
+                                 htonl((x) >> 32))
+#endif
+
 
 
 /* range: should assume only two values: 0 or 1 */
