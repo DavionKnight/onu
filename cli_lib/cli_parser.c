@@ -1531,6 +1531,10 @@ int gw_cli_loop(struct cli_def *cli)
             	if(n<= 0)
             		continue;
 
+		/*forbidden telnet option code*/
+		if(c >= 0xfb && c <=0xff)
+			continue;
+
 //            	gw_printf("recv pty char %c\r\n", c);
             }
 
@@ -1991,6 +1995,19 @@ int gw_cli_loop(struct cli_def *cli)
         }
 
 //        gw_printf("recv msg %s\r\n", cmd);
+/*
+{
+	int k = 0;
+	gw_printf("recv msg :\r\n");
+	for(k=0; k<=l; k++)
+	{
+		if(cmd[k]>=0x21 && cmd[k]<=0x7e)
+			gw_printf("%c", cmd[k]);
+		else
+			gw_printf("%02x", cmd[k]);
+	}
+}
+*/
 
         if (l < 0) break;
 
