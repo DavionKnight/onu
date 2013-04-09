@@ -88,7 +88,7 @@ static void gw_oam_snmp_rx_thread_entry(gw_uint32 * para)
 		{	
 			pri_buf = buf;
 			gw_snmp_rx_print(rxnum,pri_buf);
-			CommOnuMsgSend(SNMP_TRAN_RESP, get_oamsnmp_send_no(), buf, len+1, get_oamsnmp_session_id());
+			CommOnuMsgSend(SNMP_TRAN_RESP, get_oamsnmp_send_no(), buf, rxnum, get_oamsnmp_session_id());
 		}
 
 		gw_thread_delay(10);

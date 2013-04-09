@@ -732,17 +732,25 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
 
     if (words[start_word][strlen(words[start_word]) - 1] == '?')
     {
-        int l = strlen(words[start_word])-1;
-
+       // int l = strlen(words[start_word]);
+		/************************************************************************
+		在这里去掉了strncasecmp(c->command, words[start_word], l) == 0 的判断条件
+		因为在家里SNMP透传MIN管理下挂交换机之后，这个判断条件
+		会影响到命令行的回显。这里还没有查找原因，但这个条件
+		不成立导致命令行回显失败。
+		*************************************************************************/
         for (c = commands; c; c = c->next)
         {
+        #if 0
             if (strncasecmp(c->command, words[start_word], l) == 0
                 && (c->callback || c->children)
                 && cli->privilege >= c->privilege
-                && (c->mode == cli->mode || c->mode == MODE_ANY)){
-                    if(c->command != "Onulaser")
-                        gw_cli_error(cli, "  %-20s %s", c->command, c->help ? : "");
-                }
+                && (c->mode == cli->mode || c->mode == MODE_ANY))
+                    cli_error(cli, "  %-20s %s", c->command, c->help ? : "");
+		#else
+		     if ((c->callback || c->children)&& cli->privilege >= c->privilege && (c->mode == cli->mode || c->mode == MODE_ANY))
+                    gw_cli_error(cli, "  %-20s %s", c->command, c->help ? : "");
+		#endif
         }
 
         // parent has a callback, output <cr>
