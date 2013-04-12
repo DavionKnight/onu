@@ -15,6 +15,9 @@ void plat_init()
 {
 	gw_osal_core_init();
 
+	if(gw_timer_init() == GW_OK)
+		gw_printf("gw timer init ok!\r\n");
+
 	init_im_interfaces();
 
 	init_pkt_proc();
