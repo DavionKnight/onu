@@ -10,7 +10,7 @@
 #define GW_VLAN_MAX 4094
 #define GW_VLAN_LAS 1
 
-#define GW_ONUPORT_MAX 4
+#define GW_ONUPORT_MAX 24
 #define GW_ONUPORT_LAS 1
 
 #define GW_PORT_PRI_MAX 7
@@ -189,8 +189,9 @@ int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int arg
 	else
 	{
 		int nextslot = 0, start = 0;
+		int flag = 0;
 		start = slot =  gw_log_get_current_msg_slot();
-
+#if 0
 		do{
 
 			pbuf = gw_log_getnext_record(slot, &nextslot);
@@ -202,7 +203,20 @@ int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int arg
 			slot = nextslot;
 		}
 		while(nextslot != start);
+#else
+		for(start = 0; start < GW_MAX_EVENT_LOG_NUM; start++)
+		{
+			pbuf = gw_log_get_record(start);
 
+			if(pbuf)
+			{
+				flag = 1;
+				gw_cli_print(cli, "%s\r\n", pbuf);
+			}
+		}
+		if(!flag)
+			gw_cli_print(cli, "empty slot!\r\n");
+#endif
 	}
 
 
