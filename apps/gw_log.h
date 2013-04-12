@@ -25,6 +25,10 @@ gw_int32 getGwlogLevel();
 gw_int32 setGwLogLevel(gw_int32 lv);
 gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...);
 
+gw_int8 * gw_log_get_record(gw_int32 slot);
+gw_int32 gw_log_get_current_msg_slot();
+gw_int8 * gw_log_getnext_record(gw_int32 slot, gw_int32 *nextslot);
+
 #if 0
 #define gw_log(lv, log...) if(lv >= getGwlogLevel()) gw_printf (log)
 #else

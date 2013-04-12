@@ -8,6 +8,7 @@
 #include "cli_common.h"
 #include "../apps/gw_log.h"
 #include "../include/gw_os_api_core.h"
+#include "../apps/Pty.h"
 
 #ifdef HAVE_TELNET_CLI
 #define perror(s) gw_printf(s)
@@ -494,7 +495,7 @@ int gw_cli_show_help(struct cli_def *cli, struct cli_command *c)
             (p->mode == cli->mode || p->mode == MODE_ANY))
         #endif
         {
-			if(p->command != "Onulaser")
+			if(strcmp(p->command,"Onulaser"))
 	            gw_cli_error(cli, "  %-20s %s", p->command, p->help ? : "");
         }
 
@@ -639,7 +640,7 @@ void gw_cli_free_history(struct cli_def *cli)
     int i;
     for (i = 0; i < MAX_HISTORY; i++)
     {
-        if (strlen(cli->history[i]))
+        if (cli->history[i][0])
         {
             memset(cli->history[i],'\0',MAX_LINE_LENTH);
         }
@@ -780,7 +781,7 @@ static int gw_cli_find_command(struct cli_def *cli, struct cli_command *commands
                 && (c->callback || c->children)
                 && cli->privilege >= c->privilege
                 && (c->mode == cli->mode || c->mode == MODE_ANY)){
-                    if(c->command != "Onulaser")
+                    if(strcmp(c->command,"Onulaser"))
                         gw_cli_error(cli, "  %-20s %s", c->command, c->help ? : "");
                 }
         }
@@ -1930,6 +1931,12 @@ int gw_cli_loop(struct cli_def *cli)
             if (cursor == l)
             {
                  /* append to end of line */
+            	if(cursor < 0 || cursor > MAX_LINE_LENTH-1)
+            	{
+            		gw_printf("invalid cursor occur(%d)!", cursor);
+            		cursor = 0;
+            		l = 0;
+            	}
                 cmd[cursor] = c;
                 if (l < MAX_LINE_LENTH-1)
                 {
@@ -1981,7 +1988,7 @@ int gw_cli_loop(struct cli_def *cli)
                     break;
                 }
                 
-                gw_cli_raw_output(cli, &c, 1);
+                gw_cli_raw_output(cli, (char*)&c, 1);
             }
             else
             {
@@ -1994,22 +2001,23 @@ int gw_cli_loop(struct cli_def *cli)
             lastchar = c;
         }
 
-//        gw_printf("recv msg %s\r\n", cmd);
-/*
-{
-	int k = 0;
-	gw_printf("recv msg :\r\n");
-	for(k=0; k<=l; k++)
-	{
-		if(cmd[k]>=0x21 && cmd[k]<=0x7e)
-			gw_printf("%c", cmd[k]);
-		else
-			gw_printf("%02x", cmd[k]);
-	}
-}
-*/
-
         if (l < 0) break;
+
+        //        gw_printf("recv msg %s\r\n", cmd);
+
+        {
+        	int k = 0;
+        	gw_printf("recv msg :\r\n");
+        	for(k=0; k<=l; k++)
+        	{
+        		if(cmd[k]>=0x21 && cmd[k]<=0x7e)
+        			gw_printf("%c", cmd[k]);
+        		else
+        			gw_printf("%02x", cmd[k]);
+        	}
+        	gw_printf("\r\n");
+        }
+
 
         if (!strcasecmp(cmd, "quit") && (CHANNEL_TCP == cli->channel || CHANNEL_PTY == cli->channel)) break;
 

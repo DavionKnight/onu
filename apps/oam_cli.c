@@ -123,7 +123,6 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 int cmd_oam_port_mirror_src(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
-	int port, mode;
 
 	if(CLI_HELP_REQUESTED)
 	{
@@ -449,7 +448,6 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 }
 int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-		gw_uint8 * gw_buf = NULL;
 		gw_uint16 gw_vlan;
 		if (CLI_HELP_REQUESTED) {
 		switch (argc) {
@@ -504,11 +502,11 @@ int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 
 	}
 
-	enable = atoi(argv[0]);
     if(argc == 1)
     {
+    	enable = atoi(argv[0]);
 		if(enable)
-		call_gwdonu_if_api(LIB_IF_ONU_REBOOT, 1,a);
+			call_gwdonu_if_api(LIB_IF_ONU_REBOOT, 1,a);
 		else
 			gw_printf("reboot error\n");
 
