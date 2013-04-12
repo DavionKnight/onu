@@ -9,12 +9,18 @@
 
 #include "../include/gw_timer.h"
 #include "../include/gw_os_common.h"
+#include "../apps/gw_log.h"
 
 gw_uint32 timer_thread_count = 0;
 gw_uint32 sys_interval_in_tick = 1;
 gw_timer_control_t gw_timers;
 gw_uint32 timer_pool_id;
 gw_int32 gw_timers_debug = 0;
+
+gw_int32 gw_timer_log( const gw_int8* string, ...)
+{
+	return gw_log(GW_LOG_LEVEL_DEBUG, string);
+}
 
 static
 gw_int32 gw_process_timer()
@@ -109,14 +115,14 @@ gw_timer_t *gw_create_timer(
     gw_timer_t *pTimer = (gw_timer_t *)0;
 
     if (callback == NULL || triggle < 0 || timeout <= 0) {
-        iros_timer_log("\r\n gw_create_timer failed , cause some parameter is null");
+        gw_timer_log("\r\n gw_create_timer failed , cause some parameter is null");
         return (gw_timer_t *)pTimer;
     }
 
 //    pTimer = (gw_timer_t *)gw_mem_malloc(timer_pool_id);
     pTimer = (gw_timer_t*)malloc(sizeof(gw_timer_t));
     if (pTimer == (gw_timer_t *)0) {
-        iros_timer_log("\r\n timer memory alloc failed");
+        gw_timer_log("\r\n timer memory alloc failed");
         return (gw_timer_t *)pTimer;
     }
 
@@ -179,13 +185,13 @@ static
 gw_int32 gw_destroy_timer(gw_timer_t *pTimer)
 {
     if (pTimer == (gw_timer_t *)0) {
-        iros_timer_log("\r\n You want to destroy a NULL timer?");
+        gw_timer_log("\r\n You want to destroy a NULL timer?");
         return GW_TIMER_OK;
     }
 
     pTimer->stop_flag = GW_TIMER_DESTROYED;
     if(GW_TIMER_OK == gw_lookup_timer(pTimer)) {
-        iros_timer_log("\r\n The timer is active , pls stop it firstly.");
+        gw_timer_log("\r\n The timer is active , pls stop it firstly.");
         return GW_TIMER_OK;
     }
 
@@ -211,13 +217,13 @@ gw_int32 gw_start_timer(gw_timer_t *pTimer)
     gw_int32 flag=0;
 
     if (pTimer == (gw_timer_t *)0) {
-        iros_timer_log("\r\n start a NULL timer");
+        gw_timer_log("\r\n start a NULL timer");
         return GW_TIMER_ERROR;
     }
 
     pTimer->stop_flag = GW_TIMER_NO_STOPPED;
     if(GW_TIMER_OK == gw_lookup_timer(pTimer)) {
-        iros_timer_log("\r\n The timer is active already, do not need start");
+        gw_timer_log("\r\n The timer is active already, do not need start");
         return GW_TIMER_OK;
     }
 
@@ -255,13 +261,13 @@ static
 gw_int32 gw_stop_timer(gw_timer_t *pTimer)
 {
     if (pTimer == (gw_timer_t *)0) {
-        iros_timer_log("\r\n stop a NULL timer");
+        gw_timer_log("\r\n stop a NULL timer");
         return GW_TIMER_ERROR;
     }
 
     pTimer->stop_flag = GW_TIMER_STOPPED;
     if(GW_TIMER_ERROR == gw_lookup_timer(pTimer)) {
-        iros_timer_log("\r\n the timer is non-active");
+        gw_timer_log("\r\n the timer is non-active");
         return GW_TIMER_OK;
     }
 
@@ -285,7 +291,7 @@ static
 gw_int32 gw_restart_timer(gw_timer_t *pTimer)
 {
     if (pTimer == (gw_timer_t *)0) {
-        iros_timer_log("\r\n restart a NULL timer");
+        gw_timer_log("\r\n restart a NULL timer");
         return GW_TIMER_ERROR;
     }
 
@@ -299,12 +305,12 @@ static
 gw_int32 gw_retiming_timer(gw_timer_t *pTimer , gw_uint32 timeout)
 {
     if(pTimer == NULL) {
-        iros_timer_log("\r\n retiming failed cause some NULL parameter");
+        gw_timer_log("\r\n retiming failed cause some NULL parameter");
         return GW_TIMER_ERROR;
     }
 
     if(GW_TIMER_ERROR == gw_lookup_timer(pTimer)) {
-        iros_timer_log("\r\n the timer is non-active , don't need retiming");
+        gw_timer_log("\r\n the timer is non-active , don't need retiming");
         return GW_TIMER_OK;
     }
 
@@ -339,13 +345,13 @@ gw_int32 gw_timer_init()
 
 //    if(GW_E_OSAL_OK != gw_mempool_create(&timer_pool_id, "Timer-pool" , sizeof(gw_timer_t) , GW_MAX_TIMER_NUMBER))
 //    {
-//        iros_timer_log("\r\n create timer pool failed");
+//        gw_timer_log("\r\n create timer pool failed");
 //        return GW_TIMER_ERROR;
 //    }
 
     ret = gw_mutex_init(&gw_timers.timer_mutex_id, "timer_thread_mutex", 0);
 //    if (ret != GW_E_OSAL_OK) {
-//        iros_timer_log("\r\n gw_timer mutex create failed(%d)",ret);
+//        gw_timer_log("\r\n gw_timer mutex create failed(%d)",ret);
 //        gw_mempool_destroy(timer_pool_id);
 //        return GW_TIMER_ERROR;
 //    }
@@ -358,7 +364,7 @@ gw_int32 gw_timer_init()
                              0);
 
     if (ret != GW_E_OSAL_OK) {
-        iros_timer_log("\r\n Iros-timer thread creat failed.");
+        gw_timer_log("\r\n Iros-timer thread creat failed.");
         gw_mutex_destroy(gw_timers.timer_mutex_id);
 //        gw_mempool_destroy(timer_pool_id);
         return GW_TIMER_ERROR;
@@ -446,13 +452,13 @@ gw_int32 gw_timer_add(
     gw_timer_t *pTimer = (gw_timer_t *)NULL;
 
     if(callback == NULL) {
-        iros_timer_log("\r\n create timer with null callback function");
+        gw_timer_log("\r\n create timer with null callback function");
         return GW_INVALID_TIMER;
     }
 
     pTimer = (gw_timer_t *)gw_create_timer((void *)gw_timer_app_callback, 0 , timeout);
     if(pTimer == NULL) {
-        iros_timer_log("\r\n Create timer failed");
+        gw_timer_log("\r\n Create timer failed");
         return GW_INVALID_TIMER;
     }
 
@@ -471,13 +477,13 @@ gw_int32 gw_circle_timer_add(gw_uint32 timeout, void (*callback)(void *), void *
     gw_timer_t *pTimer = (gw_timer_t *)NULL;
 
     if(callback == NULL) {
-        iros_timer_log("\r\n create timer with null callback function");
+        gw_timer_log("\r\n create timer with null callback function");
         return GW_INVALID_TIMER;
     }
 
     pTimer = (gw_timer_t *)gw_create_timer((void *)gw_timer_app_callback, 0 , timeout);
     if(pTimer == NULL) {
-        iros_timer_log("\r\n Create circle timer faileds");
+        gw_timer_log("\r\n Create circle timer faileds");
         return GW_INVALID_TIMER;
     }
 
@@ -497,7 +503,7 @@ gw_int32 gw_timer_del(gw_uint32 timer_handle)
     gw_timer_t *pTimer = (gw_timer_t *)timer_handle;
 
     if(pTimer == NULL) {
-        iros_timer_log("\r\n Delete a NULL timer ?");
+        gw_timer_log("\r\n Delete a NULL timer ?");
         return GW_TIMER_ERROR;
     }
 
@@ -512,7 +518,7 @@ gw_int32 gw_timer_stop(gw_uint32 timer_handle)
     gw_timer_t *pTimer = (gw_timer_t *)timer_handle;
 
     if(pTimer == NULL) {
-        iros_timer_log("\r\n stop a NULL timer");
+        gw_timer_log("\r\n stop a NULL timer");
         return GW_TIMER_ERROR;
     }
 
@@ -526,7 +532,7 @@ gw_int32 gw_timer_start(gw_uint32 timer_handle)
     gw_timer_t *pTimer = (gw_timer_t *)timer_handle;
 
     if(pTimer == NULL) {
-        iros_timer_log("\r\n start a NULL timer.");
+        gw_timer_log("\r\n start a NULL timer.");
         return GW_TIMER_ERROR;
     }
 
@@ -540,7 +546,7 @@ gw_int32 gw_timer_restart(gw_uint32 timer_handle)
     gw_timer_t *pTimer = (gw_timer_t *)timer_handle;
 
     if(pTimer == NULL) {
-        iros_timer_log("\r\n restart a NULL timer");
+        gw_timer_log("\r\n restart a NULL timer");
         return GW_TIMER_ERROR;
     }
 
@@ -617,7 +623,7 @@ gw_int32 gw_msg_timer_add(
 
     pTimer = (gw_timer_t *)gw_create_timer((void *)gw_msg_timer_app_callback, 0 , timeout);
     if(pTimer == NULL) {
-        iros_timer_log("\r\n create msg timer failed");
+        gw_timer_log("\r\n create msg timer failed");
         return GW_INVALID_TIMER;
     }
 
@@ -641,7 +647,7 @@ gw_int32 gw_msg_circle_timer_add(
 
     pTimer = (gw_timer_t *)gw_create_timer((void *)gw_msg_timer_app_callback, 0 , timeout);
     if(pTimer == NULL) {
-        iros_timer_log("\r\n Create msg circle timer failed");
+        gw_timer_log("\r\n Create msg circle timer failed");
         return GW_INVALID_TIMER;
     }
 
