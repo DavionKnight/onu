@@ -5539,7 +5539,81 @@ int RCP_SNMPToPortList(RCP_DEV * rcpDev, unsigned long* portList, unsigned char 
 	*portList = tmp2;
     return RCP_OK;
 }
+#if 1
+typedef struct rcp_portisolate_data{
+	RCP_DEV  rcpDev;
+	unsigned short data;
+	unsigned long mgtPort;
+	RCP_FLAG flag;
+}gwd_portiso_data;
+void RCP_SetVlanPortIsolateEn_gwd(void *data_t)
+{
+	int ret;
+	unsigned long port;
+	unsigned short vlanum;
+	gwd_portiso_data *back_data=NULL;
+	RCP_DEV  rcpDev;
+	unsigned short data;
+	unsigned long mgtPort;
+	RCP_FLAG flag;
+	back_data = (gwd_portiso_data *)data_t;
+	memcpy(&rcpDev,&back_data->rcpDev,sizeof(RCP_DEV));
+	data = back_data->data;
+	mgtPort = back_data->mgtPort;
+	flag = back_data->flag;
+	
+	if(data == 0)
+	{
+        if(RCP_OK != (ret = RCP_SetVlanVID(&rcpDev, 0, 0x1, flag)))
+		 	return ret;
 
+	    if(RCP_OK != (ret = RCP_SetVlanPort(&rcpDev, 0, 0xffffffff, flag)))
+		   return ret;
+		
+		for(port = 1; port <= rcpDev.numOfPorts; port++)
+		{
+			if(RCP_OK != (ret = RCP_SetVlanInsertPVID(&rcpDev, 1, port, 0, flag)))
+				return ret;
+			if(RCP_OK != (ret = RCP_SetVlanPVID(&rcpDev, 1, port, 1, flag)))
+				return ret;
+		}
+		for(vlanum = 1; vlanum < rcpDev.numOfPorts; vlanum++)
+		{
+			if(RCP_OK != (ret = RCP_SetVlanVID(&rcpDev, vlanum, 0, flag)))
+				return ret;
+			if(RCP_OK != (ret = RCP_SetVlanPort(&rcpDev, vlanum, 0, flag)))
+				return ret;
+		}
+		if(RCP_OK != (ret = RCP_SetVlanPortIsolate(&rcpDev, 0)))
+			return ret;
+	}
+	else
+	{
+		if(RCP_OK != (ret = RCP_SetVlanMgtPortIsolate(&rcpDev, mgtPort, flag)))
+			return ret;
+		if(RCP_OK != (ret = RCP_SetVlanPortIsolate(&rcpDev, 1)))
+		    return ret;
+	}
+	return RCP_OK;
+}
+int RCP_PORT_ISOLATEEN
+(
+	RCP_DEV * rcpDev, 
+	unsigned short data,
+	unsigned long mgtPort,
+	RCP_FLAG flag
+)
+{
+	gwd_portiso_data rcp_data;
+	memcpy(&rcp_data.rcpDev,rcpDev,sizeof(RCP_DEV));
+	rcp_data.data = data;
+	rcp_data.mgtPort=mgtPort;
+	rcp_data.flag=flag;
+	
+	gw_timer_add(30,RCP_SetVlanPortIsolateEn_gwd,&rcp_data);
+	return 0;
+}
+#endif
 int RCP_SetVlanPortIsolateEn
 (
 	RCP_DEV * rcpDev, 
@@ -5980,7 +6054,7 @@ int RCP_GetPortMauType
 	unsigned long *mau_len
 )
 {
-#if 0
+#if 1
 	int ret;
 	unsigned short usSpeed,usValue;
 	oid mau_oid[9] = {1, 3, 6, 1, 2, 1, 26, 4, 0};
@@ -6016,7 +6090,7 @@ int RCP_SetPortMauType
 	RCP_FLAG flag
 )
 {
-#if 0
+#if 1
 	int ret;
 	if(data == 2)
 	{

@@ -106,7 +106,7 @@ gw_int8 * gw_log_getnext_record(gw_int32 slot, gw_int32 *nextslot)
 	else
 		start = log_current_slot;
 
-	i = start;
+	i = start;	
 	do{
 		pmsg = g_eventmsgqueue+i;
 		if(pmsg->entry.valid)

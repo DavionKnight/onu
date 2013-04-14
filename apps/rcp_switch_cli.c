@@ -5763,7 +5763,7 @@ void start_rcp_device_monitor(void)
 	"RCP thread",
 	rcp_dev_monitor,
 	NULL,
-	8*1024,
+	8*2048,
 	TASK_PRIORITY_LOWEST,
 	0
 	))

@@ -195,6 +195,7 @@ int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int arg
 		do{
 
 			pbuf = gw_log_getnext_record(slot, &nextslot);
+			
 		if(!pbuf)
 			gw_cli_print(cli, "empty slot!\r\n");
 		else

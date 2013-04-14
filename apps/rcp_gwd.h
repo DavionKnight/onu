@@ -42,6 +42,16 @@ struct slot_port{
 #define PORTNO_TO_ETH_PORTID( _portno )         \
             ( ( _portno ) % ( ETH_FILTER_MAX_PORT_NUM_ON_SLOT ) )
 
+
+
+
+#define dot3MauType10BaseTHD 		10
+#define dot3MauType10BaseTFD 		11
+#define dot3MauType100BaseTXHD 	15
+#define dot3MauType100BaseTXFD 	16
+#define dot3MauType1000BaseTXHD 	29
+#define dot3MauType1000BaseTXFD 	30
+
 //end
 
 /*Structure*/
