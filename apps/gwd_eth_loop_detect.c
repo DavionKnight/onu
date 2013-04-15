@@ -101,8 +101,8 @@ unsigned char loop_detect_mac[6] = {0x00, 0x0F, 0xE9, 0x04, 0x8E, 0xDF};
 
 unsigned char phy_log_map[NUM_UNITS_PER_SYSTEM][PHY_PORT_MAX+1] = {
     /* PHY_PORT_FE0 ~ FE7, MII, EXPAN, SMP */
-    {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 9, 0xFF} /* uint 0 */
-//    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 0xFF} /* uint 0 */
+   // {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 9, 0xFF} /* uint 0 */
+    {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 0xFF} /* uint 0 */
 };
 
 log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM] =
@@ -112,7 +112,7 @@ log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM] =
     { 0, (PHY_PORT_FE0 + 2) },
     { 0, (PHY_PORT_FE0 + 3) },
     { 0, (PHY_PORT_FE0 + 4) },
-#if 0
+#if 1
     { 0, (PHY_PORT_FE0 + 5) },
     { 0, (PHY_PORT_FE0 + 6) },
     { 0, (PHY_PORT_FE0 + 7) },
@@ -132,7 +132,8 @@ log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM] =
     { 0, (PHY_PORT_FE0 + 21) },
     { 0, (PHY_PORT_FE0 + 22) },
     { 0, (PHY_PORT_FE0 + 23) },
-    { 0, (PHY_PORT_FE0 + 24) }
+    { 0, (PHY_PORT_FE0 + 24) },
+    { 0, (PHY_PORT_FE0 + 25) }    
 #endif
   };
 
@@ -772,17 +773,21 @@ int clsPortLpbStatus(const unsigned short vid, const char *ss)
 { /* no loop found,port with lpbmask and not lpbportdown then lpbClearCnt++*/
     unsigned long i;
     OAM_ONU_LPB_DETECT_CTRL *pCtrl = getVlanLpbStasNode(vid);
-	for(i = 1; i < gulNumOfPortsPerSystem; i++)
+    if(pCtrl)
     {
-        if(pCtrl->lpbmask[i] == 1 && pCtrl->lpbportdown[i] != 1)
+        printf("need to clr status\r\n");
+    	for(i = 1; i < gulNumOfPortsPerSystem; i++)
         {
-			if(0 == gulLoopRecFlag[i]) /* Loop alarm oam has been sent */
-			{
-	            pCtrl->lpbClearCnt[i]++;
-	            LOOPBACK_DETECT_DEBUG(("\r\nclsPortLpbStatus calls,lpbClearCnt[%lu]++=%d", i,pCtrl->lpbClearCnt[i]));
-			}
+            if(pCtrl->lpbmask[i] == 1 && pCtrl->lpbportdown[i] != 1)
+            {
+    			if(0 == gulLoopRecFlag[i]) /* Loop alarm oam has been sent */
+    			{
+    	            pCtrl->lpbClearCnt[i]++;
+    	            LOOPBACK_DETECT_DEBUG(("\r\nclsPortLpbStatus calls,lpbClearCnt[%lu]++=%d", i,pCtrl->lpbClearCnt[i]));
+    			}
 
-         }
+             }
+        }
     }
 	return 0;
 }
@@ -1260,16 +1265,19 @@ void lpbDetectCheckMacTable(unsigned short usVid, char * oamSession)
 				}
 		        else
 				{
-	                 if(pCtrl->lpbmask[lport] != 1)
-	                 {
-	                      LOOPBACK_DETECT_DEBUG(("\r\nNot shutdown port , lpbmask[%lu] : %d", lport, pCtrl->lpbmask[lport]));
-	                      setPortLpbStatus(usVid, lport, 0, oamSession, NULL);
-	                      gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%d/%lu marked loopback in vlan %u\n", 1, lport, usVid);
-	                 }
-					 else
-					 {
-					 	   pCtrl->lpbClearCnt[lport] = 0;
-					 }
+                    if(pCtrl)
+                    {
+    	                 if(pCtrl->lpbmask[lport] != 1)
+    	                 {
+    	                      LOOPBACK_DETECT_DEBUG(("\r\nNot shutdown port , lpbmask[%lu] : %d", lport, pCtrl->lpbmask[lport]));
+    	                      setPortLpbStatus(usVid, lport, 0, oamSession, NULL);
+    	                      gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%d/%lu marked loopback in vlan %u\n", 1, lport, usVid);
+    	                 }
+    					 else
+    					 {
+    					 	   pCtrl->lpbClearCnt[lport] = 0;
+    					 }
+                    }
 				}
             }
 	    }
@@ -1414,33 +1422,36 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
     else
     {
         OAM_ONU_LPB_DETECT_CTRL *pCtrl = getVlanLpbStasNode(vid);
-        if(pCtrl->lpbmask[ulLoopPort] != 1)
+        if(pCtrl)
         {
-            LOOPBACK_DETECT_DEBUG(("\r\nNot shutdown port , lpbmask[%lu] : %d", ulLoopPort, pCtrl->lpbmask[ulLoopPort]));
-	     	setPortLpbStatus(vid, ulLoopPort, 0, port_loop_back_session, (void *)&sendLoopAlarmOam);
+            if(pCtrl->lpbmask[ulLoopPort] != 1)
+            {
+                LOOPBACK_DETECT_DEBUG(("\r\nNot shutdown port , lpbmask[%lu] : %d", ulLoopPort, pCtrl->lpbmask[ulLoopPort]));
+    	     	setPortLpbStatus(vid, ulLoopPort, 0, port_loop_back_session, (void *)&sendLoopAlarmOam);
 
-            if(0 == printFlag)
-            {
-                gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
-            }
-            else if(onuIfindex == 0)
-            {
-                gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
-                ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700", SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
-                revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2], onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],
-                revLoopFrame->Onumac[1],revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],vid);
+                if(0 == printFlag)
+                {
+                    gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
+                }
+                else if(onuIfindex == 0)
+                {
+                    gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
+                    ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700", SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
+                    revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2], onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],
+                    revLoopFrame->Onumac[1],revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],vid);
+                }
+                else
+                {
+                    gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)P(%d/%d)V(%d)]\n",
+                    ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700",SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5], 
+                    revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2],onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],revLoopFrame->Onumac[1],
+                    revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],sendLoopAlarmOam.onuPort[2], sendLoopAlarmOam.onuPort[3],vid);
+                }
             }
             else
             {
-                gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)P(%d/%d)V(%d)]\n",
-                ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700",SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5], 
-                revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2],onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],revLoopFrame->Onumac[1],
-                revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],sendLoopAlarmOam.onuPort[2], sendLoopAlarmOam.onuPort[3],vid);
+    	      pCtrl->lpbClearCnt[ulLoopPort] = 0;
             }
-        }
-        else
-        {
-	      pCtrl->lpbClearCnt[ulLoopPort] = 0;
         }
     }
 	
@@ -1542,6 +1553,7 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 					
         			reportPortsLpbStatus(vid, oamSession);
                 }
+                idx++;
         	}
         }
 	}

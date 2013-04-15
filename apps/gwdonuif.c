@@ -326,15 +326,17 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 		case LIB_IF_ONU_REGISTER_GET:
 			if(g_im_ifs->registerget)
 				ret = (*g_im_ifs->registerget)(va_arg(ap,gw_uint8*));
-//			else
-//				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
+			else
+			{
+				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
+			}
 			break;
 			#ifndef CYG_LINUX
 		case LIB_IF_ONU_REBOOT:
 			if(g_im_ifs->onureset)
 				ret = (*g_im_ifs->onureset)(va_arg(ap,gw_int32));
-//			else
-//				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
 			break;
 			#endif
 
@@ -362,15 +364,19 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 		case LIB_IF_PORT_PVID_GET:
 			if(g_im_ifs->portpvidget)
 				ret = (*g_im_ifs->portpvidget)(va_arg(ap, gw_int32), va_arg(ap, gw_int16*));
-//			else
-//				gw_log(GW_LOG_LEVEL_DEBUG, "pvid get if is null!\r\n");
+			else
+			{
+				gw_log(GW_LOG_LEVEL_DEBUG, "pvid get if is null!\r\n");
+			}
 			break;
 
 		case LIB_IF_OLT_MAC_GET:
 			if(g_im_ifs->oltmacget)
 				ret = (*g_im_ifs->oltmacget)(va_arg(ap, gw_uint8*));
 			else
+			{
 				gw_log(GW_LOG_LEVEL_DEBUG, "olt mac get if is null!\r\n");
+			}
 			break;
 
 		default:
