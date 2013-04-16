@@ -2004,7 +2004,7 @@ int gw_cli_loop(struct cli_def *cli)
         if (l < 0) break;
 
         //        gw_printf("recv msg %s\r\n", cmd);
-
+#if 0
         {
         	int k = 0;
         	gw_printf("recv msg :\r\n");
@@ -2017,7 +2017,7 @@ int gw_cli_loop(struct cli_def *cli)
         	}
         	gw_printf("\r\n");
         }
-
+#endif
 
         if (!strcasecmp(cmd, "quit") && (CHANNEL_TCP == cli->channel || CHANNEL_PTY == cli->channel)) break;
 

@@ -14,11 +14,14 @@
 #include "pkt_main.h"
 #include "../include/gwdonuif.h"
 #include "../cli_lib/cli_common.h"
+#include "oam.h"
 
 static gwdonu_im_if_t * g_im_ifs = NULL;
 
 gw_uint32 g_uni_port_num = 0;
 gw_macaddr_t g_sys_mac;
+
+extern ONU_SYS_INFO_TOTAL gw_onu_system_info_total;
 
 gw_uint8 gw_onu_read_port_num()
 {
@@ -34,6 +37,17 @@ gw_status gw_onu_get_local_mac( gw_macaddr_t * mac)
 		return GW_RETURN_SUCCESS;
 	}
 	return GW_RETURN_FAIL;
+}
+
+gw_status gw_onu_set_local_mac( gw_macaddr_t *mac)
+{
+	if(mac)
+	{
+		memcpy(g_sys_mac, mac, GW_MACADDR_LEN);
+		return GW_RETURN_SUCCESS;
+	}
+	else
+		return GW_RETURN_FAIL;
 }
 
 
@@ -83,6 +97,8 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 				call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
 				call_gwdonu_if_api(LIB_IF_SPECIAL_PKT_HANDLER_REGIST, 1, gwlib_sendPktToQueue);
 				GW_Onu_Sysinfo_Get();
+				call_gwdonu_if_api(LIB_IF_ONU_VER_GET, 4, gw_onu_system_info_total.sw_version, sizeof(gw_onu_system_info_total.sw_version),
+						gw_onu_system_info_total.hw_version, sizeof(gw_onu_system_info_total.hw_version));
 				ret = GW_E_OK;
 			}
 		}
@@ -377,6 +393,17 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			{
 				gw_log(GW_LOG_LEVEL_DEBUG, "olt mac get if is null!\r\n");
 			}
+			break;
+		case LIB_IF_ONU_VER_GET:
+
+			if(g_im_ifs->onuverget)
+				ret = (*g_im_ifs->onuverget)(va_arg(ap, gw_int8*),
+						va_arg(ap, const gw_int32),
+						va_arg(ap, gw_int8*),
+						va_arg(ap, const gw_int32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "onu ver get if is null!\r\n");
+
 			break;
 
 		default:
