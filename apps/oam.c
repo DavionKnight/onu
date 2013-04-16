@@ -103,6 +103,11 @@ struct {
 
 unsigned char *irosbootver = "iROSBoot ONU 02.08.01 1286761672 Oct 11 2010";
 unsigned char *iros_version = "";
+
+/*packet send sem declare*/
+gw_uint32 g_pkt_send_sem;
+gw_int8 g_pkt_send_sem_name[] = "pkt_send_sem";
+
 int GW_Onu_Sysinfo_Get(void);
 int GW_Onu_Sysinfo_Save(void);
 
@@ -616,7 +621,11 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 //			oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
 			GWDOAMTRC("CommOnuMsgSend -- call port send if\r\n");
 			//gw_printf("oam storm alarm send 1 \n");
+
+			gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
 			call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8 *)avender,(gw_uint32)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
+			gw_semaphore_post(g_pkt_send_sem);
+
 			gulDebugOamTxCount++;
             OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
 			DataLenSended+=usOAMPayloadLenGW;
@@ -640,7 +649,11 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,SendDataSize-DataLenSended);
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
 		//gw_printf("oam storm alarm send 2 \n");
+
+		gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
+		gw_semaphore_post(g_pkt_send_sem);
+
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
 		return GWD_RETURN_OK;
@@ -658,7 +671,11 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
 		//gw_printf("oam storm alarm send 3 \n");
+
+		gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
+		gw_semaphore_post(g_pkt_send_sem);
+
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData));
 		return GWD_RETURN_OK;
@@ -930,7 +947,8 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
 			/* Contents */
 			memset(temp, '\0', sizeof(temp));
-			ResLen = sprintf(temp, "V%d.%dB%d",SYS_HARDWARE_MAJOR_VERSION_NO, SYS_HARDWARE_RELEASE_VERSION_NO, SYS_HARDWARE_BRANCH_VERSION_NO);
+//			ResLen = sprintf(temp, "V%d.%dB%d",SYS_HARDWARE_MAJOR_VERSION_NO, SYS_HARDWARE_RELEASE_VERSION_NO, SYS_HARDWARE_BRANCH_VERSION_NO);
+			ResLen = sprintf(temp, "%s", gw_onu_system_info_total.hw_version);
 			*ptr++ = ResLen;
 			sprintf(ptr,"%s",temp);
 			ptr += ResLen;
@@ -952,10 +970,12 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			
 			/*Software version*/
 			memset(temp, '\0', sizeof(temp));
+			/*
 			sprintf(temp,"V%dR%02dB%03d",
 							SYS_SOFTWARE_MAJOR_VERSION_NO,
 							SYS_SOFTWARE_RELEASE_VERSION_NO,
-							SYS_SOFTWARE_BRANCH_VERSION_NO);
+							SYS_SOFTWARE_BRANCH_VERSION_NO);*/
+			sprintf(temp, "%s", gw_onu_system_info_total.sw_version);
 			*ptr++ = strlen(temp);
 			sprintf(ptr, "%s",temp);
 			ptr += strlen(temp);
@@ -977,11 +997,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			ptr += ResLen;
 
 			/*Description*/
-			ResLen = strlen("GT811-CTC-Ready");
+			ResLen = strlen("CTC-ONU-Ready");
 			if (ResLen > 128)
 				ResLen = 128;
 			*ptr++ = ResLen;
-			memcpy(ptr, "GT811-CTC-Ready", ResLen);
+			memcpy(ptr, "CTC-ONU-Ready", ResLen);
 			ptr += ResLen;
 
 			/*Location*/
@@ -1021,7 +1041,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			/*extension capality*/
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
-			*ptr ++= 0x80; /*added ctc statistic function surpport*/			
+			*ptr ++= 0x40; /*added ctc statistic function surpport*/
 			
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
@@ -1934,19 +1954,37 @@ int GW_Onu_Sysinfo_Save_To_Flash(VOID)
     return ret;
 }
 
+static void resetSysInfoToDefault()
+{
+	unsigned char ucsDeviceNameDef[] = "CTC_ONU";
+
+	ONU_SYS_INFO_TOTAL * pi = &gw_onu_system_info_total;
+
+	memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
+
+	snprintf(pi->device_name, sizeof(pi->device_name), "%s", ucsDeviceNameDef);
+	pi->product_type = DEVICE_TYPE_UNKNOWN;
+	snprintf(pi->serial_no, sizeof(pi->serial_no), "%s", "SN00000001");
+	snprintf(pi->sw_version, sizeof(pi->sw_version), "%s", "V1R01B001");
+	snprintf(pi->hw_version, sizeof(pi->hw_version), "%s", "V1.0");
+	snprintf(pi->hw_manufature_date, sizeof(pi->hw_manufature_date), "%s", "1970-01-01");
+
+	pi->valid_flag = 'E';
+}
+
 int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 {
 	int ret=GWD_RETURN_OK;
 	int iLastChar;
-	unsigned char ucsDeviceNameDef[] = "GT811_C";
+//	unsigned char ucsDeviceNameDef[] = "GT811_C";
 
 	memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 
 //	if (GWD_RETURN_OK != (ret = get_userdata_from_flash((unsigned char *)&gw_onu_system_info_total, GWD_PRODUCT_CFG_OFFSET,  sizeof(gw_onu_system_info_total))))
 	if(GW_OK != call_gwdonu_if_api(LIB_IF_SYSCONF_RESTORE, 2, (unsigned char *)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total)))
 	{
-		memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
-//		IROS_LOG_MAJ(IROS_MID_OAM, "Read system info from flash failed.(%d)\r\n", ret);
+//		memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
+		resetSysInfoToDefault();
 		ret = GWD_RETURN_ERR;
 	}
 	else
@@ -1957,7 +1995,8 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 	/* Avoid invalid string data */
 	if('E' != gw_onu_system_info_total.valid_flag)
 	{
-		memcpy(gw_onu_system_info_total.device_name, ucsDeviceNameDef, sizeof(ucsDeviceNameDef));
+//		memcpy(gw_onu_system_info_total.device_name, ucsDeviceNameDef, sizeof(ucsDeviceNameDef));
+		resetSysInfoToDefault();
 	}
 	iLastChar = sizeof(gw_onu_system_info_total.device_name) - 1;
 	gw_onu_system_info_total.device_name[iLastChar] = '\0';
@@ -1966,12 +2005,16 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 	iLastChar = sizeof(gw_onu_system_info_total.hw_manufature_date) - 1;
 	gw_onu_system_info_total.hw_manufature_date[iLastChar] = '\0';
 
+	/*
 	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT870;
 	sprintf(gw_onu_system_info_total.sw_version, "V%dR%02dB%03d", 
 		SYS_SOFTWARE_MAJOR_VERSION_NO,
 		SYS_SOFTWARE_RELEASE_VERSION_NO,
-		SYS_SOFTWARE_BRANCH_VERSION_NO);
+		SYS_SOFTWARE_BRANCH_VERSION_NO);*/
 	
+	call_gwdonu_if_api(LIB_IF_ONU_VER_GET, 4, gw_onu_system_info_total.sw_version, sizeof(gw_onu_system_info_total.sw_version),
+			gw_onu_system_info_total.hw_version, sizeof(gw_onu_system_info_total.hw_version));
+
 	return ret;
 }
 
@@ -2400,10 +2443,13 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	long lRet = GWD_RETURN_OK;
-    char strMac[32];
+    unsigned char strMac[32];
 	
 
-    gw_onu_get_local_mac(strMac);
+    gw_onu_get_local_mac((gw_macaddr_t*)strMac);
+
+    snprintf(strMac, 32, "%02x:%02x:%02x:%02x:%02x:%02x", strMac[0],
+    		strMac[1],strMac[2],strMac[3],strMac[4],strMac[5]);
         
 	lRet = GW_Onu_Sysinfo_Get();
 	if (lRet != GWD_RETURN_OK)
@@ -2414,7 +2460,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT811C");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT813A");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
@@ -2585,6 +2631,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
             vid
         	);
 		idx++;
+		gw_thread_delay(100);
     }
 	gw_cli_print(cli,"----------------------------------------------------------------------------------");
 	gw_cli_print(cli,"                       Total number of ATU table is %2d.",idx);
@@ -2633,15 +2680,19 @@ int cmd_set_onu_mac_local(struct cli_def *cli, char *command, char *argv[], int 
             mac2[i] = (unsigned char)mac1[i];
         }
 
-	ret = call_gwdonu_if_api(LIB_IF_ONU_MAC_SET, 1, mac2);
+		ret = call_gwdonu_if_api(LIB_IF_ONU_MAC_SET, 1, mac2);
 
-	if(ret == GW_OK)
-		return CLI_OK;
-        
-    } else
-    {
-        gw_cli_print(cli, "%% Invalid input.");
-		return CLI_ERROR;
+		if(ret == GW_OK)
+		{
+			gw_onu_set_local_mac(mac2);
+			return CLI_OK;
+		}
+
+		else
+		{
+			gw_cli_print(cli, "%% Invalid input.");
+			return CLI_ERROR;
+		}
     }
     
     return CLI_OK;
@@ -2689,15 +2740,20 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
             mac2[i] = (unsigned char)mac1[i];
         }
 
-	ret = call_gwdonu_if_api(LIB_IF_ONU_MAC_SET, 1, mac2);
+		ret = call_gwdonu_if_api(LIB_IF_ONU_MAC_SET, 1, mac2);
 
-	if(ret == GW_OK)
-		return CLI_OK;
-        
-    } else
-    {
-        gw_cli_print(cli, "%% Invalid input.");
-		return CLI_ERROR;
+		if(ret == GW_OK)
+		{
+
+			gw_onu_set_local_mac(mac2);
+			return CLI_OK;
+
+		}
+		else
+		{
+			gw_cli_print(cli, "%% Invalid input.");
+			return CLI_ERROR;
+		}
     }
     
     return CLI_OK;
@@ -2785,6 +2841,7 @@ void gw_broadcast_storm_init()
 	broad_storm.gulBcStormStat = 0;
 	return;
 }
+
 void gwd_onu_init(void)
 {
 extern void Rcp_Mgt_init(void);
@@ -2793,6 +2850,8 @@ extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
+
+	gw_semaphore_init(&g_pkt_send_sem, g_pkt_send_sem_name, 1, 0);
 
 	GwOamMessageListInit();
 
