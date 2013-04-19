@@ -5411,8 +5411,8 @@ void rcp_dev_monitor(void * data)
     unsigned short vid =0;
 	int port ;
 	gwd_port_oper_status_t port_opr_status;
-#define RCP_DISCOVERY_PERIOD_DEF	    5	
-#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
+#define RCP_DISCOVERY_PERIOD_DEF	    10	
+#define RCP_KEEP_ALIVE_TIMEOUT_DEF		1
 
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
@@ -5491,7 +5491,7 @@ void rcp_dev_monitor(void * data)
 		}
 
 		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
-		gw_thread_delay(200);
+		gw_thread_delay(500);
 
 		if(gulEnableEpswitchMgt)
 		{

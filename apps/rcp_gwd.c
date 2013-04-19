@@ -303,12 +303,21 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 	gw_rcp_sem_give(semAccessRcpChannel);
 
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
+		{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_PARAM;
+		}
 
 	if(NULL == pkt)
+		{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
+		}
 	if(RCP_OK != Rcp_ChipId_AuthCheck(pkt))
+		{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_UNKOWN;
+		}
 
 	gw_rcp_sem_take(semAccessRcpDevList, 2000);
 	
@@ -316,7 +325,10 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 	if(NULL == rcpDevList[parentPort])
 	{
 		if(NULL == (rcpDevList[parentPort] = (RCP_DEV *)malloc( sizeof(RCP_DEV))))
+			{
+			gw_printf("%s %d\n",__func__,__LINE__);
 			return RCP_NO_MEM;
+			}
 		memset(rcpDevList[parentPort], 0, sizeof(RCP_DEV));
 
 		/* Init access function */
@@ -382,25 +394,35 @@ int RCP_RegList_Update(unsigned long parentPort, char *pkt)
 	RCP_REG *pstRcpReg;
 
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
+		{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_PARAM;
+		}
 
 	if(NULL == pkt)
+		{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
+		}
 		
 	if(NULL == rcpDevList[parentPort])
 	{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_NOT_INITIALIZED;
 	}
 
 	payload = (RCP_GET_REPLY_PAYLOAD *)(pkt + 12 + 4 + 4);	/* MACs + VlanTag + RcpTag */
 	if(memcmp(rcpDevList[parentPort]->authenKey, &pkt[RCP_HELLO_PAYLOAD_OFFSET], 2) != 0)
 	{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_UNKOWN;
 	}
 	regAddress = GET_RCP_PKT_SHORT(payload->regAddress);
 	if(NULL == (pstRcpReg = RCP_RegList_Search(rcpDevList[parentPort], regAddress)))
 	{
 		RCP_DEBUG(("\r\n  RCP_RegList_Update : NOT found 0x%x!", regAddress));
+		gw_printf("\r\n  RCP_RegList_Update : NOT found 0x%x ", regAddress);
+		//gw_printf("%s %d parentPort:%ld\n",__func__,__LINE__,parentPort);
 		return RCP_NO_SUCH;
 	}
 	
@@ -437,12 +459,13 @@ RCP_REG *RCP_RegList_Search(RCP_DEV *dev, unsigned short regAddr)
 		{
 			if(0 == memcmp(dev->switchMac, rcpRegList[i]->dev->switchMac, RCP_MAC_SIZE))
 				return rcpRegList[i];
-/*			RCP_DEBUG(("\r\n  RCP_RegList_Search : MAC NOT Match [%x-%x-%x-%x-%x-%x] : [%x-%x-%x-%x-%x-%x]!", 
+			/*gw_printf("\r\n  RCP_RegList_Search : MAC NOT Match [%x-%x-%x-%x-%x-%x] : [%x-%x-%x-%x-%x-%x]!", 
 				dev->switchMac[0], dev->switchMac[1], dev->switchMac[2], dev->switchMac[3], dev->switchMac[4], dev->switchMac[5],
-				rcpRegList[i]->dev->switchMac[0], rcpRegList[i]->dev->switchMac[1], rcpRegList[i]->dev->switchMac[2], rcpRegList[i]->dev->switchMac[3], rcpRegList[i]->dev->switchMac[4], rcpRegList[i]->dev->switchMac[5]));*/
+				rcpRegList[i]->dev->switchMac[0], rcpRegList[i]->dev->switchMac[1], rcpRegList[i]->dev->switchMac[2], rcpRegList[i]->dev->switchMac[3], rcpRegList[i]->dev->switchMac[4], rcpRegList[i]->dev->switchMac[5]);
+				*/
 		}
 	}
-
+	
 	/*RCP_DEBUG(("\r\n  RCP_RegList_Search : REG 0x%x NOT FOUND!", regAddr));*/
 	return NULL;
 }
@@ -558,7 +581,7 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		iRet = RCP_TIMEOUT;
 		goto ERROR_RETURN;
 	}
-
+	//RCP_RegList_Delete(pReg);
 	if(1 == pReg->validFlag)
 	{
 		*data = (unsigned short)pReg->value;
@@ -572,10 +595,12 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 	dev->semGive(pReg->semAccess);
 
 ERROR_RETURN:
+	
 	dev->semGive(semAccessRcpChannel);
 
 	dev->semDelete(pReg->semAccess);
 	RCP_RegList_Delete(pReg);
+	
 	free(pReg);
 	return iRet;
 }
@@ -758,7 +783,7 @@ int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 		memcpy(rcpPktBuf + 20, rcpRegAddr, 2);
 	}
 
-	if(gw_rcp_sem_take(semAccessRcpChannel, 1000))
+	if(gw_rcp_sem_take(semAccessRcpChannel, 1500))
 		{
 			gw_printf("wait error\n");
 		}
@@ -6657,16 +6682,25 @@ int rrcp_packet_handler(unsigned int srcPort, unsigned int len, unsigned char *p
 	enet_format_t *p_stEnetParse;
     unsigned char oui[3] = {0x00, 0x0f, 0xe9};
 	if(NULL == packet)
+		{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
+		}
 
 	p_stEnetParse = (enet_format_t *) packet;
     if(gulGwdRcpAuth)
     {
         if(memcmp(packet + RCP_MAC_SIZE, oui, 3) != 0)
+        	{
+        	gw_printf("%s %d\n",__func__,__LINE__);
             return RCP_ILLEGAL_AUTHKEY;
+        	}
     }
 	if(ntohs(p_stEnetParse->en_pro_II) != ETH_TYPE_RRCP)
+		{
+		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
+		}
 
 	switch(ntohs(p_stEnetParse->en_ver))
 	{
