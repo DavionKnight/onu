@@ -81,7 +81,7 @@ cyg_handle_t  loop_detect_thread_handle;
 cyg_thread    loop_detect_thread_obj;
 #endif
 
-unsigned long   gulDebugLoopBackDetect = 1;
+unsigned long   gulDebugLoopBackDetect = 0;
 #define LOOPBACK_DETECT_DEBUG(str) if( gulDebugLoopBackDetect ){ gw_printf str ;}
 #ifdef CYG_LINUX
 #define DUMPGWDPKT(c, p, b, l)      if(gulDebugLoopBackDetect) dumpPkt(c, p, b, l)
@@ -610,10 +610,10 @@ long EthLoopbackDetectControl(unsigned long oamEnable, unsigned long localEnable
            			TASK_PRIORITY_LOWEST,
            			0) != GW_OK)
            		{
-           			gw_log(GW_LOG_LEVEL_CRI, "\r\nloop_detect_thread create fail!");
+           			gw_log(GW_LOG_LEVEL_DEBUG, "\r\nloop_detect_thread create fail!");
            		}
            	else
-           		gw_log(GW_LOG_LEVEL_CRI, "\r\nloop_detect_thread created");
+           		gw_log(GW_LOG_LEVEL_DEBUG, "\r\nloop_detect_thread created");
 
            	/*
 	        cyg_thread_create(TASK_PRIORITY_LOWEST,
@@ -1011,7 +1011,7 @@ void lpbDetectWakeupPorts(unsigned short usVid)
                 {
     				if(GWD_RETURN_OK != (ret = sendOamLpbDetectNotifyMsg(portnum, 2, usVid, port_loop_back_session, &(pCtrl->alarmInfo[portnum]))))
     				{
-    					gw_log(GW_LOG_LEVEL_CRI, "sendOamLpbDetectNotifyMsg failed!\n");
+    					gw_log(GW_LOG_LEVEL_DEBUG, "sendOamLpbDetectNotifyMsg failed!\n");
     				}
     				pCtrl->lpbmask[portnum] = 0;
     				pCtrl->lpbportwakeupcounter[portnum] = 0;
@@ -1041,7 +1041,7 @@ void lpbDetectWakeupPorts(unsigned short usVid)
 	                pCtrl->slpcounter[portnum] = 0;
 	                pCtrl->lpbportwakeupcounter[portnum]++;
 	                gulPortDownWhenLpbFound[portnum] = 0;
-	                gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%d/%d wakeup(%d) in vlan %d for loopback\n", 1, portnum, pCtrl->lpbportwakeupcounter[portnum], usVid);
+	                gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%d/%d wakeup(%d) in vlan %d for loopback\n", 1, portnum, pCtrl->lpbportwakeupcounter[portnum], usVid);
                     LOOPBACK_DETECT_DEBUG(("\r\nVlan %d's port %d admin up and wakeupcouter++(%d)", usVid, portnum, ret));
                 	LOOPBACK_DETECT_DEBUG(("\r\nsendOamLpbDetectNotifyMsg2,%d(ret=%d)", portnum, ret));
                 }
@@ -1256,7 +1256,7 @@ void lpbDetectCheckMacTable(unsigned short usVid, char * oamSession)
                                 setPortLpbStatus(usVid, lport, 1, oamSession, NULL);
                     			LOOPBACK_DETECT_DEBUG(("\r\nadmin down port %lu in vlan %d OK", lport, usVid));
                                 LOOPBACK_DETECT_DEBUG(("\r\nset lpbportdown[%lu] = 1", lport));
-                                gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%d/%lu marked loopback in vlan %d.\n", 1, lport, usVid);
+                                gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%d/%lu marked loopback in vlan %d.\n", 1, lport, usVid);
                     		}
                     		else
                     			LOOPBACK_DETECT_DEBUG(("\r\nadmin down fail for port %lu, in vlan %d", lport, usVid));
@@ -1271,7 +1271,7 @@ void lpbDetectCheckMacTable(unsigned short usVid, char * oamSession)
     	                 {
     	                      LOOPBACK_DETECT_DEBUG(("\r\nNot shutdown port , lpbmask[%lu] : %d", lport, pCtrl->lpbmask[lport]));
     	                      setPortLpbStatus(usVid, lport, 0, oamSession, NULL);
-    	                      gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%d/%lu marked loopback in vlan %u\n", 1, lport, usVid);
+    	                      gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%d/%lu marked loopback in vlan %u\n", 1, lport, usVid);
     	                 }
     					 else
     					 {
@@ -1394,7 +1394,7 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
                 reportPortsLpbStatus(vid, port_loop_back_session);
                 if(0 == printFlag)
                 {
-                	gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
+                	gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
                 }
                 else if(onuIfindex == 0)
                 {
@@ -1431,7 +1431,7 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
 
                 if(0 == printFlag)
                 {
-                    gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
+                    gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
                 }
                 else if(onuIfindex == 0)
                 {

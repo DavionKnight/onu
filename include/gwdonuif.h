@@ -112,6 +112,13 @@ typedef struct{
 	gw_onu_counter_t counter;
 } __attribute__((packed)) gw_onu_port_counter_t;
 
+typedef enum {
+    GwEponTxLaserNormal       = 0,
+    GwEponTxLaserAlwaysOn     = 1,
+    GwEponTxLaserDisable      = 2,
+    GwEponTxLaserStatusNum
+} gw_EponTxLaserStatus;
+
 typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
 
 typedef gw_status (*libgwdonu_port_send_t)(gw_int32 portid, gw_uint8 *buf, gw_uint32 len);
@@ -146,6 +153,8 @@ typedef gw_status (*libgwdonu_atu_age_set_t)(gw_uint32 age);
 typedef gw_status(*libgwdonu_set_mac_t)(gw_uint8 *mac);
 
 typedef gw_status (*libgwdonu_opm_get_t)(gw_uint16 *temp,gw_uint16 *vcc,gw_uint16 *bias,gw_uint16 *txpow,gw_uint16 *rxpow);
+typedef gw_status (*libgwdonu_laser_get_t)(gw_EponTxLaserStatus * state);
+typedef gw_status (*libgwdonu_laser_set_t)(gw_EponTxLaserStatus state);
 
 typedef gw_status (*libgwdonu_port_loop_event_post_t)(gw_uint32 status);
 typedef gw_status (*libgwdonu_onu_register_special_frame_hanler_t)(libgwdonu_special_frame_handler_t handler);
@@ -199,6 +208,8 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_set_mac_t			onumacset;
 
 	libgwdonu_opm_get_t			opmget;
+	libgwdonu_laser_get_t           laserget;
+	libgwdonu_laser_set_t           laserset;
 
 	libgwdonu_port_loop_event_post_t portloopnotify;
 

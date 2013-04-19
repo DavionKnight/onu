@@ -38,7 +38,11 @@
 #include "../include/gw_os_api_core.h"
 #include "../include/gw_types.h"
 
+#ifdef CYG_LINUX
 #define GW_OSAL_MAX_PRI         31
+#else
+#define GW_OSAL_MAX_PRI         250
+#endif
 #define GW_OSAL_UNINIT          0
 #define OK	                    0
 
@@ -319,7 +323,8 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 #ifndef CYG_LINUX
     pthread_t threadid;
     pthread_attr_t p_attr;
-#endif
+    struct sched_param attr_param;
+#endif  
 
     /* we don't want to allow names too long*/
     /* if truncated, two names might be the same */
@@ -398,8 +403,14 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
     cyg_thread_resume(gw_osal_thread_table[possible_taskid].id);
 #else
     pthread_attr_init(&p_attr);
-    p_attr.__stackaddr = stack_buf;
-    p_attr.__stacksize = stack_size;
+
+    pthread_attr_setstackaddr(&p_attr, stack_buf+stack_size);
+    pthread_attr_setstacksize(&p_attr, stack_size);
+
+
+	attr_param.sched_priority = (int)priority;	
+	pthread_attr_setschedparam (&p_attr, &attr_param);
+	
     pthread_create(&threadid, &p_attr, function_pointer, param);
     gw_osal_thread_table[possible_taskid].id = (gw_uint32)threadid;
 #endif

@@ -109,6 +109,24 @@ typedef struct {
     gw_uint16 full;
 } gw_console_t;
 
+typedef union {
+    unsigned long int lv;
+    struct{
+        unsigned long int swport:6;
+        unsigned long int swslot:2;
+        unsigned long int port:6;
+        unsigned long int slot:2;
+        unsigned long int reserve:18;
+    };
+}port_idx_u;
+
+typedef union{
+    port_idx_u port_u;
+    unsigned char mac[6];
+    unsigned long int ip;
+    void * ptrval;
+}gw_cli_index_u;
+
 
 extern struct cli_command *gpst_cmd_tree;
 
@@ -148,6 +166,7 @@ struct cli_def {
 #endif
     unsigned int idle_timeout;
     time_t last_action;
+    gw_cli_index_u index;
 };
 
 struct cli_filter {

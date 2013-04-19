@@ -22,6 +22,7 @@ gw_uint32 g_uni_port_num = 0;
 gw_macaddr_t g_sys_mac;
 
 extern ONU_SYS_INFO_TOTAL gw_onu_system_info_total;
+extern gw_uint32 g_pkt_send_sem;
 
 gw_uint8 gw_onu_read_port_num()
 {
@@ -165,7 +166,11 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 
 		case LIB_IF_PORTSEND:
 			if(g_im_ifs->portsend)
+			{
+			    gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
 				ret = (*g_im_ifs->portsend)(va_arg(ap, gw_uint32), va_arg(ap, gw_uint8 *), va_arg(ap, gw_uint32));
+				gw_semaphore_post(g_pkt_send_sem);
+			}
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,("port send if is null!\r\n"));
 			break;

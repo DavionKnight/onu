@@ -95,18 +95,13 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 	}
 	else
 	{		
-		for (i = 1; i <= 2; i++)
+		for (i = 1; i <= gw_onu_read_port_num(); i++)
 			{
 				gw_cli_print(cli,"===========================port %d stat===========================",i);
 				show_port_statistic(cli, i);
-				gw_thread_delay(5);
+				gw_thread_delay(100);
 			}
-		for(i = 3; i <= 4; i++)
-			{
-				gw_cli_print(cli,"===========================port %d stat===========================",i);
-				show_port_statistic(cli, i);
-				gw_thread_delay(5);
-			}
+
 	}
 
 	

@@ -29,7 +29,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"<1-4>", "port id selected", NULL);
+					"<1-24>", "port id selected", NULL);
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0, 
@@ -400,11 +400,30 @@ int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
 		if(call_gwdonu_if_api(LIB_IF_LASER_GET, 1, &laser_mode) != GW_OK)
 				gw_cli_print(cli, "get laser status fail!\r\n");
 		else
+		{
+		    char ststr[32]="";
+		    switch(laser_mode)
+		    {
+		    case GwEponTxLaserNormal:
+		        strcpy(ststr, "normal");
+		        break;
+		    case GwEponTxLaserAlwaysOn:
+		        strcpy(ststr, "alwways on");
+		        break;
+		    case GwEponTxLaserDisable:
+		        strcpy(ststr, "disable");
+		        break;
+		    default:
+		        strcpy(ststr, "unknow");
+		        break;
+		    }
 			gw_cli_print(cli, "laser status is %s", laser_mode?"normal":"always on");
+		}
 	}
 
 	return CLI_OK;
 }
+
 int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	gw_uint32 gw_port;

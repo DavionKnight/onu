@@ -57,6 +57,7 @@ const unsigned char SYS_HARDWARE_RELEASE_VERSION_NO = 1;
 const unsigned char SYS_HARDWARE_BRANCH_VERSION_NO = 1;
 const unsigned char SYS_HARDWARE_DEBUG_VERSION_NO = 1;
 
+
 static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest );
 static int GwOamMessageListNodeRem(GWTT_OAM_MESSAGE_NODE *pNode);
 static int GwOamAlarmResponse(GWTT_OAM_MESSAGE_NODE *pRequest );
@@ -1985,11 +1986,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 	{
 //		memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 		resetSysInfoToDefault();
-		ret = GWD_RETURN_ERR;
-	}
-	else
-	{
-		//gw_dump_pkt((unsigned char*)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total), 16);
+//		ret = GWD_RETURN_ERR;
 	}
 		
 	/* Avoid invalid string data */
@@ -2759,11 +2756,138 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
     return CLI_OK;
 }
 
+int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	extern unsigned long   gulDebugRcp;
+	extern unsigned long   gulDebugLoopBackDetect;
+	extern unsigned long   g_onu_tx_policy;
+
+
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "{[rcp|loop|txpolicy|all]}*1", "module indicator",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(1 == argc)
+    {
+    	if(strcmp(argv[0], "rcp") == 0)
+    		gulDebugRcp = !gulDebugRcp;
+    	if(strcmp(argv[0], "loop") == 0)
+    		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
+    	if(strcmp(argv[0], "txrcp") == 0)
+    	    g_onu_tx_policy = ! g_onu_tx_policy;
+
+    	if(strcmp(argv[0], "all") == 0)
+    	{
+    		gulDebugRcp = !gulDebugRcp;
+    		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
+    		g_onu_tx_policy = ! g_onu_tx_policy;
+    	}
+    }
+    else
+    {
+    	gw_cli_print(cli, "debug flag: ");
+    	if(gulDebugLoopBackDetect)
+    		gw_cli_print(cli, "loop ");
+    	if(gulDebugRcp)
+    		gw_cli_print(cli, "rcp ");
+    	if(!g_onu_tx_policy)
+    	    gw_cli_print(cli, "txpolicy");
+
+    	if(!gulDebugLoopBackDetect && !gulDebugRcp && g_onu_tx_policy)
+    		gw_cli_print(cli, "none");
+    }
+
+    return CLI_OK;
+}
+
+int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	int level = GW_LOG_LEVEL_DEBUG;
+
+    // deal with help
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "[log|record]", "the class of level",
+                 NULL);
+        case 2:
+        	return gw_cli_arg_help(cli, 0,
+        		"{[debug|info|minor|major|cri]}*1","level for log",
+        		NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(2 == argc)
+    {
+    	if(strcmp(argv[1], "debug") == 0)
+    		level = GW_LOG_LEVEL_DEBUG;
+    	else if(strcmp(argv[1], "info") == 0)
+    		level = GW_LOG_LEVEL_INFO;
+    	else if(strcmp(argv[1], "minor") == 0)
+    		level = GW_LOG_LEVEL_MINOR;
+    	else if(strcmp(argv[1], "major") == 0)
+    		level = GW_LOG_LEVEL_MAJOR;
+    	else
+    		level = GW_LOG_LEVEL_CRI;
+
+    	if(strcmp(argv[0], "log") == 0)
+    		setGwLogLevel(level);
+    	else
+    		setGwLogRecordLevel(level);
+    }
+    else
+    {
+
+		if (strcmp(argv[0], "log") == 0)
+			level = getGwlogLevel();
+		else
+			level = getGwLogRecordLevel();
+
+		switch (level) {
+		case GW_LOG_LEVEL_DEBUG:
+			gw_cli_print(cli, "debug");
+			break;
+		case GW_LOG_LEVEL_INFO:
+			gw_cli_print(cli, "info");
+			break;
+		case GW_LOG_LEVEL_MINOR:
+			gw_cli_print(cli, "minor");
+			break;
+		case GW_LOG_LEVEL_MAJOR:
+			gw_cli_print(cli, "major");
+			break;
+		case GW_LOG_LEVEL_CRI:
+			gw_cli_print(cli, "cri");
+			break;
+		}
+
+	}
+
+    return CLI_OK;
+}
+
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
     struct cli_command *set;
-    struct cli_command *show, *sys;
+    struct cli_command *show, *sys, *dbg;
     // set cmds in config mode
     set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
     	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
@@ -2780,7 +2904,9 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
 
-
+	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
+		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
+		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
 
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
@@ -2791,7 +2917,7 @@ void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
     struct cli_command *set;
-    struct cli_command *show, *sys;
+    struct cli_command *show, *sys, *dbg;
     // set cmds in config mode
     set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
     	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date_local,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
@@ -2808,7 +2934,9 @@ void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
 
-
+	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
+		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
+		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
 
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
@@ -2861,11 +2989,11 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 
 	init_oam_pty();
 
-	init_oamsnmp();
+//	init_oamsnmp();
 
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
 	gw_reg_pkt_handler(GW_PKT_OAM, gw_oam_handler);
-	gw_broadcast_storm_init();
+//	gw_broadcast_storm_init();
 #if _cmd_line_
 
 	GW_Onu_Sysinfo_Get();
