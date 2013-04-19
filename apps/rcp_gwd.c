@@ -982,7 +982,8 @@ int RCP_Dev_Is_Valid(unsigned long parentPort)
 	unsigned char nullMac[6];
 	
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
-		return RCP_BAD_PARAM;
+//		return RCP_BAD_PARAM;
+	    return 0;
 
 	if(NULL == rcpDevList[parentPort])
 	{
@@ -6826,6 +6827,7 @@ END:
 	#define SysIsValidPortOnSlot( _port ) \
     	((_port)>=SysBeginOfPortOnSlot && (_port)<=SysEndOfPortOnSlot)
 
+#if 0
 struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_onu,char *ifname,struct cli_def* cli_i )
 {
 	struct slot_port *p;
@@ -7034,6 +7036,231 @@ error:
        
  }
 
+#else
+int
+BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_onu, char *ifname,
+        struct cli_def* cli_i)
+{
+
+    int ret = RCP_ERROR;
+
+    struct slot_port *p;
+    unsigned long ulState = STATE_S;
+    unsigned long ulSlot;
+    unsigned long ulPort;
+    char digit_temp[12];
+    char cToken;
+    unsigned long list_i = 0;
+    unsigned long temp_i = 0;
+    unsigned long ulListLen = 0;
+    char * list;
+
+    p = my_onu;
+    ulListLen = strlen(argv);
+    list = (char *) malloc(ulListLen + 2);
+    if (list == NULL )
+    {
+        return ret ;
+    }
+
+    strncpy(list, argv, ulListLen + 1);
+    list[ulListLen] = ',';
+    list[ulListLen + 1] = '\0';
+
+    cToken = list[list_i];
+
+    while (cToken != 0)
+    {
+
+        switch (ulState)
+        {
+
+        case STATE_S:
+            if (isdigit(cToken))
+            {
+
+                digit_temp[temp_i] = cToken;
+                temp_i++;
+                if (temp_i >= 11)
+                {
+                    goto error;
+                }
+            }
+            else if (isspace(cToken))
+            {
+            }
+            else if (cToken == '/')
+            {
+
+                if (temp_i == 0)
+                {
+                    goto error;
+                }
+                digit_temp[temp_i] = 0;
+                ulSlot = (unsigned long) atol(digit_temp);
+
+                if (ulSlot >= MAXSlotNum)
+                {
+                    goto error;
+                }
+                p->ulSlot = ulSlot;
+                temp_i = 0;
+                ulState = STATE_PS;
+            }
+
+            /***************************************************************************************************************
+             �жϰ弶�ϵ�PORT �ĺţ������PORT ����Ч�ԣ�ͨ��弶�ĺ����жϰ弶�����ͣ�
+             ���Ҵ�������
+             ****************************************************************************************************************/
+            else if (cToken == ',')
+            {
+
+                if (temp_i == 0)
+                {
+                    goto error;
+                }
+                digit_temp[temp_i] = 0;
+                ulPort = (unsigned long) atol(digit_temp);
+
+                if (FALSE == SysIsValidPortOnSlot( ulPort))
+                {
+                    goto error;
+                }
+
+                p->ulPort = ulPort;
+                temp_i = 0;
+                ulState = STATE_S;
+            }
+            else if (cToken == '-')
+            {
+
+                if (temp_i == 0)
+                {
+                    goto error;
+                }
+                digit_temp[temp_i] = 0;
+                ulPort = (unsigned long int) atol(digit_temp);
+                p->ulPort = ulPort;
+                temp_i = 0;
+                ulState = STATE_PE;
+            }
+
+            else
+            {
+                goto error;
+            }
+            break;
+        case STATE_PS:
+            if (isdigit(cToken))
+            {
+
+                digit_temp[temp_i] = cToken;
+                temp_i++;
+                if (temp_i >= 11)
+                {
+                    goto error;
+                }
+            }
+            else if (isspace(cToken))
+            {
+            }
+            else if (cToken == ',')
+            {
+
+                if (temp_i == 0)
+                {
+
+                    goto error;
+                }
+                digit_temp[temp_i] = 0;
+                ulPort = (unsigned long int) atol(digit_temp);
+                if (ulPort >= MAXPortOnSlotNum)
+                {
+                    goto error;
+                }
+                p->ulPort = ulPort;
+                temp_i = 0;
+                ulState = STATE_S;
+
+            }
+            else if (cToken == '-')
+            {
+
+                if (temp_i == 0)
+                {
+                    goto error;
+                }
+                digit_temp[temp_i] = 0;
+                ulPort = (unsigned long int) atol(digit_temp);
+                p->ulPort = ulPort;
+                temp_i = 0;
+                ulState = STATE_PE;
+            }
+            else
+            {
+                goto error;
+            }
+            break;
+        case STATE_PE:
+            if (isdigit(cToken))
+            {
+
+                digit_temp[temp_i] = cToken;
+                temp_i++;
+                if (temp_i >= 11)
+                {
+                    goto error;
+                }
+            }
+            else if (isspace(cToken))
+            {
+            }
+            else if (cToken == ',')
+            {
+
+                if (temp_i == 0)
+                {
+                    goto error;
+                }
+                digit_temp[temp_i] = 0;
+                ulPort = (unsigned long int) atol(digit_temp);
+                p->ulPort = ulPort;
+                temp_i = 0;
+                ulState = STATE_S;
+            }
+            else
+            {
+                goto error;
+            }
+            break;
+        default:
+            goto error;
+        }
+
+        list_i++;
+
+        if(list_i == ulListLen+2)
+            goto error;
+
+        cToken = list[list_i];
+
+    }
+
+    if(list)
+        free(list);
+    ret =RCP_OK;
+    return ret;
+
+error:
+
+    gw_cli_print(cli_i, "%% Can not find interface %s.\r\n", ifname);
+    if(list)
+        free(list);
+    return ret ;
+
+}
+
+#endif
 
 #if 1
 unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)

@@ -23,7 +23,7 @@ typedef unsigned long	oid;
 //platform added new type and micro define
 
 #define IFM_NAME_SIZE (31)
-#define ETH_FILTER_MAX_PORT_NUM_ON_SLOT     ( 4 )
+#define ETH_FILTER_MAX_PORT_NUM_ON_SLOT     ( 32 )
 #define VTY_NEWLINE "\r\n"
 
 struct slot_port{

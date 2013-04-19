@@ -55,10 +55,17 @@ extern  "C"
 
 #endif
 
-struct slot_port *my_onu = NULL;
-void *my_onu_port;
+//struct slot_port *my_onu = NULL;
+//void *my_onu_port;
 
 int my_onu_port_arg;
+
+unsigned long int g_onu_tx_policy = 1; //onu comm msg tx ctrl policy, 1:enable all tx 0:disble all tx
+
+static unsigned long int get_onuport_from_cli_index(struct cli_def * cli)
+{
+    return ETH_SLOTPORT_TO_PORTNO(cli->index.port_u.slot, cli->index.port_u.port);
+}
 
 
 #define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(portlist, ifindex,devonuport_num) \
@@ -82,6 +89,7 @@ int my_onu_port_arg;
     }\
 }
 
+#if 0
 #define GET_AND_CHECK_RCP_DEV_PTR	if((NULL == (pRcpDev = RCP_Get_Dev_Ptr((unsigned long)(my_onu_port)))) || (!RCP_Dev_Is_Valid((unsigned long)(my_onu_port)))) \
 									{ \
 										gw_cli_print(cli,  "  No RCP device found.\r\n"); \
@@ -92,6 +100,21 @@ int my_onu_port_arg;
 										gw_cli_print(cli,  "  No RCP device found.\r\n"); \
 										return CLI_ERROR; \
 									}
+#else
+
+#define GET_AND_CHECK_RCP_DEV_PTR   if((NULL == (pRcpDev = RCP_Get_Dev_Ptr((get_onuport_from_cli_index(cli))))) || (!RCP_Dev_Is_Valid(get_onuport_from_cli_index(cli)))) \
+                                    { \
+                                        gw_cli_print(cli,  "  No RCP device found.\r\n"); \
+                                        return CLI_ERROR; \
+                                    }
+#define GET_AND_CHECK_RCP_DEV_PTR_FLASH if((NULL == (pRcpDev = RCP_Get_Dev_Ptr_For_Flash((unsigned long)(get_onuport_from_cli_index(cli)))))) \
+                                    { \
+                                        gw_cli_print(cli,  "  No RCP device found.\r\n"); \
+                                        return CLI_ERROR; \
+                                    }
+
+#endif
+
 #define GET_AND_CHECK_RCP_DEV_PTR_FROM_PORT	my_onu_port_arg = atoi(argv[0]); \
 									if((NULL == (pRcpDev = RCP_Get_Dev_Ptr((unsigned long)my_onu_port_arg))) || (!RCP_Dev_Is_Valid((unsigned long)my_onu_port_arg))) \
 									{ \
@@ -185,75 +208,105 @@ unsigned long gulEthRxTaskReady = 0;
 extern RCP_DEV *rcpDevList[MAX_RRCP_SWITCH_TO_MANAGE];
 extern unsigned long gulNumOfPortsPerSystem;
 
+static void gw_cli_index_create_by_slot_port(struct cli_def *cli, unsigned int slot, unsigned int port)
+{
+    if(cli)
+    {
+        cli->index.port_u.lv = 0;
+        cli->index.port_u.port = port;
+        cli->index.port_u.slot = slot;
+
+    }
+
+}
+
 /*
  ** Define the commands
  */
 int cli_int_interface_switch(struct cli_def *cli, char *command, char *argv[], int argc)
-{    
-    extern  unsigned long vlan_dot_1q_enable;
- 	
-	unsigned long onuport;
-    char    ifName[IFM_NAME_SIZE + 1];
-    char    prompt[64] = { 0 };
-	if(CLI_HELP_REQUESTED)
+{
+    extern unsigned long vlan_dot_1q_enable;
+
+    unsigned long onuport;
+    char ifName[IFM_NAME_SIZE + 1];
+    char prompt[64] =
+        { 0 };
+
+    struct slot_port ls_port, *my_onu;
+    my_onu = &ls_port;
+
+    if (CLI_HELP_REQUESTED)
     {
-    
-        switch(argc)
+
+        switch (argc)
         {
         case 1:
-            return gw_cli_arg_help(cli, 0,
-                "<slot/port>", "Specify ethernet interface's slot and port",
-                 NULL);
+            return gw_cli_arg_help(cli, 0, "<slot/port>",
+                            "Specify ethernet interface's slot and port", NULL );
         default:
-            return gw_cli_arg_help(cli, argc > 1, NULL);
+            return gw_cli_arg_help(cli, argc > 1, NULL );
         }
-	}
-	 if(1 == argc)
-    {  
+    }
+    if (1 == argc)
+    {
 
-		bzero( ifName, IFM_NAME_SIZE + 1 );
-   		snprintf( ifName, IFM_NAME_SIZE, "%s", argv[0] );
-		my_onu = (struct slot_port *)malloc(sizeof(struct slot_port));
-		if(!my_onu)
-			{
-				gw_cli_print(cli,"my_onu malloc error\n");
-			}
-		
-		
-		my_onu = BEGIN_PARSE_PORT_EAND_SLOT(argv[0],my_onu,ifName,cli);
-		if(!my_onu)
-			{
-				gw_cli_print(cli, "%% Invalid input.");
-				return CLI_OK;
-			}
-		onuport = ETH_SLOTPORT_TO_PORTNO(my_onu->ulSlot,my_onu->ulPort);
+        bzero(ifName, IFM_NAME_SIZE + 1);
+        snprintf(ifName, IFM_NAME_SIZE, "%s", argv[0]);
 
-		if(1 != RCP_Dev_Is_Exist(onuport))
-		{
-			
-			gw_cli_print( cli, "%% No switch connected to interface %s.\r\n", ifName );
-			return CLI_ERROR;
-		}
-		else
-		{
-		
-			if(vlan_dot_1q_enable == 1)
-				{
-					gw_cli_print(cli, "  Management vlan VID is : %d.\r\n", rcpDevList[my_onu->ulPort]->mgtVid);
-				}
-			
-		}
-		my_onu_port = (void *)onuport;
-		
- 		strcpy( prompt, ifName );
-		gw_cli_set_configmode(cli, MODE_SWITCH, prompt);
-		free(my_onu);
-	 }
-	 else
-	 {
+#if 0
+        my_onu = (struct slot_port *) malloc(sizeof(struct slot_port));
+        if (!my_onu)
+        {
+            gw_cli_print(cli, "my_onu malloc error\n");
+            return CLI_ERROR;
+        }
+
+        my_onu = BEGIN_PARSE_PORT_EAND_SLOT(argv[0], my_onu, ifName, cli);
+        if (!my_onu)
+        {
+            gw_cli_print(cli, "%% Invalid input.");
+            return CLI_OK;
+        }
+#else
+        if(RCP_OK != BEGIN_PARSE_PORT_EAND_SLOT(argv[0], my_onu, ifName, cli))
+        {
+            gw_cli_print(cli, "invlaid input!");
+            return CLI_ERROR;
+        }
+#endif
+
+        onuport = ETH_SLOTPORT_TO_PORTNO(my_onu->ulSlot,my_onu->ulPort);
+
+        if (1 != RCP_Dev_Is_Exist(onuport))
+        {
+
+            gw_cli_print(cli, "%% No switch connected to interface %s.\r\n", ifName);
+            return CLI_ERROR;
+        }
+        else
+        {
+
+            if (vlan_dot_1q_enable == 1)
+            {
+                gw_cli_print(cli, "  Management vlan VID is : %d.\r\n",
+                                rcpDevList[my_onu->ulPort]->mgtVid);
+            }
+
+        }
+
+//        my_onu_port = (void *) onuport;
+
+        gw_cli_index_create_by_slot_port(cli, my_onu->ulSlot, my_onu->ulPort);
+
+        strcpy(prompt, ifName);
+        gw_cli_set_configmode(cli, MODE_SWITCH, prompt);
+//        free(my_onu);
+    }
+    else
+    {
         gw_cli_print(cli, "%% Invalid input.");
-     }
-    
+    }
+
     return CLI_OK;
 }
 
@@ -5244,6 +5297,11 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
 	unsigned long slot, mgtPort;
 	int counter = 0;
 	gwd_port_oper_status_t port_opr_status;
+
+    if(CLI_HELP_REQUESTED)
+    {
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+    }
 	RCP_Say_Hello(-1, 1);
 //	cyg_thread_delay(IROS_TICK_PER_SECOND / 10);
 	gw_thread_delay(100);
@@ -5260,7 +5318,7 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
 		gw_cli_print(cli, "  NO.    Location     MgtPort      MAC(ports)          Status");
 		gw_cli_print(cli, "---------------------------------------------------------------");
 		ulIndex = 1;
-		for(onuPort = 1; onuPort < 5; onuPort++)
+		for(onuPort = 1; onuPort < MAX_RCP_SWITCH_TO_MANAGE; onuPort++)
 		{
 			call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, onuPort, &port_opr_status);
 			if(port_opr_status == PORT_OPER_STATUS_UP)
@@ -5288,69 +5346,83 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
 
 int cli_int_clear_switch(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	unsigned long  onuPort;
-	char    ifName[IFM_NAME_SIZE + 1];
-	if(CLI_HELP_REQUESTED)
+    unsigned long onuPort;
+    char ifName[IFM_NAME_SIZE + 1];
+    struct slot_port ls_port, *my_onu;
+    my_onu = &ls_port;
+
+    if (CLI_HELP_REQUESTED)
     {
 
-        switch(argc)
+        switch (argc)
         {
-   
+
         case 1:
-            return gw_cli_arg_help(cli, 0,
-                "<slot/port>", "Specify ethernet interface's slot and port\n",
-                 NULL);
+            return gw_cli_arg_help(cli, 0, "<slot/port>",
+                    "Specify ethernet interface's slot and port\n", NULL );
         default:
-            return gw_cli_arg_help(cli, argc > 1, NULL);
+            return gw_cli_arg_help(cli, argc > 1, NULL );
         }
-	}
-	if(argc == 1)
-	{
-		bzero( ifName, IFM_NAME_SIZE + 1 );
-   		snprintf( ifName, IFM_NAME_SIZE, "%s", argv[0] );
-		if(!my_onu)
-			{
-				my_onu = (struct slot_port *)malloc(sizeof(struct slot_port));
-				if(!my_onu)
-					{
-						gw_cli_print(cli,"my_onu malloc error\n");
-					}
-			}
-		
-		
-		my_onu = BEGIN_PARSE_PORT_EAND_SLOT(argv[0],my_onu,ifName,cli);
-		if(!my_onu)
-			{
-				gw_cli_print(cli, "%% Invalid input.");
-				return CLI_OK;
-			}
-		onuPort = ETH_SLOTPORT_TO_PORTNO(my_onu->ulSlot,my_onu->ulPort);
-		if(rcpDevList[onuPort]!=NULL)
-		{
-			if(1 != RCP_Dev_Is_Exist(onuPort))
-			{
-			/*rcpDevList[onuPort] = NULL;*/
-				bzero(rcpDevList[onuPort]->switchMac, RCP_MAC_SIZE);
-				bzero(rcpDevList[onuPort]->previousswitchMac, RCP_MAC_SIZE);
-				rcpDevList[onuPort]->onlineStatus = rcpDevList[onuPort]->previousOnlineStatus = 0;
-				rcpDevList[onuPort]->timeoutFlag = 1;
-			
-				gw_cli_print( cli, "%% Delete switch %s successed.\r\n", ifName);
-				return CLI_ERROR;
-			}
-			else
-				gw_cli_print(cli,  "  Downlink RCP switch's status is UP, can't be deleted.\r\n");
-		}
-		else
-		gw_cli_print(cli,  "  No RCP switch downlink eth %s.\r\n", ifName);
-		my_onu_port = (void *)onuPort;
-	}
-	else
-		{
-			gw_cli_print(cli, "%% Invalid input.");
-			free(my_onu);
-		}
-	return CLI_OK;
+    }
+
+    if (argc == 1)
+    {
+        bzero(ifName, IFM_NAME_SIZE + 1);
+        snprintf(ifName, IFM_NAME_SIZE, "%s", argv[0]);
+
+#if 0
+        if (!my_onu)
+        {
+            my_onu = (struct slot_port *) malloc(sizeof(struct slot_port));
+            if (!my_onu)
+            {
+                gw_cli_print(cli, "my_onu malloc error\n");
+            }
+        }
+
+        my_onu = BEGIN_PARSE_PORT_EAND_SLOT(argv[0], my_onu, ifName, cli);
+        if (!my_onu)
+        {
+            gw_cli_print(cli, "%% Invalid input.");
+            return CLI_OK;
+        }
+#else
+        if(RCP_OK != BEGIN_PARSE_PORT_EAND_SLOT(argv[0], my_onu, ifName, cli))
+        {
+            gw_cli_print(cli, "invalid input!");
+            return CLI_ERROR;
+        }
+#endif
+
+        onuPort = ETH_SLOTPORT_TO_PORTNO(my_onu->ulSlot,my_onu->ulPort);
+        if (rcpDevList[onuPort] != NULL )
+        {
+            if (1 != RCP_Dev_Is_Exist(onuPort))
+            {
+                /*rcpDevList[onuPort] = NULL;*/
+                bzero(rcpDevList[onuPort]->switchMac, RCP_MAC_SIZE);
+                bzero(rcpDevList[onuPort]->previousswitchMac, RCP_MAC_SIZE);
+                rcpDevList[onuPort]->onlineStatus =
+                        rcpDevList[onuPort]->previousOnlineStatus = 0;
+                rcpDevList[onuPort]->timeoutFlag = 1;
+
+                gw_cli_print(cli, "%% Delete switch %s successed.\r\n", ifName);
+                return CLI_ERROR;
+            }
+            else
+                gw_cli_print(cli,
+                        "  Downlink RCP switch's status is UP, can't be deleted.\r\n");
+        }
+        else
+            gw_cli_print(cli, "  No RCP switch downlink eth %s.\r\n", ifName);
+//        my_onu_port = (void *) onuPort;
+    }
+    else
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+//        free(my_onu);
+    }
+    return CLI_OK;
 }
 
  
@@ -5415,6 +5487,14 @@ void rcp_dev_monitor(void * data)
 
     while(1) 
     {
+        //added by wangxy 2013-04-19 for onu tx ctrl policy, default is set, while it is clr, all onu msg
+        //can't send out, and pty transmission is the exception
+        if(g_onu_tx_policy == 0)
+        {
+            gw_thread_delay(200);
+            continue;
+        }
+
 		if(gulEnableEpswitchMgt)
 		{
 			for(i=1; i< MAX_RRCP_SWITCH_TO_MANAGE; i++)
