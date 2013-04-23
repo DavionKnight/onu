@@ -27,7 +27,7 @@ extern gw_macaddr_t g_sys_mac;
 extern gw_uint32 g_uni_port_num;
 
 
-#define NUM_PORTS_PER_SYSTEM 5
+#define NUM_PORTS_PER_SYSTEM 26
 gw_uint64 gulCurrentpktCntIn[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulCurrentpktCntOut[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulOctRateIn[NUM_PORTS_PER_SYSTEM-1] = {0};
@@ -192,7 +192,7 @@ void broad_storm_thread(void* data)
 	call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
 	while(GW_TRUE)
 		{
-			for(logical_port=1; logical_port < 5; logical_port++)
+			for(logical_port=1; logical_port <= gw_onu_read_port_num(); logical_port++)
 				{
 					if(gwd_logical_to_physical(logical_port,&physical_port))
 						return;
