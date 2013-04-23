@@ -775,7 +775,7 @@ int clsPortLpbStatus(const unsigned short vid, const char *ss)
     OAM_ONU_LPB_DETECT_CTRL *pCtrl = getVlanLpbStasNode(vid);
     if(pCtrl)
     {
-        printf("need to clr status\r\n");
+//        printf("need to clr status\r\n");
     	for(i = 1; i < gulNumOfPortsPerSystem; i++)
         {
             if(pCtrl->lpbmask[i] == 1 && pCtrl->lpbportdown[i] != 1)
@@ -1020,7 +1020,8 @@ void lpbDetectWakeupPorts(unsigned short usVid)
     				/*IFM_config( ethIfIndex, IFM_CONFIG_ETH_ALARM_STATUS_CLEAR, &loopstatus, NULL );
     				VOS_SysLog(LOG_TYPE_TRAP, LOG_INFO,"Interface  eth%d/%d no loop found in vlan %d for 10 intervals,clear status", PORTNO_TO_ETH_SLOT(portnum), PORTNO_TO_ETH_PORTID(portnum), usVid);*/
 
-				LOOPBACK_DETECT_DEBUG(("\r\nVlan(%d)port(%d)no loop in 10 intervals,clear status(%d)",usVid, portnum, ret));
+//				LOOPBACK_DETECT_DEBUG(("\r\nVlan(%d)port(%d)no loop in 10 intervals,clear status(%d)",usVid, portnum, ret));
+    			gw_log(GW_LOG_LEVEL_MAJOR, "\r\nInterface eth1/%d no loop found in vlan %d for 10 intervals,clear status", portnum, usVid );
                 LOOPBACK_DETECT_DEBUG(("\r\nsendOamLpbDetectNotifyMsg2,%d(ret=%d)", portnum, ret));
             }
             if((1== pCtrl->lpbmask[portnum])&&(10>=pCtrl->lpbClearCnt[portnum]&&(1==pCtrl->lpbportdown[portnum])))
@@ -1041,7 +1042,7 @@ void lpbDetectWakeupPorts(unsigned short usVid)
 	                pCtrl->slpcounter[portnum] = 0;
 	                pCtrl->lpbportwakeupcounter[portnum]++;
 	                gulPortDownWhenLpbFound[portnum] = 0;
-	                gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%d/%d wakeup(%d) in vlan %d for loopback\n", 1, portnum, pCtrl->lpbportwakeupcounter[portnum], usVid);
+	                gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth%d/%d wakeup(%d) in vlan %d for loopback\n", 1, portnum, pCtrl->lpbportwakeupcounter[portnum], usVid);
                     LOOPBACK_DETECT_DEBUG(("\r\nVlan %d's port %d admin up and wakeupcouter++(%d)", usVid, portnum, ret));
                 	LOOPBACK_DETECT_DEBUG(("\r\nsendOamLpbDetectNotifyMsg2,%d(ret=%d)", portnum, ret));
                 }
@@ -1257,6 +1258,7 @@ void lpbDetectCheckMacTable(unsigned short usVid, char * oamSession)
                     			LOOPBACK_DETECT_DEBUG(("\r\nadmin down port %lu in vlan %d OK", lport, usVid));
                                 LOOPBACK_DETECT_DEBUG(("\r\nset lpbportdown[%lu] = 1", lport));
                                 gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%d/%lu marked loopback in vlan %d.\n", 1, lport, usVid);
+                                gw_log(GW_LOG_LEVEL_MAJOR, "Interface eth%d/%lu shut down for loopback\r\n",1,lport);
                     		}
                     		else
                     			LOOPBACK_DETECT_DEBUG(("\r\nadmin down fail for port %lu, in vlan %d", lport, usVid));
