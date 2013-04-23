@@ -411,6 +411,19 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 
 			break;
 
+		case LIB_IF_LASER_GET:
+			if(g_im_ifs->laserget)
+				ret =(*g_im_ifs->laserget)(va_arg(ap, gw_int32*));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "onu laser get if is null!\r\n");
+			break;
+		case LIB_IF_LASER_SET:
+			if(g_im_ifs->laserset)
+				ret =(*g_im_ifs->laserset)(va_arg(ap, gw_int32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "onu laser set if is null!\r\n");			
+			break;
+
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
