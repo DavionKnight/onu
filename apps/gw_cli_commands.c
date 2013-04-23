@@ -168,39 +168,41 @@ int cmd_bsctrl_policy(struct cli_def *cli, char *command, char *argv[], int argc
 int cmd_bsctrl_threshold(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
-	gw_uint32 gw_threshold = 0;
+    gw_uint32 gw_threshold = 0;
 
-	gw_threshold = atoi(argv[0]);
-	if(CLI_HELP_REQUESTED)
-	{
-		
-		switch (argc)
-		{
-			case 1:
-				return gw_cli_arg_help(cli, 0,
-					"<10-2000000>", "unit: packets per second", NULL );
-			default:
-				return gw_cli_arg_help(cli, argc > 1, NULL  );
-		}
+    if (CLI_HELP_REQUESTED)
+    {
 
-	}
-	if(argc == 1)
-		{
-			if(gw_threshold > BC_STORM_THRESHOLD_MAX || gw_threshold < BC_STORM_THRESHOLD_LAS)
-				{
-					gw_cli_print(cli,"set broadcast storm threshold fail\n");
-					return CLI_ERROR;
-				}
-			broad_storm.gulBcStormThreshold = gw_threshold;
-			gw_cli_print(cli,"set broadcast storm threshold success\n");
-		}
-	else
-		{
-			gw_cli_print(cli,"%% Invalid input.\n");
-		}
+        switch (argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0, "<10-2000000>", "unit: packets per second", NULL );
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL );
+        }
 
-	return CLI_OK;
+    }
+
+    if (argc == 1)
+    {
+
+        gw_threshold = atoi(argv[0]);
+        if (gw_threshold > BC_STORM_THRESHOLD_MAX || gw_threshold < BC_STORM_THRESHOLD_LAS)
+        {
+            gw_cli_print(cli, "set broadcast storm threshold fail\n");
+            return CLI_ERROR;
+        }
+        broad_storm.gulBcStormThreshold = gw_threshold;
+        gw_cli_print(cli, "set broadcast storm threshold success\n");
+    }
+    else
+    {
+        gw_cli_print(cli, "%% Invalid input.\n");
+    }
+
+    return CLI_OK;
 }
+
 int cmd_bsctrl_threshold_get(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	gw_uint64 threshold;
@@ -323,8 +325,8 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, cp, "portdown", cmd_bsctrl_policy, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port down config");
 	gw_cli_register_command(cmd_root, cp, "threshold", cmd_bsctrl_threshold, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config");
 	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");
-	time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
-	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+//	time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+//	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
 
     return;
 }
