@@ -9,7 +9,7 @@
 #include "gw_log.h"
 #include "../include/gwdonuif.h"
 
-static gw_int32 log_level = GW_LOG_LEVEL_DEBUG;
+static gw_int32 log_level = GW_LOG_LEVEL_MINOR;
 static gw_int32 log_record_level = GW_LOG_LEVEL_MAJOR;
 static gw_int32 log_current_slot = 0;
 typedef struct{

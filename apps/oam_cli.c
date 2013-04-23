@@ -386,15 +386,16 @@ int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
 
 	if (1 == argc) {
 		if (atoi(argv[0]) == 1) {
-			laser_mode = 0;
+			laser_mode = GwEponTxLaserAlwaysOn;
 		} else if (atoi(argv[0]) == 0) {
-			laser_mode = 2;
+			laser_mode = GwEponTxLaserNormal;
 		} else {
 			gw_cli_print(cli, "%% Invalid input.");
 			return CLI_ERROR;
 		}
 
-		call_gwdonu_if_api(LIB_IF_LASER_SET, 1, laser_mode);
+		if(call_gwdonu_if_api(LIB_IF_LASER_SET, 1, laser_mode)!=GW_OK)
+			gw_cli_print(cli, "set lase mode fail!\r\n");
 
 	} else {
 		if(call_gwdonu_if_api(LIB_IF_LASER_GET, 1, &laser_mode) != GW_OK)

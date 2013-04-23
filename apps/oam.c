@@ -623,9 +623,9 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 			GWDOAMTRC("CommOnuMsgSend -- call port send if\r\n");
 			//gw_printf("oam storm alarm send 1 \n");
 
-			gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
+//			gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
 			call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8 *)avender,(gw_uint32)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
-			gw_semaphore_post(g_pkt_send_sem);
+//			gw_semaphore_post(g_pkt_send_sem);
 
 			gulDebugOamTxCount++;
             OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
@@ -651,9 +651,9 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
 		//gw_printf("oam storm alarm send 2 \n");
 
-		gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
+//		gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
-		gw_semaphore_post(g_pkt_send_sem);
+//		gw_semaphore_post(g_pkt_send_sem);
 
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData+DataLenSended));
@@ -673,9 +673,9 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
 		//gw_printf("oam storm alarm send 3 \n");
 
-		gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
+//		gw_semaphore_wait(g_pkt_send_sem, GW_OSAL_WAIT_FOREVER);
 		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, GW_PON_PORT_ID, (gw_uint8*)avender, (gw_uint32)(sizeof(GWTT_OAM_HEADER)+SendDataSize));
-		gw_semaphore_post(g_pkt_send_sem);
+//		gw_semaphore_post(g_pkt_send_sem);
 
 		gulDebugOamTxCount++;
         OAM_TX_PACKET_DEBUG((avender, pSentData));
@@ -1042,7 +1042,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			/*extension capality*/
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
-			*ptr ++= 0x40; /*added ctc statistic function surpport*/
+			*ptr ++= 0x80; /*added ctc statistic function surpport*/
 			
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
@@ -2771,7 +2771,7 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "{[rcp|loop|txpolicy|all]}*1", "module indicator",
+                "{[rcp|loop|txrcp|all]}*1", "module indicator",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
