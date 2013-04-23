@@ -6262,6 +6262,11 @@ int popAllSwitchStatusChgMsg(void)
 		}
 
 		gpstAlmFifo->bottom = pMsg->pPrevious;
+
+		/*added by wangxy 2013-04-22 for mem leak*/
+		if(pMsg->MsgBody)
+			free(pMsg->MsgBody);
+		
 		free(pMsg);
 		pMsg = gpstAlmFifo->bottom;
 		gpstAlmFifo->occupancy--;
@@ -6820,7 +6825,7 @@ END:
 #define STATE_PE 3
 
 #define MAXSlotNum 2
-#define MAXPortOnSlotNum 5
+#define MAXPortOnSlotNum 32
 
 	#define SysBeginOfPortOnSlot   1
 	#define SysEndOfPortOnSlot     MAXPortOnSlotNum
@@ -7265,7 +7270,7 @@ error:
 #if 1
 unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)
 {
-	unsigned long roter_port[20];
+	unsigned long roter_port[ETH_FILTER_MAX_PORT_NUM_ON_SLOT];
     unsigned long ulState = STATE_S;
 	unsigned long ulPort;
 	unsigned long ulPort_E;
@@ -7518,8 +7523,9 @@ unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)
         cToken = list[ list_i ];		
 
     }
-		
-	free(list);
+
+	if(list)
+	    free(list);
 	rt_roter_port = (unsigned long *)malloc((port_i+1)* sizeof(unsigned long));
 	if(rt_roter_port == NULL)
 		{
@@ -7529,6 +7535,8 @@ unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)
 	memcpy(rt_roter_port,roter_port,(port_i+1)*sizeof(unsigned long));
 	return rt_roter_port;
 error:
+    if(list)
+        free(list);
 	return NULL;
 
        

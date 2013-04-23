@@ -5801,7 +5801,8 @@ void start_rcp_device_monitor(void)
 	rcp_dev_monitor,
 	NULL,
 	8*1024,
-	TASK_PRIORITY_LOWEST,
+//	TASK_PRIORITY_LOWEST,
+	(GW_OSAL_THREAD_PRIO_NORMAL+10),
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp monitor thread created fail!\r\n");
