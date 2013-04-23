@@ -120,6 +120,7 @@ typedef enum {
 } gw_EponTxLaserStatus;
 
 typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
+typedef gw_status (*libgwdonu_out_hw_version)(gw_int8 *hwbuf, const gw_int32 hwbuflen);
 
 typedef gw_status (*libgwdonu_port_send_t)(gw_int32 portid, gw_uint8 *buf, gw_uint32 len);
 typedef gw_uint32 (*libgwdonu_oam_std_hdr_builer_t)(gw_uint8*, gw_uint32);
@@ -158,6 +159,7 @@ typedef gw_status (*libgwdonu_laser_set_t)(gw_EponTxLaserStatus state);
 
 typedef gw_status (*libgwdonu_port_loop_event_post_t)(gw_uint32 status);
 typedef gw_status (*libgwdonu_onu_register_special_frame_hanler_t)(libgwdonu_special_frame_handler_t handler);
+typedef gw_status (*liggwdonu_onu_register_out_if_t)(void * handler);
 typedef gw_status (*libgwdonu_onu_current_timer_get_t)(gw_uint32* gw_time);
 typedef gw_status (*libgwdonu_onu_broadcast_speed_limit_set_t)(gw_uint32 gw_port,gwd_sw_port_inratelimit_mode_t gw_mode,gw_uint32 gw_rate);
 typedef gw_status (*libgwdonu_onu_localtime_get_t)(localtime_tm * tm);
@@ -169,7 +171,7 @@ typedef gw_status (*libgwdonu_onu_reset)(gw_int32 a);
 #endif
 
 typedef void      (*libgwdonu_onu_set_loopalm_led)();
-typedef gw_status (*libgwdonu_ver_get)(char * sw_ver, const int sw_ver_len, char *hw_ver, const int hw_ver_len);
+typedef gw_status (*libgwdonu_ver_get)(char * sw_ver, const int sw_ver_len);
 
 
 
@@ -214,6 +216,7 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_port_loop_event_post_t portloopnotify;
 
 	libgwdonu_onu_register_special_frame_hanler_t specialpkthandler;
+	liggwdonu_onu_register_out_if_t onuhwverget;
 
 	libgwdonu_onu_current_timer_get_t currenttimeget;
 	libgwdonu_onu_broadcast_speed_limit_set_t broadlimit;

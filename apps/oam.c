@@ -2009,8 +2009,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 		SYS_SOFTWARE_RELEASE_VERSION_NO,
 		SYS_SOFTWARE_BRANCH_VERSION_NO);*/
 	
-	call_gwdonu_if_api(LIB_IF_ONU_VER_GET, 4, gw_onu_system_info_total.sw_version, sizeof(gw_onu_system_info_total.sw_version),
-			gw_onu_system_info_total.hw_version, sizeof(gw_onu_system_info_total.hw_version));
+	call_gwdonu_if_api(LIB_IF_ONU_VER_GET, 2, gw_onu_system_info_total.sw_version, sizeof(gw_onu_system_info_total.sw_version));
 
 	return ret;
 }
