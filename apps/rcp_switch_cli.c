@@ -5411,8 +5411,8 @@ void rcp_dev_monitor(void * data)
     unsigned short vid =0;
 	int port ;
 	gwd_port_oper_status_t port_opr_status;
-#define RCP_DISCOVERY_PERIOD_DEF	    10	
-#define RCP_KEEP_ALIVE_TIMEOUT_DEF		1
+#define RCP_DISCOVERY_PERIOD_DEF	    2	
+#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
 
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
@@ -5491,7 +5491,7 @@ void rcp_dev_monitor(void * data)
 		}
 
 		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
-		gw_thread_delay(500);
+		gw_thread_delay(100);
 
 		if(gulEnableEpswitchMgt)
 		{
@@ -5763,7 +5763,7 @@ void start_rcp_device_monitor(void)
 	"RCP thread",
 	rcp_dev_monitor,
 	NULL,
-	8*2048,
+	3*2048,
 	TASK_PRIORITY_LOWEST,
 	0
 	))
@@ -5772,7 +5772,7 @@ void start_rcp_device_monitor(void)
 
 	//VOS_TaskCreateEx("tRcpM", rcp_dev_monitor, 220, 4*1024, NULL);
 	//VOS_TaskCreateEx("tLoopM", rcp_loopdetect, 220, 4*1024, NULL);
-#if 1
+#if 0
 	if(0 != gw_Onu_Rcp_Detect_Set_FDB(1))
 	{
     	printf("\r\nRCP MAC init failed!\r\n");

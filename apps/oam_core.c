@@ -60,7 +60,7 @@ static gw_uint32 g_oam_async_queue_id = 0,
 		g_oam_async_data_szie = 128,
 		g_oam_async_queue_pri = 3,
 		g_oam_async_thread_id,
-		g_oam_async_thread_stack_size = 8*1024,
+		g_oam_async_thread_stack_size = 4*1024,
 		g_oam_async_thread_pri = 13;
 
 gw_int8 g_oam_async_queue_name[]="oam_async_queue";
@@ -100,10 +100,10 @@ static gw_uint32 g_oam_pty_queue_id = 0,
 		g_oam_pty_data_szie = 128,
 		g_oam_pty_queue_pri = 3,
 		g_oam_pty_main_thread_id,
-		g_oam_pty_main_thread_stack_size = 8*1024,
+		g_oam_pty_main_thread_stack_size = 4*1024,
 		g_oam_pty_main_thread_pri = 14,
 		g_oam_pty_sub_thread_id,
-		g_oam_pty_sub_thread_stack_size = 8*1024,
+		g_oam_pty_sub_thread_stack_size = 4*1024,
 		g_oam_pty_sub_thread_pri = 14;
 
 static gw_uint8 g_oam_pty_queue_name[]="ptyqueue";
@@ -317,7 +317,7 @@ void init_oam_pty()
 void start_oamPtyCliThread()
 {
 	static gw_uint32 g_oam_pty_cli_thread_id,
-	g_oam_pty_cli_thread_stack_size = 8*1024,
+	g_oam_pty_cli_thread_stack_size = 4*1024,
 	g_oam_pty_cli_thread_pri = 14;
 
 	if(gw_thread_create(&g_oam_pty_cli_thread_id, "ptycli", gw_oam_pty_cli_thread_entry, NULL, g_oam_pty_cli_thread_stack_size,

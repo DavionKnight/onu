@@ -59,7 +59,7 @@
 
 #define EPON_ETHERTYPE_DOT1Q 0x8100
 #define LPB_OAM_SEND_INTERVAL 1
-#define LOOP_DETECT_THREAD_STACKSIZE     (8 * 1024)
+#define LOOP_DETECT_THREAD_STACKSIZE     (6 * 1024)
 
 LPB_CTRL_LIST *g_lpb_detect_ctrl_head = NULL, *g_lpb_detect_ctrl_tail = NULL;
 

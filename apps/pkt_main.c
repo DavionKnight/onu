@@ -19,7 +19,7 @@ typedef struct queue_para{
 
 gw_pkt_cb_func_t gw_pkt_cb_func_tab[GW_PKT_MAX];
 
-#define GW_PKT_THREAD_STACK_SIZE (8*1024)
+#define GW_PKT_THREAD_STACK_SIZE (4*1024)
 static gw_uint32 gw_pkt_threadid, gw_pkt_thread_prio = 13;
 static gw_uint8 gw_pkt_thread_name[]="GW_PKT_THREAD";
 
