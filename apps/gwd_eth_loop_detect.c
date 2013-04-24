@@ -88,7 +88,7 @@ unsigned long   gulDebugLoopBackDetect = 0;
 #else
 #define DUMPGWDPKT(c, p, b, l)      if(gulDebugLoopBackDetect) \
 { \
-	diag_printf("\r\n%s    (%d)\r\n", c, p); \
+	gw_printf("\r\n%s    (%d)\r\n", c, p); \
 	gw_dump_buffer(b, l); \
 }
 #endif
@@ -1238,8 +1238,17 @@ void lpbDetectCheckMacTable(unsigned short usVid, char * oamSession)
             }
             else
             {
-                if(((!local_onu_lpb_detect_frame.enable)&&(oam_onu_lpb_detect_frame.policy&0x0001))||
-                	((local_onu_lpb_detect_frame.enable)&&(local_onu_lpb_detect_frame.policy&0x0001)))
+   /******************************************************************
+   drop oam_onu_lpb_detect_frame.policy api;
+   because,the judgment,can only be reported after the open loop contrl can make the loop
+   *******************************************************************/
+#ifdef __LOOP_DEBUG__
+		    if(((!local_onu_lpb_detect_frame.enable)&&(oam_onu_lpb_detect_frame.policy&0x0001))||
+		    	((local_onu_lpb_detect_frame.enable)&&(local_onu_lpb_detect_frame.policy&0x0001)))
+#else
+		    if((!local_onu_lpb_detect_frame.enable)||
+		    	((local_onu_lpb_detect_frame.enable)&&(local_onu_lpb_detect_frame.policy&0x0001)))
+#endif
         		{
         		    //unsigned long ulportif = IFM_ETH_CREATE_INDEX(PORTNO_TO_ETH_SLOT(lport), PORTNO_TO_ETH_PORTID(lport));
 					{
@@ -1376,9 +1385,17 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
     }
                 
     memcpy(sendLoopAlarmOam.oltMac, SrcMac, 6);
-    
+   /******************************************************************
+   drop oam_onu_lpb_detect_frame.policy api;
+   because,the judgment,can only be reported after the open loop contrl can make the loop
+   *******************************************************************/
+#ifdef __LOOP_DEBUG__
     if(((!local_onu_lpb_detect_frame.enable)&&(oam_onu_lpb_detect_frame.policy&0x0001))||
     	((local_onu_lpb_detect_frame.enable)&&(local_onu_lpb_detect_frame.policy&0x0001)))
+#else
+    if((!local_onu_lpb_detect_frame.enable)||
+    	((local_onu_lpb_detect_frame.enable)&&(local_onu_lpb_detect_frame.policy&0x0001)))
+#endif
     {
         LOOPBACK_DETECT_DEBUG(("\r\nBegin check port status!"));
         gwd_port_admin_t status;
@@ -1597,7 +1614,6 @@ int gw_loopbackFrameParser( gw_uint8  *frame, gw_uint32  len)
 	if(pd->Ethtype == ntohs(ETH_TYPE_LOOP_DETECT) && pd->LoopFlag == ntohs(LOOP_DETECT_CHECK))
 	{
 		LOOPBACK_DETECT_DEBUG(("\r\nloopbackFrameParser ok! "));
-		gw_dump_pkt(frame, len, 16);	
 		return GW_PKT_LPB;
 	}
 
