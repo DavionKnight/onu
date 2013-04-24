@@ -2173,7 +2173,7 @@ int cmd_onu_mgt_config_product_hw_version_local(struct cli_def *cli, char *comma
 
 int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	int v_major, v_rel;
+	int v_major, v_rel, vb;
         
     // deal with help
     if(CLI_HELP_REQUESTED)
@@ -2188,18 +2188,23 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
             return gw_cli_arg_help(cli, 0,
                 "<1-9>", "Release version",
                  NULL);
+        case 3:
+        	return gw_cli_arg_help(cli, 0,
+        		"<1-9>", "Build version", NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
         }
     }
 
-    if(2 == argc)
+    if(3 == argc)
     {   
 		v_major = atoi(argv[0]);
 		v_rel = atoi(argv[1]);
+		vb = atoi(argv[2]);
 
-		sprintf(gw_onu_system_info_total.hw_version, "V%d.%d", 
-			v_major, v_rel);
+
+		sprintf(gw_onu_system_info_total.hw_version, "V%d.%db%d",
+			v_major, v_rel, vb);
         
 		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
 		{
