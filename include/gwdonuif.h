@@ -170,7 +170,8 @@ typedef gw_status (*libgwdonu_onu_reset)(gw_int32 a);
 
 typedef void      (*libgwdonu_onu_set_loopalm_led)();
 typedef gw_status (*libgwdonu_ver_get)(char * sw_ver, const int sw_ver_len, char *hw_ver, const int hw_ver_len);
-
+typedef gw_status(*libgwdonu_syslog_heandler_t)(gw_int32 telve,gw_int8* logstring,...);
+typedef gw_status(*libgwdonu_syslog_register_heandler_t)(libgwdonu_syslog_heandler_t handler);
 
 
 
@@ -230,6 +231,8 @@ typedef struct gwdonu_im_if_s{
 
 	libgwdonu_olt_mac_get_t			oltmacget;
 	libgwdonu_ver_get				onuverget;
+
+	libgwdonu_syslog_register_heandler_t     sysloghandler;
 
 
 }gwdonu_im_if_t;

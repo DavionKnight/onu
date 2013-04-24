@@ -97,6 +97,7 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 
 				call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
 				call_gwdonu_if_api(LIB_IF_SPECIAL_PKT_HANDLER_REGIST, 1, gwlib_sendPktToQueue);
+				call_gwdonu_if_api(LIB_IF_ONU_SYSLOG_REGIST, 1, gw_syslog);
 				GW_Onu_Sysinfo_Get();
 				call_gwdonu_if_api(LIB_IF_ONU_VER_GET, 4, gw_onu_system_info_total.sw_version, sizeof(gw_onu_system_info_total.sw_version),
 						gw_onu_system_info_total.hw_version, sizeof(gw_onu_system_info_total.hw_version));
@@ -423,7 +424,11 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "onu laser set if is null!\r\n");			
 			break;
-
+		case LIB_IF_ONU_SYSLOG_REGIST:
+			if(g_im_ifs->sysloghandler)
+				ret=(*g_im_ifs->sysloghandler)(va_arg(ap,libgwdonu_syslog_heandler_t));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "gwonu syslog handler if is null!\r\n");
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
