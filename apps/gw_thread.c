@@ -15,8 +15,8 @@
 #include "../include/gw_types.h"
 #include "../include/gw_os_api_core.h"
 
-#define BROAD_STORM_THREAD_PRIORITY 25
-#define BROADCAST_STORM_THREAD_STACKSIZE (2*4096)
+#define BROAD_STORM_THREAD_PRIORITY GW_OSAL_THREAD_PRIO_LOW
+#define BROADCAST_STORM_THREAD_STACKSIZE GW_OSAL_THREAD_STACK_SIZE_NORMAL
 gw_uint32 gw_broad_storm_id;
 extern void broad_storm_thread(void* data);
 /****************************************************

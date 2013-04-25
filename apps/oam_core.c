@@ -123,6 +123,7 @@ static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 static void OamPtyConnectReqPro(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen);
 static void OamPtyConFreeReqPro(GWTT_OAM_SESSION_INFO *pSeInf);
 static void OamPtyNotiMsgProcess(long int flag, long int fd);
+static void OamPtyShellTimerNoti();
 
 gw_status gwd_oam_cli_trans_send_out()
 {
@@ -317,13 +318,16 @@ void init_oam_pty()
 
 	}
 
+	gw_circle_timer_add(1000, OamPtyShellTimerNoti, NULL);
+
+
 }
 
 void start_oamPtyCliThread()
 {
 	static gw_uint32 g_oam_pty_cli_thread_id,
 	g_oam_pty_cli_thread_stack_size = 4*1024,
-	g_oam_pty_cli_thread_pri = 14;
+	g_oam_pty_cli_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL+10;
 
 	if(gw_thread_create(&g_oam_pty_cli_thread_id, "ptycli", gw_oam_pty_cli_thread_entry, NULL, g_oam_pty_cli_thread_stack_size,
 			g_oam_pty_cli_thread_pri, 0) != GW_OK)
@@ -398,6 +402,7 @@ void gw_oam_pty_main_thread_entry(gw_uint32 * para)
 					OamPtyNotiMsgProcess(aumsg[1], aumsg[3]);
 					break;
 				case PTY_TIMER_MSG:
+					OamPtyTimerMsgProcess();
 					break;
 				case PTY_ONU_LOSE:
 					break;
@@ -419,6 +424,36 @@ void OamPtyShellCloseNoti(long lFd)
 	if(GW_OK != gw_pri_queue_put(g_oam_pty_queue_id, lMsg, sizeof(lMsg), GW_OSAL_WAIT_FOREVER, 0))
 	{
 		gw_log(GW_LOG_LEVEL_DEBUG, ("OamPtyShellCloseNoti send msg fail!\r\n"));
+	}
+}
+
+void OamPtyShellTimerNoti()
+{
+	unsigned long   lMsg[4] = {0};
+
+	lMsg[0] = 0;
+    lMsg[1] = 0;
+    lMsg[2] = PTY_TIMER_MSG;
+    lMsg[3] = 0;
+
+	if(GW_OK != gw_pri_queue_put(g_oam_pty_queue_id, lMsg, sizeof(lMsg), GW_OSAL_WAIT_FOREVER, 0))
+	{
+		gw_log(GW_LOG_LEVEL_DEBUG, ("OamPtyShellTimerNoti send msg fail!\r\n"));
+	}
+}
+
+void OamPtyTimerMsgProcess()
+{
+	if( (gmCliPtyCtrl.lConnect))
+	{
+
+		gmCliPtyCtrl.lTimeOut++;
+
+		if(gmCliPtyCtrl.lTimeOut >= 30)
+		{
+			OamPtyShellCloseNoti(g_pty_master);
+			gw_log(GW_LOG_LEVEL_MINOR, "pty time out, closed!\r\n");
+		}
 	}
 }
 

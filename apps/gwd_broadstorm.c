@@ -27,13 +27,13 @@ extern gw_macaddr_t g_sys_mac;
 extern gw_uint32 g_uni_port_num;
 
 
-#define NUM_PORTS_PER_SYSTEM 5
+#define NUM_PORTS_PER_SYSTEM 26
 gw_uint64 gulCurrentpktCntIn[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulCurrentpktCntOut[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulOctRateIn[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulOctRateOut[NUM_PORTS_PER_SYSTEM-1] = {0};
-gw_uint64 gulLastTick4PortMon[NUM_PORTS_PER_SYSTEM-1] = {0};
-gw_uint64 gulCurrentTick4PortMon[NUM_PORTS_PER_SYSTEM-1] = {0};
+gw_uint32 gulLastTick4PortMon[NUM_PORTS_PER_SYSTEM-1] = {0};
+gw_uint32 gulCurrentTick4PortMon[NUM_PORTS_PER_SYSTEM-1] = {0};
 #define ENABLE 1
 
 gw_return_code_t gwd_onu_port_bcstorm_date_clear(gw_uint32 port)
@@ -97,6 +97,7 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 					 pd = (gw_onu_port_counter_t*)data;
 				}
 		}
+	gw_log(GW_LOG_LEVEL_INFO, "port %d broadcoast rx counter: %llu\r\n", port+1, pd->counter.RxBroadcasts);
 #ifdef __NOT_USE__
 	if(!gwd_portstats_get_current(port, stat_date)){
 	gw_printf("get gwd current port status fail\n");
@@ -104,6 +105,7 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 	}
 #endif
 	call_gwdonu_if_api(LIB_IF_SYSTERM_CURRENT_TIME_GET, 1, &gulCurrentTick4PortMon[port]);
+	gw_log(GW_LOG_LEVEL_INFO, "port %d time flag: %u\r\n", port+1, gulCurrentTick4PortMon[port]);
 #ifdef __NOT_USE__
 	gulCurrentTick4PortMon[port] = cyg_current_time();
 #endif
@@ -152,6 +154,7 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 	#endif
 		fRate = (gw_float)((0xFFFFFFFF - (gulCurrentpktCntIn[port] - pd->counter.RxBroadcasts)))/(gw_float)ulIntervalTick*1000;
 	}
+
 	gulCurrentpktCntIn[port] = pd->counter.RxBroadcasts;
 	#ifdef __DEBUG__
 	if(port == 0)
@@ -160,6 +163,8 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 		}
 	#endif
 	gulOctRateIn[port] = (gw_uint64)fRate;
+
+	gw_log(GW_LOG_LEVEL_INFO, "port %d broadcoast rate: %llu\r\n", port+1, gulOctRateIn[port]);
 	if ( pd->counter.TxBroadcasts >= gulCurrentpktCntOut[port] )
 	{
 		fRate = (gw_float)((pd->counter.TxBroadcasts - gulCurrentpktCntOut[port]))/(gw_float)ulIntervalTick*100;
@@ -192,7 +197,7 @@ void broad_storm_thread(void* data)
 	call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
 	while(GW_TRUE)
 		{
-			for(logical_port=1; logical_port < 5; logical_port++)
+			for(logical_port=1; logical_port <= gw_onu_read_port_num(); logical_port++)
 				{
 					if(gwd_logical_to_physical(logical_port,&physical_port))
 						return;

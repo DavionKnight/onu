@@ -64,6 +64,8 @@ enum{
 	LIB_IF_ONU_VER_GET,
 	LIB_IF_ONU_SYSLOG_REGIST,
 
+	LIB_IF_REG_OUT_HWVER_GET,
+
 };
 
 gw_status init_im_interfaces();

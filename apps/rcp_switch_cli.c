@@ -5567,7 +5567,7 @@ void rcp_dev_monitor(void * data)
 		}
 
 		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
-		gw_thread_delay(200);
+		gw_thread_delay(2000);
 
 		if(gulEnableEpswitchMgt)
 		{
