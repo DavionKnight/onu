@@ -81,7 +81,7 @@ static void gw_oam_snmp_rx_thread_entry(gw_uint32 * para)
 	while(1)
 	{
 		socklen_t socklen = sizeof(struct sockaddr);
-		memset(buf,0,2048);
+		memset(buf,0,len);
 		gw_int32 rxnum = recvfrom(s_oamsnmp_ser_sock, buf, len, 0, (struct sockaddr*)&s_oamsnmp_ser_sin, &socklen);
 
 		if(rxnum > 0)
@@ -91,7 +91,7 @@ static void gw_oam_snmp_rx_thread_entry(gw_uint32 * para)
 			CommOnuMsgSend(SNMP_TRAN_RESP, get_oamsnmp_send_no(), buf, rxnum, get_oamsnmp_session_id());
 		}
 
-		//gw_thread_delay(10);
+		gw_thread_delay(10);
 	}
 }
 

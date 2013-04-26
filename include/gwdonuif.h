@@ -154,7 +154,6 @@ typedef gw_status (*libgwdonu_onu_register_stat_get)(gw_uint8* onuregister);
 //typedef gw_status (*libgwdonu_onu_reset)(gw_int32 a);
 
 
-
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;

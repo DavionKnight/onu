@@ -5418,7 +5418,7 @@ int RCP_GetDevIndexByMac(oid *mac, unsigned long *devId)
 	}
 	if(flag == MAX_RRCP_SWITCH_TO_MANAGE)
 		return RCP_ERROR;
-	return RCP_OK;
+	return RCP_ERROR;
 }
 int RCP_GetValidIndex(oid *mac, unsigned long *index)
 {
@@ -5441,7 +5441,7 @@ int RCP_GetValidIndex(oid *mac, unsigned long *index)
 	}
 	if(flag == 0)
 		return RCP_ERROR;
-	return RCP_OK;
+	return RCP_ERROR;
 }
 int RCP_GetFirstIndex(unsigned long *index)
 {
@@ -5458,8 +5458,10 @@ int RCP_GetFirstIndex(unsigned long *index)
 			flag ++;
 	}
 	if(flag == MAX_RRCP_SWITCH_TO_MANAGE)
+		{
 		return RCP_ERROR;
-	return RCP_OK;
+		}
+	return RCP_ERROR;
 }
 int RCP_GetNextIndex(unsigned long index, unsigned long *nextIndex)
 {
@@ -5479,7 +5481,7 @@ int RCP_GetNextIndex(unsigned long index, unsigned long *nextIndex)
 	}
 	if(flag == MAX_RRCP_SWITCH_TO_MANAGE - index -1)
 		return RCP_ERROR;
-	return RCP_OK;
+	return RCP_ERROR;
 }
 #if 0
 int RCP_GetPortList16SNMP(unsigned short portList, unsigned short *newList)
