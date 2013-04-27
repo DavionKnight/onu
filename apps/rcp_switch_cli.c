@@ -301,6 +301,7 @@ int cli_int_interface_switch(struct cli_def *cli, char *command, char *argv[], i
 
         strcpy(prompt, ifName);
         gw_cli_set_configmode(cli, MODE_SWITCH, prompt);
+        gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
 //        free(my_onu);
     }
     else
@@ -5878,6 +5879,7 @@ int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv
     }
 
     gw_cli_set_configmode(cli, MODE_CONFIG, NULL);
+    gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
     return CLI_OK;
 }
 
@@ -5995,12 +5997,12 @@ void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root)
 //		gw_cli_register_command(cmd_root, NULL, "debug",    cmd_debug_mode_int, PRIVILEGE_PRIVILEGED,   MODE_CONFIG,    "Enter debug mode");
 //   		gw_cli_register_command(cmd_root, NULL, "regular",  cmd_debug_regular,  PRIVILEGE_PRIVILEGED,   MODE_DEBUG,     "Switch for regular callback");
 //    	gw_cli_register_command(cmd_root, NULL, "legacy",   cmd_debug_legacy,   PRIVILEGE_PRIVILEGED,   MODE_DEBUG,     "Switch to legacy console CLI");
-	get=gw_cli_register_command(cmd_root, NULL,  "get",   NULL,   						PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Get Rcp (register,eeprom,phy value or field)");
+	get=gw_cli_register_command(cmd_root, NULL,  "regget",   NULL,   						PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Get Rcp (register,eeprom,phy value or field)");
 		gw_cli_register_command(cmd_root, get,  "rcpreg",  cli_int_get_rcpreg ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Rcp register");
 	 	gw_cli_register_command(cmd_root, get,  "rcpeeprom", cli_int_get_rcpeeprom ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Rcp eeprom");		
 	 	gw_cli_register_command(cmd_root, get,  "rcpphy", cli_int_get_rcpphy ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Get phy value or field");		
 
-	set=gw_cli_register_command(cmd_root, NULL,  "set",  NULL ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Enable/Disable RCP switch mgt"); 
+	set=gw_cli_register_command(cmd_root, NULL,  "regset",  NULL ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Set Rcp (register,eeprom,phy value or field)");
 	 	gw_cli_register_command(cmd_root, set,  "rcpreg",  cli_int_set_rcpreg ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Rcp register");		
 	 	gw_cli_register_command(cmd_root, set,  "switch",  cli_int_set_switch ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Rcp register");		
 	 	gw_cli_register_command(cmd_root, set,  "rcpeeprom",  cli_int_set_rcpeeprom ,   		PRIVILEGE_PRIVILEGED, MODE_DEBUG,     "Rcp eeprom");		
