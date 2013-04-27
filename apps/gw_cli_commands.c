@@ -112,57 +112,58 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 int cmd_bsctrl_policy(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
-	//int portid = 0;
-	int len;
-	int storm_stat;
-	
-	if(CLI_HELP_REQUESTED)
-	{
-		switch (argc)
-		{
-			case 1:
-				return gw_cli_arg_help(cli, 0,
-					"[enable|disable]", "enable: port down; disable: only limit rate", NULL );
+    //int portid = 0;
+    int len;
+    int storm_stat;
 
-			default:
-				return gw_cli_arg_help(cli, argc > 1, NULL  );
-		}
-	}
-	len = strlen(argv[0]);
-	if(argc == 0)
-		{
-			storm_stat = broad_storm.gulBcStormStat? 1:0;
-			if(storm_stat)
-				gw_cli_print(cli,"port will be link down when broadcast storm happened.");
-			else
-				gw_cli_print(cli,"Port will be rate limit when broadcast storm happened.");
-		}
-	if(argc == 1)
-		{
-			if((strncmp("enable",argv[0],len)) && (strncmp("disable",argv[0],len)))
-				{
-					gw_cli_print(cli,"%% Invalid input.\n");
-					return CLI_ERROR;
-				}
-			else
-				{
-					if(!strncmp("enable",argv[0],len))
-						{
-							broad_storm.gulBcStormStat = PORT_DOWN_ENABLE;
-						}
-					if(!strncmp("disable",argv[0],len))
-						{
-							broad_storm.gulBcStormStat = PORT_DOWN_DISABLE;
-						}
-					gw_cli_print(cli,"set portdown stat success\n");
-				}
-		}
-	if(argc > 1)
-		{
-			gw_cli_print(cli,"%% Invalid input.\n");
-			return CLI_ERROR;
-		}
-	return CLI_OK;
+    if (CLI_HELP_REQUESTED)
+    {
+        switch (argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0, "[enable|disable]", "enable: port down; disable: only limit rate", NULL );
+
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL );
+        }
+    }
+
+    if (argc == 0)
+    {
+        storm_stat = broad_storm.gulBcStormStat ? 1 : 0;
+        if (storm_stat)
+            gw_cli_print(cli, "port will be link down when broadcast storm happened.");
+        else
+            gw_cli_print(cli, "Port will be rate limit when broadcast storm happened.");
+    }
+    if (argc == 1)
+    {
+
+        len = strlen(argv[0]);
+        if ((strncmp("enable", argv[0], len)) && (strncmp("disable", argv[0], len)))
+        {
+            gw_cli_print(cli, "%% Invalid input.\n");
+            return CLI_ERROR;
+        }
+        else
+        {
+            if (!strncmp("enable", argv[0], len))
+            {
+                broad_storm.gulBcStormStat = PORT_DOWN_ENABLE;
+            }
+            if (!strncmp("disable", argv[0], len))
+            {
+                broad_storm.gulBcStormStat = PORT_DOWN_DISABLE;
+            }
+            gw_cli_print(cli, "set portdown stat success\n");
+        }
+    }
+    if (argc > 1)
+    {
+        gw_cli_print(cli, "%% Invalid input.\n");
+        return CLI_ERROR;
+    }
+    return CLI_OK;
 }
 
 int cmd_bsctrl_threshold(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -176,7 +177,7 @@ int cmd_bsctrl_threshold(struct cli_def *cli, char *command, char *argv[], int a
         switch (argc)
         {
         case 1:
-            return gw_cli_arg_help(cli, 0, "<10-2000000>", "unit: packets per second", NULL );
+            return gw_cli_arg_help(cli, 0, "{<10-2000000>}*1", "unit: packets per second", NULL );
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL );
         }
@@ -197,12 +198,17 @@ int cmd_bsctrl_threshold(struct cli_def *cli, char *command, char *argv[], int a
     }
     else
     {
-        gw_cli_print(cli, "%% Invalid input.\n");
+        gw_uint64 threshold;
+
+        threshold = broad_storm.gulBcStormThreshold;
+
+        gw_cli_print(cli,"broadcast storm threshold %lld",threshold);
     }
 
     return CLI_OK;
 }
 
+/*
 int cmd_bsctrl_threshold_get(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	gw_uint64 threshold;
@@ -212,6 +218,8 @@ int cmd_bsctrl_threshold_get(struct cli_def *cli, char *command, char *argv[], i
 	gw_cli_print(cli,"broadcast storm threshold %lld",threshold);
 	return CLI_OK;
 }
+*/
+
 typedef struct gw_timers{
 	int gw_year;
 	char gw_a;
@@ -324,7 +332,7 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 	cp = gw_cli_register_command(cmd_root, cp, "storm", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast storm config");
 	gw_cli_register_command(cmd_root, cp, "portdown", cmd_bsctrl_policy, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port down config");
 	gw_cli_register_command(cmd_root, cp, "threshold", cmd_bsctrl_threshold, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config");
-	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");
+//	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");
 //	time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
 //	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
 
