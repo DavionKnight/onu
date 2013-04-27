@@ -133,6 +133,7 @@ unsigned short eeVlan[] =
 	
 gw_int32	semAccessRcpDevList;
 gw_int32	semAccessRcpChannel;
+gw_int32    semAccessRcpRegList;
 
 extern unsigned long vlan_dot_1q_enable;
 extern unsigned long gulEthRxTaskReady;
@@ -301,6 +302,7 @@ int RCP_Init(void)
 
 	gw_rcp_sem_create(&semAccessRcpDevList,"rcp_devlst",1);
 	gw_rcp_sem_create(&semAccessRcpChannel, "rcp_chan",1);
+	gw_rcp_sem_create(&semAccessRcpRegList, "rcp reglist", 1);
 
 	return RCP_OK;
 }
@@ -309,7 +311,7 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 {
 	RCP_HELLO_PAYLOAD *payload;
 	unsigned short usAuthenkey;
-	gw_rcp_sem_give(semAccessRcpChannel);
+//	gw_rcp_sem_give(semAccessRcpChannel); comment by wangxy 2013-04-25
 
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
 		return RCP_BAD_PARAM;
@@ -319,7 +321,7 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 	if(RCP_OK != Rcp_ChipId_AuthCheck(pkt))
 		return RCP_UNKOWN;
 
-	gw_rcp_sem_take(semAccessRcpDevList, 2000);
+	gw_rcp_sem_take(semAccessRcpDevList, GW_OSAL_WAIT_FOREVER);
 	
 	payload = (RCP_HELLO_PAYLOAD *)(pkt + RCP_HELLO_PAYLOAD_OFFSET); 
 	if(NULL == rcpDevList[parentPort])
@@ -413,16 +415,31 @@ int RCP_RegList_Update(unsigned long parentPort, char *pkt)
 		return RCP_UNKOWN;
 	}
 	regAddress = GET_RCP_PKT_SHORT(payload->regAddress);
+
+	RCP_DEBUG(("\r\n%s reg address 0x%x\r\n", __func__, regAddress));
+
+	RCP_DEBUG(("%s lock reg access list 0x%x\r\n", __func__, regAddress));
+
+	gw_semaphore_wait(semAccessRcpRegList, GW_OSAL_WAIT_FOREVER);
+
 	if(NULL == (pstRcpReg = RCP_RegList_Search(rcpDevList[parentPort], regAddress)))
 	{
 		RCP_DEBUG(("\r\n  RCP_RegList_Update : NOT found 0x%x!", regAddress));
+		gw_semaphore_post(semAccessRcpRegList);
 		return RCP_NO_SUCH;
 	}
 	
+	RCP_DEBUG(("%s get reg op var %p\r\n", __func__, pstRcpReg));
+
 	pstRcpReg->value = GET_RCP_PKT_LONG(payload->regValue);
 	pstRcpReg->validFlag = 1;
+
 	gw_rcp_sem_give(pstRcpReg->semAccess);
+
+	gw_semaphore_post(semAccessRcpRegList);
 	
+	RCP_DEBUG(("%s unlock reg access list 0x%x\r\n", __func__, regAddress));
+
 	return RCP_OK;
 }
 
@@ -448,7 +465,7 @@ RCP_REG *RCP_RegList_Search(RCP_DEV *dev, unsigned short regAddr)
 
 	for(i=0; i<MAX_RTL_REG_TO_ACCESS; i++)
 	{
-		if(regAddr == rcpRegList[i]->address)
+		if(rcpRegList[i] && (regAddr == rcpRegList[i]->address))
 		{
 			if(0 == memcmp(dev->switchMac, rcpRegList[i]->dev->switchMac, RCP_MAC_SIZE))
 				return rcpRegList[i];
@@ -499,15 +516,25 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 
 	memset(pReg, 0, sizeof(RCP_REG));
 	pReg->address = regAddr;
-	dev->semCreate(&(pReg->semAccess), "read_reg",0);
 	pReg->dev = dev;
+	if(dev->semCreate(&(pReg->semAccess), "read_reg",0) != GW_OK)
+	{
+	    free(pReg);
+	    return RCP_ERROR;
+	}
+
 	
+	gw_semaphore_wait(semAccessRcpRegList, GW_OSAL_WAIT_FOREVER);
+
 	/* Insert the node to the list */
 	if(RCP_OK != (iRet = RCP_RegList_Insert(pReg)))
 		{
+	    dev->semDelete(pReg->semAccess);
+	    free(pReg); //added by wangxy for mem leak;
+	    gw_semaphore_post(semAccessRcpRegList);
 		return iRet;
 		}
-
+	gw_semaphore_post(semAccessRcpRegList);
 	/* Send GET packet */
 	/*if(NULL == ctss_packet_send_by_port_hook)
 	{
@@ -555,6 +582,7 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
 	}
 	if(dev->semTake(semAccessRcpChannel,RCP_RESPONSE_TIMEOUT))
+//	if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 	{
 		RCP_DEBUG(("\r\n  RCP_Read_Reg : semAccessRcpChannel timedout!"));
 	}
@@ -566,6 +594,8 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		/*if(NULL != rcpPktBuf) free(rcpPktBuf);*/
 		goto ERROR_RETURN;
 	}
+
+	RCP_DEBUG(("\r\n %s take semaccess\r\n", __func__));
 
 	/* Wait until reply received */
 	if(dev->semTake(pReg->semAccess, RCP_RESPONSE_TIMEOUT))
@@ -584,14 +614,25 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		iRet = RCP_UNKOWN;
 	}
 
+	RCP_DEBUG(("\r\n %s give semaccess\r\n", __func__));
 	dev->semGive(pReg->semAccess);
 
 ERROR_RETURN:
+//	dev->semGive(semAccessRcpChannel);
+
+    RCP_DEBUG(("\r\n ERROR_RETURN: %s give semaccess\r\n", __func__));
+	dev->semDelete(pReg->semAccess);
+
+	RCP_DEBUG(("%s lock reg access list 0x%x\r\n", __func__, pReg->address));
+	gw_semaphore_wait(semAccessRcpRegList, GW_OSAL_WAIT_FOREVER);
+	RCP_RegList_Delete(pReg);
+	RCP_DEBUG(("%s free access reg var %p\r\n", __func__, pReg));
+	free(pReg);
+	gw_semaphore_post(semAccessRcpRegList);
+	RCP_DEBUG(("%s unlock reg access list\r\n", __func__));
+
 	dev->semGive(semAccessRcpChannel);
 
-	dev->semDelete(pReg->semAccess);
-	RCP_RegList_Delete(pReg);
-	free(pReg);
 	return iRet;
 }
 
@@ -668,6 +709,7 @@ int RCP_Read_32bit_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned long *data
 		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
 	}
 	if(gw_rcp_sem_take(semAccessRcpChannel, RCP_RESPONSE_TIMEOUT))
+//	if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 	{
 		RCP_DEBUG(("\r\n  RCP_Read_32bit_Reg : semAccessRcpChannel timedout!"));
 	}
@@ -774,6 +816,7 @@ int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 	}
 
 	if(gw_rcp_sem_take(semAccessRcpChannel, 1000))
+//	if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 		{
 			gw_printf("wait error\n");
 		}
@@ -862,6 +905,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 			memcpy(rcpPktBuf + 16, authKey, 2);
 		}
 		if(gw_rcp_sem_take(semAccessRcpChannel, 200))
+//		if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 		{
 			RCP_DEBUG(("\r\n  Unicast Hello semAccessRcpChannel timedout! "));
 		}
@@ -915,6 +959,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 				memcpy(rcpPktBuf + 16, authKey, 2);
 			}
 			if(gw_rcp_sem_take(semAccessRcpChannel,200))
+//			if(gw_rcp_sem_take(semAccessRcpChannel,GW_OSAL_WAIT_FOREVER))
 			{
 				RCP_DEBUG(("\r\n  Braodcast Hello semAccessRcpChannel timedout!"));
 			}
@@ -6667,9 +6712,32 @@ gw_int32 gw_rcppktparser(gw_int8 *pkt, gw_int32 len)
 	return ret;
 }
 
+extern gw_uint32 rcp_rcv_queue_id;
 gw_status gw_rcppktHandler(gw_int8 *pkt, gw_int32 len, gw_int32 portid)
 {
-	return (RcpFrameRevHandle(portid,  len, pkt) == 1)?GW_OK:GW_ERROR;
+    RCP_MSG_T msg;
+    gw_uint8 * data = malloc(len);
+
+    if (data)
+    {
+        memcpy(data, pkt, len);
+
+        msg.portid = portid;
+        msg.len = len;
+        msg.pkt = data;
+
+        if (gw_pri_queue_put(rcp_rcv_queue_id, &msg, sizeof(RCP_MSG_T), GW_OSAL_WAIT_FOREVER, 0) != GW_OK)
+        {
+            free(data);
+            return GW_ERROR;
+        }
+        else
+            return GW_OK;
+    }
+    else
+        return GW_ERROR;
+
+//	return (RcpFrameRevHandle(portid,  len, pkt) == 1)?GW_OK:GW_ERROR;
 }
 
 gw_int32 RcpFrameRevHandle(gw_uint32 portid ,gw_uint32  len, gw_uint8  *frame)
@@ -6682,9 +6750,11 @@ gw_int32 RcpFrameRevHandle(gw_uint32 portid ,gw_uint32  len, gw_uint8  *frame)
         return 0;
     }
 
+#if 0
     RCP_DEBUG(("\r\n------------------------------------ "));
     DUMPRCPPKT("\r\nRcpFrameRcv : ", portid, frame, len);
     RCP_DEBUG(("\r\n------------------------------------ "));
+#endif
     
 	/* Tagged or not? */
 	if((frame[12]==0x81) && (frame[13]==0))

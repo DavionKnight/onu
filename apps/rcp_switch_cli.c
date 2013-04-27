@@ -197,7 +197,8 @@ unsigned char rcp_thread_stack[RCP_THREAD_STACKSIZE];
 cyg_handle_t  rcp_thread_handle;
 cyg_thread    rcp_thread_obj;
 #else
-gw_uint32 rcp_thread_id;
+gw_uint32 rcp_thread_id, rcp_rcv_handle_thread_id;
+gw_uint32 rcp_rcv_queue_id;
 #endif
 unsigned long gulEnableEpswitchMgt = 1;
 extern unsigned long gulGwdRcpAuth;
@@ -5468,6 +5469,33 @@ int cli_int_switch_manage_auth(struct cli_def *cli, char *command, char *argv[],
         return CLI_OK;
 }
 
+void rcp_rcv_handll_thread(void * data)
+{
+    RCP_MSG_T msg;
+    gw_uint32 len = 0;
+
+    while(1)
+    {
+        if(gw_pri_queue_get(rcp_rcv_queue_id, &msg, sizeof(msg), &len, GW_OSAL_WAIT_FOREVER) == GW_OK)
+        {
+            if(len >= sizeof(RCP_MSG_T))
+            {
+                gw_uint32 portid, len;
+                gw_uint8 * pkt = NULL;
+
+                pkt = msg.pkt;
+                portid = msg.portid;
+                len = msg.len;
+
+                RcpFrameRevHandle(portid, len, pkt);
+
+                free(pkt);
+            }
+        }
+
+    }
+}
+
 /*
  ** Tasks
  */
@@ -5806,6 +5834,21 @@ void start_rcp_device_monitor(void)
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp monitor thread created fail!\r\n");
+
+	if(gw_pri_queue_create(&rcp_rcv_queue_id, "rcp_rcv_queue", 100, sizeof(RCP_MSG_T), 3) == GW_OK)
+	{
+
+        if(GW_OK != gw_thread_create(&rcp_rcv_handle_thread_id,
+                "rcp_rcv_hanler",
+                rcp_rcv_handll_thread,
+                NULL,
+                8*1024,
+                (GW_OSAL_THREAD_PRIO_NORMAL+10),
+                0))
+            gw_log(GW_LOG_LEVEL_MINOR, "rcp recv handler thread create fail!\r\n");
+	}
+	else
+	    gw_log(GW_LOG_LEVEL_MINOR, "rcp recv queue create fail!\r\n");
 
 	//VOS_TaskCreateEx("tRcpM", rcp_dev_monitor, 220, 4*1024, NULL);
 	//VOS_TaskCreateEx("tLoopM", rcp_loopdetect, 220, 4*1024, NULL);

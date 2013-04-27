@@ -872,9 +872,9 @@ typedef int (*RCP_SEM_TAKE)(
 typedef void (*RCP_SEM_GIVE)(
 						cyg_sem_t *semId);
 #else
-typedef void (*RCP_SEM_CREATE)(
+typedef int (*RCP_SEM_CREATE)(
 						unsigned int  *semId, unsigned char *name, int initVal);
-typedef void (*RCP_SEM_DELETE)(
+typedef int (*RCP_SEM_DELETE)(
 						unsigned int semId);
 typedef int (*RCP_SEM_TAKE)(
 						unsigned int semId, unsigned long timOut);
@@ -1026,6 +1026,13 @@ typedef struct _RCP_PPORT_MAP
 {
 	RCP_PPORT_INFO P2Lmap[25];
 }RCP_PPORT_MAP;
+
+typedef struct _RCP_MSG_
+{
+    unsigned long int portid;
+    unsigned long int len;
+    unsigned char *   pkt;
+}RCP_MSG_T;
 
 #define RCP_MAX_PORTS_PER_UNIT	24
 #define RCP_MAX_PORTS_PER_SLOT	24

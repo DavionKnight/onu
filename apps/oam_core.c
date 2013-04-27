@@ -326,7 +326,7 @@ void init_oam_pty()
 void start_oamPtyCliThread()
 {
 	static gw_uint32 g_oam_pty_cli_thread_id,
-	g_oam_pty_cli_thread_stack_size = 4*1024,
+	g_oam_pty_cli_thread_stack_size = 16*1024,
 	g_oam_pty_cli_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL+10;
 
 	if(gw_thread_create(&g_oam_pty_cli_thread_id, "ptycli", gw_oam_pty_cli_thread_entry, NULL, g_oam_pty_cli_thread_stack_size,
