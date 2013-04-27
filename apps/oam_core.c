@@ -98,6 +98,10 @@ gw_uint8 g_pty_dev_name[]="oampty";
 
 gw_int32 g_pty_master, g_pty_slave, g_pty_id;
 
+static gw_uint32 g_oam_pty_cli_thread_id = GW_OSAL_MAX_THREAD,
+g_oam_pty_cli_thread_stack_size = 16*1024,
+g_oam_pty_cli_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL+10;
+
 static CLI_PTY_CTRL gmCliPtyCtrl = {0,0,{0},0, 0, 0};
 
 static gw_uint32 g_oam_pty_queue_id = 0,
@@ -187,7 +191,7 @@ void gw_oam_async_thread_entry(gw_uint32 * para)
 			{
 				GWTT_OAM_MESSAGE_NODE * msg = (GWTT_OAM_MESSAGE_NODE*)buf;
 
-				gw_dump_pkt((gw_int8*)msg->pPayLoad, msg->RevPktLen, 16);
+				gw_dump_pkt(msg->pPayLoad, msg->RevPktLen, 16);
 				gw_log(GW_LOG_LEVEL_DEBUG, "\r\n");
 
 				switch(msg->GwOpcode)
@@ -325,13 +329,12 @@ void init_oam_pty()
 
 void start_oamPtyCliThread()
 {
-	static gw_uint32 g_oam_pty_cli_thread_id,
-	g_oam_pty_cli_thread_stack_size = 16*1024,
-	g_oam_pty_cli_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL+10;
-
-	if(gw_thread_create(&g_oam_pty_cli_thread_id, "ptycli", gw_oam_pty_cli_thread_entry, NULL, g_oam_pty_cli_thread_stack_size,
-			g_oam_pty_cli_thread_pri, 0) != GW_OK)
-		gw_log(GW_LOG_LEVEL_DEBUG,("create %s fail !\r\n", "testpty"));
+	if(g_oam_pty_cli_thread_id == GW_OSAL_MAX_THREAD)
+	{
+        if(gw_thread_create(&g_oam_pty_cli_thread_id, "ptycli", gw_oam_pty_cli_thread_entry, NULL, g_oam_pty_cli_thread_stack_size,
+                g_oam_pty_cli_thread_pri, 0) != GW_OK)
+            gw_log(GW_LOG_LEVEL_DEBUG,("create %s fail !\r\n", "testpty"));
+	}
 }
 
 void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
@@ -474,6 +477,10 @@ void OamPtyNotiMsgProcess(long int flag, long int fd)
 		gmCliPtyCtrl.lFd = 0;
 
 		memset(gmCliPtyCtrl.bSessionId, 0, sizeof(gmCliPtyCtrl.bSessionId));
+
+		gw_thread_delete(g_oam_pty_cli_thread_id);
+
+		g_oam_pty_cli_thread_id = GW_OSAL_MAX_THREAD;
 	}
 }
 
@@ -649,7 +656,7 @@ static void OamPtyConFreeReqPro(GWTT_OAM_SESSION_INFO *pSeInf)
 
 			CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, bResBuf, 2, pSeInf->SessionID);
 
-			pty_write(gmCliPtyCtrl.lFd, bQuitCmd, 3);                    /*Ä£Äâ·¢ËÍquit*/
+//			pty_write(gmCliPtyCtrl.lFd, bQuitCmd, 3);                    /*Ä£Äâ·¢ËÍquit*/
 
 			gw_thread_delay(100);
 
