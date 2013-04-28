@@ -19,6 +19,7 @@ char   g_cSetTime[20]= {0};
 
 #define BC_STORM_THRESHOLD_MAX 2000000
 #define BC_STORM_THRESHOLD_LAS 10
+int cli_printf_delay = 100;
 static void show_port_statistic(struct cli_def * cli, int portid)
 {
 
@@ -47,21 +48,39 @@ static void show_port_statistic(struct cli_def * cli, int portid)
 				gw_onu_port_counter_t * pd = (gw_onu_port_counter_t*) data;
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT32,
 						"In bytes rate", pd->rxrate, "Out bytes rate", pd->txrate);
+                gw_thread_delay(cli_printf_delay);                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In bytes", pd->counter.RxOctetsOKLsb, "Out bytes", pd->counter.TxOctetsOk);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In total pkts", pd->counter.RxFramesOk, "Out total pkts", pd->counter.TxFramesOk);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In unicast pkts",  pd->counter.RxUnicasts, "Out unicast pkts", pd->counter.TxUnicasts);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In multicast pkts",  pd->counter.RxMulticasts, "Out multicast pkts", pd->counter.TxMulticasts);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
 						"In broadcast pkts", 	pd->counter.RxBroadcasts, "Out broadcast pkts",pd->counter.TxBroadcasts);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT, "In pause pkts", pd->counter.RxPause, "Out pause pkts", pd->counter.TxPause);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,
-						"In crc error pkts", pd->counter.RxError, "Out crc error pkts", pd->counter.TxError);
+						"In crc error pkts", pd->counter.RxFCSErrors, "Out crc error pkts", pd->counter.TxError);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT,	"In jumbo pkts", pd->counter.RxJumboOctets, "Out jumbo pkts", pd->counter.TxJumboOctets);
+                gw_thread_delay(cli_printf_delay);                
+                
 				gw_cli_print(cli, DUMP_PORT_STAT_FMT, "In undersize pkts", pd->counter.RxUndersize, "Out undersize pkts", (long long unsigned int)0);
+                gw_thread_delay(cli_printf_delay);                                
 
 			}
 			free(data);
@@ -91,17 +110,17 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 	if(argc == 1)
 	{
 		portid = atoi(argv[0]);
+    	gw_cli_print(cli,"\n===========================port %d stat===========================",portid);
 		show_port_statistic(cli, portid);
 	}
 	else
 	{		
 		for (i = 1; i <= gw_onu_read_port_num(); i++)
 			{
-				gw_cli_print(cli,"===========================port %d stat===========================",i);
-				show_port_statistic(cli, i);
-				gw_thread_delay(100);
+				gw_cli_print(cli,"\n===========================port %d stat===========================",i);
+                gw_thread_delay(cli_printf_delay);                                
+				show_port_statistic(cli, i);                
 			}
-
 	}
 
 	

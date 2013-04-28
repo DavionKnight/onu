@@ -115,13 +115,24 @@ static gw_uint32 g_oam_pty_queue_id = 0,
 		g_oam_pty_sub_thread_stack_size = GW_OSAL_THREAD_STACK_SIZE_HUGE,
 		g_oam_pty_sub_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL;
 
+static gw_uint32 g_oam_relay_queue_id = 0,
+		g_oam_relay_queue_deepth = 200,
+		g_oam_relay_data_szie = 128,
+		g_oam_relay_queue_pri = 4,
+		g_oam_relay_thread_id,
+		g_oam_relay_thread_stack_size = GW_OSAL_THREAD_STACK_SIZE_NORMAL,
+		g_oam_relay_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL;
+
 static gw_uint8 g_oam_pty_queue_name[]="ptyqueue";
 static gw_uint8 g_oam_pty_main_thread_name[]="ptymthread";
 static gw_uint8 g_oam_pty_sub_thread_name[]="ptysthread";
 
+static gw_uint8 g_oam_relay_queue_name[]="oamrelayqueue";
+static gw_uint8 g_oam_relay_thread_name[]="oamrelaythread";
 void gw_oam_pty_main_thread_entry(gw_uint32 * para);
 void gw_oam_pty_sub_thread_entry(gw_uint32 * para);
 void gw_oam_pty_cli_thread_entry(gw_uint32 * para);
+void gw_oam_relay_thread_entry(gw_uint32 * para);
 
 static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen);
 static void OamPtyConnectReqPro(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen);
@@ -326,7 +337,25 @@ void init_oam_pty()
 
 
 }
+void init_oam_send_relay()
+{
+		if(gw_pri_queue_create(&g_oam_relay_queue_id, g_oam_relay_queue_name, g_oam_relay_queue_deepth,
+				g_oam_relay_data_szie, g_oam_relay_queue_pri) != GW_OK)
+		{
+			gw_log(GW_LOG_LEVEL_DEBUG, ("create %s fail!\r\n", g_oam_relay_queue_name));
+			return;
+		}
 
+		if(gw_thread_create(&g_oam_relay_thread_id, g_oam_relay_thread_name,
+				gw_oam_relay_thread_entry, NULL, g_oam_relay_thread_stack_size,
+				g_oam_relay_thread_pri, 0) != GW_OK)
+		{
+			gw_queue_delete(g_oam_relay_queue_id);
+			gw_log(GW_LOG_LEVEL_DEBUG,("create %s fail !\r\n", g_oam_relay_thread_name));
+			return;
+		}
+    
+}
 void start_oamPtyCliThread()
 {
 	if(g_oam_pty_cli_thread_id == GW_OSAL_MAX_THREAD)
@@ -347,7 +376,9 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 		memset(rdata, 0, sizeof(rdata));
 		length = pty_read(g_pty_master, rdata+1, sizeof(rdata)-1);
 		if(length > 0)
-		{
+		{ 
+            //gw_int32 data[4];
+            //char *pdata = malloc(length+1);
 			rdata[length+1] = 0;
 #if 0
 			gw_printf("pty sub thread recv:\r\n");
@@ -356,7 +387,33 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 #endif
 			rdata[0] = 6;
 //			*(gw_uint16*)(rdata+1) = htons(length);
+#if 0
+            if(pdata)
+            {                
+                memcpy(pdata, rdata, length+1);
+                data[0] = 0;
+            	data[1] = OAM_RELAY;
+            	data[2] = (gw_uint32)pdata;
+            	data[3] = length+1;                            
+            }
+            else
+            {
+                
+        		gw_log(GW_LOG_LEVEL_DEBUG, ("oam relay thread molloc fail!\r\n"));
+                continue;
+            }
+#endif            
+#if 1
 			CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, rdata, length+1, gmCliPtyCtrl.bSessionId);
+#else
+        	if(GW_OK != gw_pri_queue_put(g_oam_relay_queue_id, data, sizeof(data), GW_OSAL_WAIT_FOREVER, 0))
+        	{
+        		free(pdata);
+        		gw_log(GW_LOG_LEVEL_DEBUG, ("oam relay queue put fail!\r\n"));
+        		return GW_ERROR;
+        	}
+
+#endif
 		}
 	}
 }
@@ -412,6 +469,33 @@ void gw_oam_pty_main_thread_entry(gw_uint32 * para)
 				}
 			}
 		}
+	}
+}
+void gw_oam_relay_thread_entry(gw_uint32 * para)
+{
+	gw_uint32 aumsg[4], len = 0;
+
+	while(1)
+	{
+        len = 0;
+		if(gw_pri_queue_get(g_oam_relay_queue_id, aumsg, sizeof(aumsg), &len, GW_OSAL_WAIT_FOREVER) == GW_OK)
+		{
+			if(len > 0)
+			{
+   				switch(aumsg[1])
+				{
+				case OAM_RELAY:
+        			CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, (unsigned char *)aumsg[2], (unsigned short)aumsg[3], gmCliPtyCtrl.bSessionId);
+					break;
+				default:
+					break;
+				}
+                if(aumsg[2])
+                    free((unsigned char *)aumsg[2]);
+			}
+		}
+		gw_thread_delay(5);
+        
 	}
 }
 
