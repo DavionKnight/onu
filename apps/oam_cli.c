@@ -113,7 +113,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 		}
 	}
 	else
-		gw_cli_print(cli, "  nvalid input!\r\n");
+		gw_cli_print(cli, "  Invalid input!\r\n");
 	
 
 	return CLI_OK;
@@ -212,6 +212,7 @@ int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int arg
 			{
 				flag = 1;
 				gw_cli_print(cli, "%s\r\n", pbuf);
+                gw_thread_delay(100);                                                
 			}
 		}
 		if(!flag)

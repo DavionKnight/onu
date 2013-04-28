@@ -83,7 +83,7 @@ typedef struct TLV_Classification_Marking_Entry
 										 * 0x02��������̫�����ȼ�Pri��IEEE 802.1D�����ࣻ
 										 * 0x03������VLAN ID���ࣻ
 										 * 0x04��������̫�����ͣ�0x8808��0x8809��0x88A8�ȡ���Ҫָ��̫��
-										 * ֡�е�ԭʼ��Length/EtherType������VLAN tag�е�TPID�򣩣�
+										 * ֡�е�ԭʼ��Length/EtherType������VLAN tag�е�TPID��������
 										 * 0x05������Ŀ��IP��ַ���ࣻ
 										 * 0x06������ԴIP��ַ���ࣻ
 										 * 0x07������IPЭ�����ͣ�IP��ICMP��IGMP�ȣ�
@@ -93,7 +93,7 @@ typedef struct TLV_Classification_Marking_Entry
 										 * 0x0B������L4 Ŀ��PORT���ࣻ
 										 * ����ʽ���塣 */
 	unsigned char value[6];				/* ��1��������ƥ��ֵ��������Ӧ����С��6�ֽڣ�����VLAN Pri=1
-										 * ��Ϊƥ���򣩣��������λ���뽫��ƥ��ֵ���ڱ�6�ֽڵ�
+										 * ��Ϊƥ�����������������λ���뽫��ƥ��ֵ���ڱ�6�ֽڵ�
 										 * ���λ����Ӧ��ƥ��ֵΪ0x00 00 00 00 00 01���� */
 	unsigned char match_op;				/*  0x00 F Never match
 										 * 0x01 == Field Equal to value
@@ -114,7 +114,7 @@ typedef struct TLV_Classification_Marking
 										 * ��ֵΪ0x00��0x07�����ֽ�ȱʡֵΪ0x00���籾�ֽڵ�ֵ
 										 * Ϊ0xFF������ζ�ŶԷ�ϸ�������֡���������ȼ���ǡ� */
 	unsigned char entry_num;			/* �������������������entries������������ж��������������
-										 * Ϊ���field-value-operator�򣬼���ζ�ű���ͬʱ���������������
+										 * Ϊ���field-value-operator����������ζ�ű���ͬʱ���������������
 										 * ����ִ����������action�� */
 	TLV_CLASSIFICATION_MARKING_ENTRY entry[1];
 } __attribute__ ((packed)) TLV_CLASSIFICATION_MARKING;
@@ -222,7 +222,7 @@ extern unsigned long   gulDebugOamFileOp;
 #define OAM_DATA_LEN				65535
 #define OAM_OVERHEAD_LEN_STD		22	/* DA/SA/Len/Sub/Flag/Code/FCS */
 #define OAM_OVERHEAD_LEN_GW			22	/* OUI/Op/Ser/WLen/POff/PLen/SnID/ */
-#define OAM_MAX_FRAM_SIZE 			(106-22)	/*GW˽��֡���ɵ���󳤶� */
+#define OAM_MAX_FRAM_SIZE 			(106-22)	/*GW˽��֡���ɵ���������� */
 #define OAM_MIN_FRAM_SIZE			20	/*GW˽��֡���ɵ���С���� */
 
 /* OAM opCode definations */
@@ -526,6 +526,7 @@ modified by wangxiaoyu 2008-12-25 IP_RESOURCE_ALLOC value 10-->12
 #define PTY_TIMER_MSG       0x08
 #define PTY_ONU_LOSE        0x09
 
+#define OAM_RELAY           0x10 
 #if (RPU_MODULE_IGMP_TVM == RPU_YES)
 enum IGMP_TVM_OAM_ENABLE
 {
@@ -630,7 +631,7 @@ typedef struct _file_op_session_ctl_block
 #define Leaf_aAutoNegLocalTechnologyAbility	0x0052	/* actual port capabilities, 0x07 */
 #define Leaf_aAutoNegAdvertisedTechnologyAbility	0x0053	/* �˿���Э������ͨ��, 0x07 */
 #define Leaf_acAutoNegRestartAutoConfig	0x000b	/* ǿ����·����Э��, 0x09 */
-#define Leaf_acAutoNegAdminControl	0x000c	/* �򿪻��߹ر�PHY�˿ڵ���Э�̹���, 0x09 */
+#define Leaf_acAutoNegAdminControl	0x000c	/* ���������߹ر�PHY�˿ڵ���Э�̹���, 0x09 */
 #define Leaf_aFECAbility			0x0139	/* FEC������ѯ��IEEE 802.3-2005 Clause 30.5.1.1.13��, 0x07 */
 #define Leaf_aFECmode			0x013a	/* ˫��FEC���ܵĴ�/�رգ�IEEE 802.3-2005 Clause30.5.1.1.14��, 0x07 */
 
@@ -641,7 +642,7 @@ typedef struct _file_op_session_ctl_block
 #define CLASS_MARK_DEL			0x00	/* ɾ��������Classification��Queuing&Marking���ƹ�������Set Variable Request��Ϣ��*/
 #define CLASS_MARK_ADD			0x01	/* ����������Classification��Queuing&Marking���ƹ�������Set Variable Request��Ϣ��*/
 #define CLASS_MARK_CLR			0x02	/* ���ONU��Classification��Queuing&Marking���Ʊ?��ɾ���ONU����
-										    �ķ��ࡢ�ŶӺͱ�ǹ��򣩣��ò������ͽ�����Set Variable
+										    �ķ��ࡢ�ŶӺͱ�ǹ����������ò������ͽ�����Set Variable
 										    Request��Ϣ������containerΪ�˲�������ʱ�����ֽں���û���������*/
 #define CLASS_MARK_GET			0x03	/* �г���ONU���е�Classification��Queuing&Marking������Ŀ����
 										     ��Get Variable Request/Response��Ϣ)������container����Get Variable Requestʱ��
@@ -764,7 +765,7 @@ unsigned char	enable;		//�Ƿ�ʹ�ܹ��ܣ���OLT�����
 unsigned short	vid;			//���в��Ե�VLAN, 0:ONU��������VLAN
 unsigned char	smac[6];	//�����õ�ԴMAC
 unsigned short	interval;		//OLT������֡�ļ��ʱ��s
-unsigned short	policy;		//���򣬼��Ƿ�رն˿�
+unsigned short	policy;		//�����������Ƿ�رն˿�
 /*added by wangxiaoyu 2009-03-11*/
 unsigned short  waitforwakeup; //�ȴ����ѵ����ڣ�Ϊ��ѯ���ڵı���
 unsigned short  maxwakeup;		//����������Դ���

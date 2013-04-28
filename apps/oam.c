@@ -2982,6 +2982,7 @@ extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
+extern void init_oam_send_relay();
 
 	gw_semaphore_init(&g_pkt_send_sem, g_pkt_send_sem_name, 1, 0);
 
@@ -2992,7 +2993,7 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 	init_gw_oam_async();
 
 	init_oam_pty();
-
+    //init_oam_send_relay();/*add by luh 2013-4-27*/
 //	init_oamsnmp();
 
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
