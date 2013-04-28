@@ -829,7 +829,7 @@ typedef enum {
 
 #define RCP_ALARM_STATUS_REGISTER		0x01
 #define RCP_ALARM_STATUS_RE_REGISTER	0x02
-#define RCP_ALARM_STATUS_OFFLINE		0x03
+#define RCP_ALARM_STATUS_OFFLINE		0x04  /*modfied(0x03--0x04) by wangxy 2013-04-28 bit3 stand for off-line status*/
 
 /* Define the different device type that may exist in system */
 typedef enum

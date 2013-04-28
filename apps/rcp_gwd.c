@@ -997,6 +997,14 @@ int RCP_Dev_Is_Exist(unsigned long parentPort)
 		}
 		else
 		{
+
+			/*added by wangxy 2013-04-28 for rcp switch off-line*/
+			gwd_port_oper_status_t port_opr_status;
+			call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, parentPort, &port_opr_status);
+	        if (port_opr_status != PORT_OPER_STATUS_UP)
+				return 0;
+			/*end*/
+			
 			if(1 == rcpDevList[parentPort]->onlineStatus)
 				return 1;
 			else
