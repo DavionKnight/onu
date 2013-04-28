@@ -2997,7 +2997,7 @@ extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
 	gw_reg_pkt_handler(GW_PKT_OAM, gw_oam_handler);
-//	gw_broadcast_storm_init();
+	gw_broadcast_storm_init();
 #if _cmd_line_
 
 	GW_Onu_Sysinfo_Get();

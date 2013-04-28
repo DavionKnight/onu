@@ -24,6 +24,6 @@ void plat_init()
 
 	gwd_onu_init();
 
-//	gwd_thread_init();
+	gwd_thread_init();
 
 }
