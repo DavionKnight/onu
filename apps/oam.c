@@ -2203,7 +2203,7 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
 		vb = atoi(argv[2]);
 
 
-		sprintf(gw_onu_system_info_total.hw_version, "V%d.%db%d",
+		sprintf(gw_onu_system_info_total.hw_version, "V%d.%dB%d",
 			v_major, v_rel, vb);
         
 		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
