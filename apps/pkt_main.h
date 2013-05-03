@@ -15,6 +15,11 @@ typedef enum{
 	GW_PKT_MAX
 }GW_PKT_TYPE;
 
+typedef struct{
+	GW_PKT_TYPE type;
+	gw_uint32 pri;
+}GW_PKT_PRI_MAP;
+
 typedef gw_int32 (*PKT_PARSE)(gw_int8 * pkt, const gw_int32 len);
 typedef gw_status (*PKT_HANDLER)(gw_int8 * pkt, const gw_int32 len, gw_int32 portid);
 

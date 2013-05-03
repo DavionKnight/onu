@@ -366,6 +366,7 @@ void start_oamPtyCliThread()
 	}
 }
 
+#if 0
 void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 {
 	gw_uint8 rdata[128]="";
@@ -417,7 +418,66 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 		}
 	}
 }
+#else
+void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
+{
+	gw_uint8 rdata[128]="";
+	gw_int32 length = 0;
 
+	gw_uint8 *rbuf = malloc(4096);
+
+	if(rbuf == NULL)
+		return;
+
+	while(1)
+	{
+		memset(rdata, 0, sizeof(rdata));
+		length = pty_read(g_pty_master, rbuf+1, 4094);
+		rbuf[length+1] = 0;
+
+//		gw_printf("\r\nrecv msg len: %d\r\n", length);
+//		gw_printf("%s", rbuf+1);
+		
+		if(length > 0)
+		{ 
+			gw_thread_delay(30);
+			rbuf[0] = 6;
+#if 0
+				gw_printf("pty sub thread recv:\r\n");
+				gw_dump_buffer(rdata+1, length);
+#else
+#endif
+	//			*(gw_uint16*)(rdata+1) = htons(length);
+#if 0
+	            if(pdata)
+	            {                
+	                memcpy(pdata, rdata, length+1);
+	                data[0] = 0;
+	            	data[1] = OAM_RELAY;
+	            	data[2] = (gw_uint32)pdata;
+	            	data[3] = length+1;                            
+	            }
+	            else
+	            {
+	                
+	        		gw_log(GW_LOG_LEVEL_DEBUG, ("oam relay thread molloc fail!\r\n"));
+	                continue;
+	            }
+#endif            
+#if 1
+				CommOnuMsgSend(CLI_PTY_TRANSMIT, gmCliPtyCtrl.lSerNo++, rbuf, length+1, gmCliPtyCtrl.bSessionId);
+#else
+	        	if(GW_OK != gw_pri_queue_put(g_oam_relay_queue_id, data, sizeof(data), GW_OSAL_WAIT_FOREVER, 0))
+	        	{
+	        		free(pdata);
+	        		gw_log(GW_LOG_LEVEL_DEBUG, ("oam relay queue put fail!\r\n"));
+	        		return GW_ERROR;
+	        	}	
+#endif
+		}
+	}
+}
+#endif
 
 void gw_oam_pty_cli_thread_entry(gw_uint32 * para)
 {
@@ -643,7 +703,13 @@ static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 				 if(*(pPayLoad+1) == 0x0a)
 					 *(pPayLoad+1) = 0x0d;
 
-				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0)) pty_write(gmCliPtyCtrl.lFd, pPayLoad + 1, lPayLen);
+//				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0)) pty_write(gmCliPtyCtrl.lFd, pPayLoad + 1, lPayLen);
+				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0)) 
+				 {
+				 	int i = 0;
+					for(i=0; i<lPayLen; i++)
+					 	pty_write(gmCliPtyCtrl.lFd, pPayLoad + 1+i, 1);
+				 }
 				 else
 				 {
 					 OAM_VCONPTY_DEBUG(("pty main can't write: paylen %d, fd %d\r\n", lPayLen, gmCliPtyCtrl.lFd));
