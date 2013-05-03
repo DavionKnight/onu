@@ -2186,7 +2186,7 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
                  NULL);
         case 2:
             return gw_cli_arg_help(cli, 0,
-                "<1-9>", "Release version",
+                "<0-9>", "Release version",
                  NULL);
         case 3:
         	return gw_cli_arg_help(cli, 0,
@@ -2856,7 +2856,7 @@ int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
     	else
     		setGwLogRecordLevel(level);
     }
-    else
+    else if(argc == 1)
     {
 
 		if (strcmp(argv[0], "log") == 0)
@@ -2883,6 +2883,10 @@ int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
 		}
 
 	}
+    else
+    {
+        gw_cli_print(cli, "too short arguments!");
+    }
 
     return CLI_OK;
 }
