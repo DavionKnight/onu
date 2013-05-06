@@ -960,7 +960,7 @@ typedef struct onu_system_information_total
 {
 	unsigned short 	product_serial;					/* 2 */
 	unsigned short	product_type;					/* 2 */
-	unsigned char	device_name[64];				/* 64 */
+	unsigned char	device_name[132];				/* 64 */
 	unsigned char	sw_version[12];					/* 12 */
 	unsigned char	serial_no[18];					/* 18 */
 	unsigned char	hw_version[7];					/* 6 */
@@ -989,9 +989,9 @@ typedef struct onu_system_information_total
 														/* 96 */
 	unsigned char	loadstartupconfig;				/* 1 */
 	unsigned char	hardwarediagnosis;				/* 1 */
-	unsigned char	reserved_2[2];					/* 2 */
+//	unsigned char	reserved_2[2];					/* 2 */ hw-ver added 2 chars by wangxy 2012-04-28
 														/* 100 */
-	unsigned long	reserved_3[64];					/* 256 */
+//	unsigned long	reserved_3[47];					/* 256 */  device_name increased to 132 bytes by wangxy 013-05-06
 														/* 356 */
 	unsigned char 	reserved_4[2];					/* 2 */
 	unsigned char 	reboot;							/* 1 */

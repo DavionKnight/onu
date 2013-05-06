@@ -2376,7 +2376,7 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "<string>", "Device name(length< 64)",
+                "<string>", "Device name(length<=128)",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
