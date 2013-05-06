@@ -466,6 +466,8 @@ unsigned char* onu_product_name_get(unsigned char productID)
 		    return "GT872";
 		case DEVICE_TYPE_GT873:
 		    return "GT873";
+		case DEVICE_TYPE_GT813_A:
+			return "GT813_A";
 		default:
 			return "UNKNOWN";
 	}
@@ -1092,7 +1094,7 @@ int lpbDetectTransFrames(unsigned short usVid)
     packet_head->Ethtype = htons(ETH_TYPE_LOOP_DETECT);
     packet_head->LoopFlag = htons(LOOP_DETECT_CHECK);
     packet_head->OltType = type;
-    packet_head->OnuType = (unsigned char)DEVICE_TYPE_GT811_A;
+    packet_head->OnuType = (unsigned char)DEVICE_TYPE_GT813_A;
     memset(packet_head->OnuLocation, 0, 4);
     memset(&packet_head->OnuLocation[1], (unsigned char)ulSlot, 1);
     memset(&packet_head->OnuLocation[2], (unsigned char)ulPon, 1);
@@ -1428,7 +1430,11 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
                 reportPortsLpbStatus(vid, port_loop_back_session);
                 if(0 == printFlag)
                 {
-                	gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
+                	gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
+			gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
+                    ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700", SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
+                    revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2], onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],
+                    revLoopFrame->Onumac[1],revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],vid);
                 }
                 else if(onuIfindex == 0)
                 {
@@ -1502,7 +1508,7 @@ long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slo
 
           if(0 == printFlag)
           {
-              gw_log(GW_LOG_LEVEL_DEBUG, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
+              gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
           }
           else if(onuIfindex == 0)
           {
