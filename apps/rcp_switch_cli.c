@@ -197,7 +197,7 @@ unsigned char rcp_thread_stack[RCP_THREAD_STACKSIZE];
 cyg_handle_t  rcp_thread_handle;
 cyg_thread    rcp_thread_obj;
 #else
-gw_uint32 rcp_thread_id, rcp_rcv_handle_thread_id;
+gw_uint32 rcp_thread_id, rcp_rcv_handle_thread_id,rcp_loop_id;
 gw_uint32 rcp_rcv_queue_id;
 #endif
 unsigned long gulEnableEpswitchMgt = 1;
@@ -5805,7 +5805,77 @@ int rcp_dev_status_check(void)
 	}
 	return GWD_RETURN_OK;
 }
-
+void rcp_loopdetect_monitor(void * data)
+{
+	RCP_DEV *pRcpDev[NUM_PORTS_PER_SYSTEM];
+	unsigned long  slot, phyPort, mgtPort, ethIfIdx;
+	unsigned long  portlist[NUM_PORTS_PER_SYSTEM] = {0};
+	unsigned long  port, loopstatus;
+	unsigned char rcpPort;
+	unsigned short  portstatus;	
+	//cs_uint16 loopen;
+	//cs_uint8 OAMsession[8]="";
+	int i,ret;
+    extern unsigned long gulEnableEpswitchMgt;
+	while(TRUE) 
+	{
+	    if(gulEnableEpswitchMgt)
+	    {
+		for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
+		{
+			if(RCP_Dev_Is_Valid(i))
+			{
+				pRcpDev[i] = RCP_Get_Dev_Ptr(i);
+				pRcpDev[i]->frcpPort2LPort(pRcpDev[i], &slot, &mgtPort, 0, pRcpDev[i]->upLinkPort);
+				ethIfIdx = IFM_ETH_CREATE_INDEX(PORTNO_TO_ETH_SLOT(i), PORTNO_TO_ETH_PORTID(i));
+				if(RCP_OK == (ret = RCP_GetLoopPort(pRcpDev[i], &portlist[i])))
+				{
+					for(phyPort = 0; phyPort < pRcpDev[i]->numOfPorts; phyPort++)
+					{
+						pRcpDev[i]->frcpPort2LPort(pRcpDev[i], &slot, &port, 0, phyPort);
+						rcpPort = (unsigned char) port;
+						loopstatus = IFM_ETH_ALARM_STATUS_LOOP;
+						if(((( pRcpDev[i]->loopAndDown& (0x1 << phyPort)) >> phyPort) == 1) && (RCP_OK == RCP_GetPortEnable(pRcpDev[i],slot, port,&portstatus)))
+						{
+							if (portstatus)
+							{
+							/*if this port marked loopback and shut down before, clear the loopstatus now*/
+								pRcpDev[i]->loopStatus &= ~(0x1 << (port-1));							
+							}
+							else
+							{
+							/*If the loopAndDown ports enabled again, clear the loopAndDown status*/
+								//sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 2, 0, OAMsession);
+								//
+								//IFM_config( ethIfIdx, IFM_CONFIG_ETH_ALARM_STATUS_CLEAR, &loopstatus, NULL );
+								//VOS_SysLog(LOG_TYPE_TRAP,LOG_WARNING, "Interface  eth%d/%d RCP port %d loopback cleared.", pRcpDev[i]->paSlot,pRcpDev[i]->paPort,rcpPort);								
+								pRcpDev[i]->loopAndDown &= ~(0x1 << (port-1));
+							}							
+						}
+													
+						if(((portlist[i] & (0x1 << phyPort)) >> phyPort) == 1)
+						{
+							//sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 1, 0, OAMsession);
+							//IFM_config( ethIfIdx, IFM_CONFIG_ETH_ALARM_STATUS_SET, &loopstatus, NULL );
+							//VOS_SysLog(LOG_TYPE_TRAP,LOG_WARNING, "Interface  eth%d/%d RCP port %d marked loopback.", pRcpDev[i]->paSlot,pRcpDev[i]->paPort,rcpPort);
+							if(port != mgtPort)
+							{
+								pRcpDev[i]->loopStatus |= (0x1 << (port-1));
+								if(RCP_OK == RCP_SetPortEnable(pRcpDev[i], 1, port, 1, RCP_CONFIG_2_REGISTER))
+								{
+									pRcpDev[i]->loopAndDown |= (0x1 << (port-1));
+								}
+							}
+						} 
+					}
+				}
+			}
+		}
+	    }
+	  gw_thread_delay(100*12);
+	}
+	return;
+}
 extern gw_int32 gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
 extern gw_int32 gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
 //extern int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr);
@@ -5835,7 +5905,15 @@ void start_rcp_device_monitor(void)
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp monitor thread created fail!\r\n");
-
+	if(GW_OK != gw_thread_create(&rcp_loop_id,
+	"Rcp loop",
+	rcp_loopdetect_monitor,
+	NULL,
+	4*1024,
+	(GW_OSAL_THREAD_PRIO_NORMAL+10),
+	0
+	))
+	gw_log(GW_LOG_LEVEL_DEBUG, "rcp loop cheak thread created fail!\r\n");
 	if(gw_pri_queue_create(&rcp_rcv_queue_id, "rcp_rcv_queue", 100, sizeof(RCP_MSG_T), 3) == GW_OK)
 	{
 
