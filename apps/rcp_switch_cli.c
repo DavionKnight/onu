@@ -1317,93 +1317,100 @@ int cli_int_port_en(struct cli_def *cli, char *command, char *argv[], int argc)
         }
 	}
 	GET_AND_CHECK_RCP_DEV_PTR	
-		
-	if (argc == 1)
+
+	if(argc < 1 )
 	{
-		/* Show the port's status */
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
+		if (argc == 1)
+		{
+			/* Show the port's status */
 
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
-		{
-			if(ulPort < 0)
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
 			{
-				gw_cli_print(cli, "%% valid input error.");
-				return CLI_OK;
-			}
-			if(ulPort > (pRcpDev->numOfPorts))
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
-			}
-			if((RCP_OK == (lRet = RCP_GetPortEnable(pRcpDev, 1,ulPort, &enable))) &&
-		   		(RCP_OK == (lRet = RCP_GetPortLink(pRcpDev, 1, ulPort, &link))))
-				gw_cli_print(cli,  "  Port %ld is %s, and its physical status is %s.\r\n", ulPort,
-					(enable == 0) ? "enabled" : "disabled", (link == 1) ? "UP" : "DOWN");
-			else
-				gw_cli_print(cli,  "  Get port status failed.(%d)\r\n", lRet);
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
-	} 
-	else
-	{	
-		if(RCP_OK != (lRet = Rcp_Get_MGT_Port(pRcpDev, &slot, &mgtPort)))
-			{
-				gw_cli_print(cli,  "  Get mgt port failed.(%d)\r\n", lRet);
-				return CLI_OK;
-			}
-
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
-		{
-			if(ulPort < 0 )
-			{
-				gw_cli_print(cli, "%% valid input error.");
-				return CLI_OK;
-			}
-			if(ulPort == mgtPort)
-			{
-				gw_cli_print(cli,  "  Cause port %ld is management port, can't be configed.\r\n", ulPort);
-				return CLI_OK;
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();	
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0],ulPort,pRcpDev->numOfPorts)
-		{
-			if(ulPort > (pRcpDev->numOfPorts))
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
-			}
-			if (0 == strcmp(argv[1], "0"))
-			{
-				if(RCP_OK != (lRet = RCP_SetPortEnable(pRcpDev, 1, ulPort, 1, RCP_CONFIG_2_REGISTER)))
+				if(ulPort < 0)
 				{
-					gw_cli_print(cli,  "  Set port %ld disable failed.(%d)\r\n",ulPort, lRet);
+					gw_cli_print(cli, "%% valid input error.");
 					return CLI_OK;
 				}
-				else
-					{
-						gw_cli_print(cli,  "  Set port %ld disable Successful.(%d)\r\n", ulPort,lRet);
-						
-					}
-			}
-			else
-			{
-				ethIfIndex = IFM_ETH_CREATE_INDEX(PORTNO_TO_ETH_SLOT(pRcpDev->paSlot), PORTNO_TO_ETH_PORTID(pRcpDev->paPort));
-				if(RCP_OK != (lRet = RCP_SetPortEnable(pRcpDev, 1, ulPort, 0, RCP_CONFIG_2_REGISTER)))
+				if(ulPort > (pRcpDev->numOfPorts))
 				{
-					gw_cli_print(cli,  "  Set port %ld enable failed.(%d)\r\n", ulPort ,lRet);
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
 					return CLI_OK;
 				}
+				if((RCP_OK == (lRet = RCP_GetPortEnable(pRcpDev, 1,ulPort, &enable))) &&
+					(RCP_OK == (lRet = RCP_GetPortLink(pRcpDev, 1, ulPort, &link))))
+					gw_cli_print(cli,  "  Port %ld is %s, and its physical status is %s.\r\n", ulPort,
+						(enable == 0) ? "enabled" : "disabled", (link == 1) ? "UP" : "DOWN");
 				else
-					{
-						gw_cli_print(cli,  "  Set port %ld enanle Successful.(%d)\r\n", ulPort,lRet);
-						
-					}
-
+					gw_cli_print(cli,  "  Get port status failed.(%d)\r\n", lRet);
 			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
 		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
-		
+		else
+		{
+			if(RCP_OK != (lRet = Rcp_Get_MGT_Port(pRcpDev, &slot, &mgtPort)))
+				{
+					gw_cli_print(cli,  "  Get mgt port failed.(%d)\r\n", lRet);
+					return CLI_OK;
+				}
+
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+			{
+				if(ulPort < 0 )
+				{
+					gw_cli_print(cli, "%% valid input error.");
+					return CLI_OK;
+				}
+				if(ulPort == mgtPort)
+				{
+					gw_cli_print(cli,  "  Cause port %ld is management port, can't be configed.\r\n", ulPort);
+					return CLI_OK;
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0],ulPort,pRcpDev->numOfPorts)
+			{
+				if(ulPort > (pRcpDev->numOfPorts))
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				if (0 == strcmp(argv[1], "0"))
+				{
+					if(RCP_OK != (lRet = RCP_SetPortEnable(pRcpDev, 1, ulPort, 1, RCP_CONFIG_2_REGISTER)))
+					{
+						gw_cli_print(cli,  "  Set port %ld disable failed.(%d)\r\n",ulPort, lRet);
+						return CLI_OK;
+					}
+					else
+						{
+							gw_cli_print(cli,  "  Set port %ld disable Successful.(%d)\r\n", ulPort,lRet);
+
+						}
+				}
+				else
+				{
+					ethIfIndex = IFM_ETH_CREATE_INDEX(PORTNO_TO_ETH_SLOT(pRcpDev->paSlot), PORTNO_TO_ETH_PORTID(pRcpDev->paPort));
+					if(RCP_OK != (lRet = RCP_SetPortEnable(pRcpDev, 1, ulPort, 0, RCP_CONFIG_2_REGISTER)))
+					{
+						gw_cli_print(cli,  "  Set port %ld enable failed.(%d)\r\n", ulPort ,lRet);
+						return CLI_OK;
+					}
+					else
+						{
+							gw_cli_print(cli,  "  Set port %ld enanle Successful.(%d)\r\n", ulPort,lRet);
+
+						}
+
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+
 		}
+
  	
 
 	return CLI_OK;
@@ -1442,96 +1449,105 @@ int cli_int_port_fc(struct cli_def *cli, char *command, char *argv[], int argc)
 		
 	GET_AND_CHECK_RCP_DEV_PTR
 
-	if (argc == 1)
+	if(argc >= 1)
 	{
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
+		if (argc == 1)
 		{
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
+			{
 
-			if(port < 0)
-			{
-				gw_cli_print(cli, "%% valid input error.");
-				return CLI_OK;
+				if(port < 0)
+				{
+					gw_cli_print(cli, "%% valid input error.");
+					return CLI_OK;
+				}
+				if(port > (pRcpDev->numOfPorts))
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
+					return CLI_OK;
+				}
+				if(RCP_OK != (lRet = RCP_GetPortLink(pRcpDev, 1, port, &link)))
+				{
+					gw_cli_print(cli,  "  Get port link status failed.(%d)\r\n", lRet);
+					return CLI_OK;
+				}
+				if((RCP_OK == (lRet = RCP_GetPortFC(pRcpDev, 1, port, &fc)))
+					&&(RCP_OK == (lRet = RCP_GetPortPauseFC(pRcpDev, 1, port, &configfc))))
+					gw_cli_print(cli,  "  Port %ld FC configs to %s,current FC is %s.\r\n", port,
+						(configfc == 1) ? "Enabled" : "Disabled", ((fc == 1) && (link == 1)) ? "Enabled" : "Disabled");
+				else
+					gw_cli_print(cli,  "  Get port status failed.(%d)\r\n", lRet);
 			}
-			if(port > (pRcpDev->numOfPorts))
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
-				return CLI_OK;
-			}
-			if(RCP_OK != (lRet = RCP_GetPortLink(pRcpDev, 1, port, &link)))
-			{
-				gw_cli_print(cli,  "  Get port link status failed.(%d)\r\n", lRet);
-				return CLI_OK;
-			}
-			if((RCP_OK == (lRet = RCP_GetPortFC(pRcpDev, 1, port, &fc)))
-		   		&&(RCP_OK == (lRet = RCP_GetPortPauseFC(pRcpDev, 1, port, &configfc))))
-				gw_cli_print(cli,  "  Port %ld FC configs to %s,current FC is %s.\r\n", port,
-					(configfc == 1) ? "Enabled" : "Disabled", ((fc == 1) && (link == 1)) ? "Enabled" : "Disabled");
-			else
-				gw_cli_print(cli,  "  Get port status failed.(%d)\r\n", lRet);
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+
 		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		else
+		{
+			if(RCP_OK != (lRet = Rcp_Get_MGT_Port(pRcpDev, &slot, &mgtPort)))
+			{
+				gw_cli_print(cli,  "  Get mgt port failed.(%d)\r\n", lRet);
+				return CLI_OK;
+			}
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
+			{
+				if(port < 0)
+				{
+					gw_cli_print(cli, "%% valid input error.");
+					return CLI_OK;
+				}
+			
+				if(port == mgtPort)
+				{
+					gw_cli_print(cli,  "  Cause port %ld is management port, can't be configed.\r\n",port);
+					return CLI_OK;
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
+			{
 
+				if(port < 0)
+				{
+					gw_cli_print(cli, "%% valid input error.");
+					return CLI_OK;
+				}
+
+				if(port > (pRcpDev->numOfPorts))
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
+					return CLI_OK;
+				}
+				if (0 == strcmp(argv[1], "0"))
+				{
+					if(RCP_OK != (lRet = RCP_SetPortPauseFC(pRcpDev, 1, port, 0, RCP_CONFIG_2_REGISTER)))
+					{
+						gw_cli_print(cli,  "  Set port pause fc disable failed.(%d)\r\n", lRet);
+						return CLI_OK;
+					}
+					else
+						gw_cli_print(cli,  "  Disable port %ld flow control success.\r\n", port);
+				}
+				else
+				{
+					if(RCP_OK != (lRet = RCP_SetPortPauseFC(pRcpDev, 1, port, 1, RCP_CONFIG_2_REGISTER)))
+					{
+						gw_cli_print(cli,  "  Set port pause fc enable failed.(%d)\r\n", lRet);
+						return CLI_OK;
+					}
+					else
+						gw_cli_print(cli,  "  Enable port %ld flow control success.\r\n", port);
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+
+		}
 	}
 	else
 	{
-		if(RCP_OK != (lRet = Rcp_Get_MGT_Port(pRcpDev, &slot, &mgtPort)))
-		{
-			gw_cli_print(cli,  "  Get mgt port failed.(%d)\r\n", lRet);
-			return CLI_OK;
-		}
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
-		{
-			if(port < 0)
-			{
-				gw_cli_print(cli, "%% valid input error.");
-				return CLI_OK;
-			}
-		
-			if(port == mgtPort)
-			{
-				gw_cli_print(cli,  "  Cause port %ld is management port, can't be configed.\r\n",port);
-				return CLI_OK;
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();	
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
-		{
-			
-			if(port < 0)
-			{
-				gw_cli_print(cli, "%% valid input error.");
-				return CLI_OK;
-			}
-
-			if(port > (pRcpDev->numOfPorts))
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
-				return CLI_OK;
-			}
-			if (0 == strcmp(argv[1], "0"))
-			{
-				if(RCP_OK != (lRet = RCP_SetPortPauseFC(pRcpDev, 1, port, 0, RCP_CONFIG_2_REGISTER)))
-				{
-					gw_cli_print(cli,  "  Set port pause fc disable failed.(%d)\r\n", lRet);
-					return CLI_OK;
-				}
-				else
-					gw_cli_print(cli,  "  Disable port %ld flow control success.\r\n", port);
-			}
-			else
-			{
-				if(RCP_OK != (lRet = RCP_SetPortPauseFC(pRcpDev, 1, port, 1, RCP_CONFIG_2_REGISTER)))
-				{
-					gw_cli_print(cli,  "  Set port pause fc enable failed.(%d)\r\n", lRet);
-					return CLI_OK;
-				}
-				else
-					gw_cli_print(cli,  "  Enable port %ld flow control success.\r\n", port);
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
-
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
 	}
+
 	return CLI_OK;
 }
 
@@ -1607,106 +1623,116 @@ int cli_int_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}
-	if (argc == 1)
-	{        
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
+
+	if(argc >= 1)
+	{
+		if (argc == 1)
 		{
-			if(port > pRcpDev->numOfPorts)
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
 			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
+				if(port > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
+					return CLI_OK;
+				}
+				if(RCP_OK != (ret =RCP_GetPortSpeed(pRcpDev, 1, port, &speed)))
+					gw_cli_print(cli,  "  Get port speed failed.(%d)\r\n",ret);
+				if(RCP_OK != (ret = RCP_GetPortSpeedConfig(pRcpDev, 1, port, &configSpeed)))
+					gw_cli_print(cli,  "  Get port config speed failed.(%d)\r\n", configSpeed);
+				if(RCP_OK != (ret =RCP_GetPortDuplex(pRcpDev, 1, port, &duplex)))
+					gw_cli_print(cli,  "  Get port duplex failed.(%d)\r\n",ret);
+				if(RCP_OK != (ret =RCP_GetPortAutoNego(pRcpDev, 1, port, &autonego)))
+					gw_cli_print(cli,  "  Get port auto_nego failed.(%d)\r\n",ret);
+				gw_cli_print(cli,  "  Port %ld : Auto_nego %s,Max speed %s, Current speed %s,duplex %s.\r\n",
+					port,((autonego == 1)? "enabled":"disabled"),(((configSpeed == 1) || (configSpeed == 3)) ? "10M" : "100M"),
+					((speed ==0) ? "10M" : "100M"),((duplex == 1)?"full":"half"));
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		}
+		else
+		{
+			if(RCP_OK != (ret = Rcp_Get_MGT_Port(pRcpDev, &slot, &mgtPort)))
+			{
+				gw_cli_print(cli,  "  Get mgt port failed.(%d)\r\n", ret);
 				return CLI_OK;
 			}
-			if(RCP_OK != (ret =RCP_GetPortSpeed(pRcpDev, 1, port, &speed)))
-				gw_cli_print(cli,  "  Get port speed failed.(%d)\r\n",ret);
-			if(RCP_OK != (ret = RCP_GetPortSpeedConfig(pRcpDev, 1, port, &configSpeed)))
-				gw_cli_print(cli,  "  Get port config speed failed.(%d)\r\n", configSpeed);
-			if(RCP_OK != (ret =RCP_GetPortDuplex(pRcpDev, 1, port, &duplex)))
-				gw_cli_print(cli,  "  Get port duplex failed.(%d)\r\n",ret);
-			if(RCP_OK != (ret =RCP_GetPortAutoNego(pRcpDev, 1, port, &autonego)))
-				gw_cli_print(cli,  "  Get port auto_nego failed.(%d)\r\n",ret);
-			gw_cli_print(cli,  "  Port %ld : Auto_nego %s,Max speed %s, Current speed %s,duplex %s.\r\n",
-				port,((autonego == 1)? "enabled":"disabled"),(((configSpeed == 1) || (configSpeed == 3)) ? "10M" : "100M"), 
-				((speed ==0) ? "10M" : "100M"),((duplex == 1)?"full":"half"));
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
+			{
+				if(port == 0)
+					{
+						printf("input port error\n");
+						return CLI_OK;
+					}
+				if(port == mgtPort)
+				{
+					gw_cli_print(cli,  "  Cause port %ld is management port, can't be configed.\r\n",port);
+					return CLI_OK;
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
+			{
+				if(port == 0)
+					{
+						printf("input port error\n");
+						return CLI_OK;
+					}
+				if(port > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
+					return CLI_OK;
+				}
+				mode = (unsigned short)atoi(argv[1]);
+				switch(mode)
+				{
+
+					case 0:
+						if(RCP_OK != (ret = RCP_SetPortAutoNegoEnable(pRcpDev, 1, port, 1, RCP_CONFIG_2_REGISTER)))
+						{
+							gw_cli_print(cli,  "  Set port auto negotiation failed.(%d)\r\n", ret);
+							return CLI_OK;
+						}
+						break;
+					case 8:
+						if(RCP_OK != (ret = RCP_SetPortMode100F(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
+						{
+							gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
+							return CLI_OK;
+						}
+						break;
+					case 9:
+						if(RCP_OK != (ret = RCP_SetPortMode100H(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
+						{
+							gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
+							return CLI_OK;
+						}
+						break;
+					case 10:
+						if(RCP_OK != (ret = RCP_SetPortMode10F(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
+						{
+							gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
+							return CLI_OK;
+						}
+						break;
+					case 11:
+						if(RCP_OK != (ret = RCP_SetPortMode10H(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
+						{
+							gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
+							return CLI_OK;
+						}
+						break;
+
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
 		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
 	}
 	else
 	{
-		if(RCP_OK != (ret = Rcp_Get_MGT_Port(pRcpDev, &slot, &mgtPort)))
-		{
-			gw_cli_print(cli,  "  Get mgt port failed.(%d)\r\n", ret);
-			return CLI_OK;
-		}
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
-		{
-			if(port == 0)
-				{
-					printf("input port error\n");
-					return CLI_OK;
-				}
-			if(port == mgtPort)
-			{
-				gw_cli_print(cli,  "  Cause port %ld is management port, can't be configed.\r\n",port);
-				return CLI_OK;
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();	
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], port,pRcpDev->numOfPorts)
-		{
-			if(port == 0)
-				{
-					printf("input port error\n");
-					return CLI_OK;
-				}
-			if(port > pRcpDev->numOfPorts)
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", port);
-				return CLI_OK;
-			}
-			mode = (unsigned short)atoi(argv[1]);
-			switch(mode)
-			{
-				
-				case 0:
-					if(RCP_OK != (ret = RCP_SetPortAutoNegoEnable(pRcpDev, 1, port, 1, RCP_CONFIG_2_REGISTER)))
-					{
-						gw_cli_print(cli,  "  Set port auto negotiation failed.(%d)\r\n", ret);
-						return CLI_OK;
-					}
-					break;
-				case 8:
-					if(RCP_OK != (ret = RCP_SetPortMode100F(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
-					{
-						gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
-						return CLI_OK;
-					}
-					break;
-				case 9:
-					if(RCP_OK != (ret = RCP_SetPortMode100H(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
-					{
-						gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
-						return CLI_OK;
-					}
-					break;
-				case 10:
-					if(RCP_OK != (ret = RCP_SetPortMode10F(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
-					{
-						gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
-						return CLI_OK;
-					}
-					break;
-				case 11:
-					if(RCP_OK != (ret = RCP_SetPortMode10H(pRcpDev, 1, port, RCP_CONFIG_2_REGISTER)))
-					{
-						gw_cli_print(cli,  "  Enable phy auto nego failed.(%d)\r\n", ret);
-						return CLI_OK;
-					}
-					break;
-				
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();	
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
 	}
+
 	return CLI_OK;
 }
 
@@ -1797,46 +1823,56 @@ int cli_int_port_ingress_rate(struct cli_def *cli, char *command, char *argv[], 
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}
-	if(argc == 1)
+
+	if(argc >= 1)
 	{
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+		if(argc == 1)
 		{
-			if(ulPort > pRcpDev->numOfPorts)
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
 			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				if(RCP_OK != (ret = RCP_GetPortRxBandwidth(pRcpDev, 1, ulPort, &Rate)))
+					gw_cli_print(cli,  "  Get port rx rate failed.(%d)\r\n", ret);
+				else
+				{
+					gw_cli_print(cli,  "  Port %ld ingress rate control configuration : \r\n", ulPort);
+					gw_cli_print(cli,  "        Ingress rate : %s.\r\n",(RCPPortRate[Rate].pcName));
+				}
 			}
-			if(RCP_OK != (ret = RCP_GetPortRxBandwidth(pRcpDev, 1, ulPort, &Rate)))
-				gw_cli_print(cli,  "  Get port rx rate failed.(%d)\r\n", ret);
-			else
-			{
-				gw_cli_print(cli,  "  Port %ld ingress rate control configuration : \r\n", ulPort);
-				gw_cli_print(cli,  "        Ingress rate : %s.\r\n",(RCPPortRate[Rate].pcName));
-			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
 		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		else
+		{
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+			{
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				inRate = (unsigned long)atol(argv[1]);
+				Rate = Rcp_PortRateToEnum(inRate);
+				if(RCP_OK != (ret = RCP_SetPortRxBandwidth(pRcpDev, 1, ulPort, Rate, RCP_CONFIG_2_REGISTER)))
+					gw_cli_print(cli,  "  Set port ingress rate failed.(%d)\r\n", ret);
+				else
+				{
+					gw_cli_print(cli,  "  Port %ld ingress rate config success : \r\n", ulPort);
+					gw_cli_print(cli,  "        Ingress rate : %s.\r\n", (RCPPortRate[Rate].pcName));
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		}
 	}
 	else
 	{
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
-		{
-			if(ulPort > pRcpDev->numOfPorts)
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
-			}
-			inRate = (unsigned long)atol(argv[1]);
-			Rate = Rcp_PortRateToEnum(inRate);
-			if(RCP_OK != (ret = RCP_SetPortRxBandwidth(pRcpDev, 1, ulPort, Rate, RCP_CONFIG_2_REGISTER)))
-				gw_cli_print(cli,  "  Set port ingress rate failed.(%d)\r\n", ret);
-			else
-			{
-				gw_cli_print(cli,  "  Port %ld ingress rate config success : \r\n", ulPort);
-				gw_cli_print(cli,  "        Ingress rate : %s.\r\n", (RCPPortRate[Rate].pcName));
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
 	}
+	
 	return CLI_OK;
 }
 
@@ -1872,46 +1908,56 @@ int cli_int_port_egress_rate(struct cli_def *cli, char *command, char *argv[], i
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}
-	if(argc == 1)
+
+	if(argc >= 1)
 	{
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+		if(argc == 1)
 		{
-			if(ulPort > pRcpDev->numOfPorts)
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
 			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				if(RCP_OK != (ret = RCP_GetPortTxBandwidth(pRcpDev, 1, ulPort, &Rate)))
+					gw_cli_print(cli,  "  Get port tx rate failed.(%d)\r\n", ret);
+				else
+				{
+					gw_cli_print(cli,  "  Port %ld egress rate control configuration : \r\n", ulPort);
+					gw_cli_print(cli,  "        Egress rate : %s.\r\n",(RCPPortRate[Rate].pcName));
+				}
 			}
-			if(RCP_OK != (ret = RCP_GetPortTxBandwidth(pRcpDev, 1, ulPort, &Rate)))
-				gw_cli_print(cli,  "  Get port tx rate failed.(%d)\r\n", ret);
-			else
-			{
-				gw_cli_print(cli,  "  Port %ld egress rate control configuration : \r\n", ulPort);
-				gw_cli_print(cli,  "        Egress rate : %s.\r\n",(RCPPortRate[Rate].pcName));
-			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
 		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		else
+		{
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+			{
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				eRate = (unsigned long)atoi(argv[1]);
+				Rate = Rcp_PortRateToEnum(eRate);
+				if(RCP_OK != (ret = RCP_SetPortTxBandwidth(pRcpDev, 1, ulPort, Rate, RCP_CONFIG_2_REGISTER)))
+					gw_cli_print(cli,  "  Set port egress rate failed.(%d)\r\n", ret);
+				else
+				{
+					gw_cli_print(cli,  "  Port %ld egress rate config success : \r\n", ulPort);
+					gw_cli_print(cli,  "        Egress rate : %s.\r\n", (RCPPortRate[Rate].pcName));
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		}
 	}
 	else
 	{
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
-		{
-			if(ulPort > pRcpDev->numOfPorts)
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
-			}
-			eRate = (unsigned long)atoi(argv[1]);
-			Rate = Rcp_PortRateToEnum(eRate);
-			if(RCP_OK != (ret = RCP_SetPortTxBandwidth(pRcpDev, 1, ulPort, Rate, RCP_CONFIG_2_REGISTER)))
-				gw_cli_print(cli,  "  Set port egress rate failed.(%d)\r\n", ret);
-			else
-			{
-				gw_cli_print(cli,  "  Port %ld egress rate config success : \r\n", ulPort);
-				gw_cli_print(cli,  "        Egress rate : %s.\r\n", (RCPPortRate[Rate].pcName));
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
 	}
+
 	return CLI_OK;
 }
 
@@ -2422,7 +2468,7 @@ int cli_int_vlan_dotlq_add(struct cli_def *cli, char *command, char *argv[], int
 		gw_cli_print(cli,  "  Vlan port_isolate enabled.\r\n");
 		return CLI_OK;
 	}
-	else
+	else if( argc >= 1 )
 	{
 		vid = (unsigned short)(atoi(argv[0])); 
 
@@ -2458,6 +2504,12 @@ int cli_int_vlan_dotlq_add(struct cli_def *cli, char *command, char *argv[], int
 			}
 		}
 	}
+	else
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	return CLI_OK;
 }
 
@@ -2522,7 +2574,7 @@ int cli_int_vlan_dotlq_port_add(struct cli_def *cli, char *command, char *argv[]
 		gw_cli_print(cli,  "  Vlan port_isolate enabled.\r\n");
 		return CLI_OK;
 	}
-	else
+	else if(argc >= 3)
 	{
 		vid = (unsigned short)(atoi(argv[0])); 
 		tag = (unsigned short)(atoi(argv[2]));
@@ -2632,6 +2684,12 @@ int cli_int_vlan_dotlq_port_add(struct cli_def *cli, char *command, char *argv[]
 			}
 		}
 	}
+	else
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	return CLI_OK;
 }
 
@@ -2681,7 +2739,7 @@ int cli_int_vlan_dotlq_del(struct cli_def *cli, char *command, char *argv[], int
 		gw_cli_print(cli,  "  Vlan port_isolate enabled.\r\n");
 		return CLI_OK;
 	}
-	else
+	else if(argc >= 1)
 	{
 		vid = (unsigned short)(atoi(argv[0])); 
 
@@ -2844,6 +2902,12 @@ int cli_int_vlan_dotlq_del(struct cli_def *cli, char *command, char *argv[], int
 			}
 		}
 	}
+	else
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	return CLI_OK;
 }
 
@@ -2895,7 +2959,7 @@ int cli_int_vlan_dotlq_port_del(struct cli_def *cli, char *command, char *argv[]
 		gw_cli_print(cli,  "  Vlan port_isolate enabled.\r\n");
 		return CLI_OK;
 	}
-	else
+	else if( argc >= 2 )
 	{
 		vid = (unsigned short)(atoi(argv[0])); 
 	
@@ -3069,6 +3133,12 @@ int cli_int_vlan_dotlq_port_del(struct cli_def *cli, char *command, char *argv[]
 			}
 		}
 	}
+	else
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	return CLI_OK;
 }
 
@@ -3291,72 +3361,82 @@ int cli_int_vlan_leaky(struct cli_def *cli, char *command, char *argv[], int arg
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}
-	if(argc == 1)
+
+	if(argc >= 1)
 	{
-		if (0 == strcmp(argv[0], "arp"))
+		if(argc == 1)
 		{
-			if(RCP_OK != (ret = RCP_GetVlanArpLeaky(pRcpDev, &leaky)))
-				gw_cli_print(cli,  "  Get vlan arp packet leaky failed.(%d)\r\n", ret);
-			else
-				gw_cli_print(cli,  "  Arp packet leaky %s.\r\n",(leaky == 1) ? "enabled" : "disabled");
+			if (0 == strcmp(argv[0], "arp"))
+			{
+				if(RCP_OK != (ret = RCP_GetVlanArpLeaky(pRcpDev, &leaky)))
+					gw_cli_print(cli,  "  Get vlan arp packet leaky failed.(%d)\r\n", ret);
+				else
+					gw_cli_print(cli,  "  Arp packet leaky %s.\r\n",(leaky == 1) ? "enabled" : "disabled");
+			}
+			if (0 == strcmp(argv[0], "unicast"))
+			{
+				if(RCP_OK != (ret = RCP_GetVlanUnicastLeaky(pRcpDev, &leaky)))
+					gw_cli_print(cli,  "  Get vlan unicast packet leaky failed.(%d)\r\n", ret);
+				else
+					gw_cli_print(cli,  "  unicast packet leaky %s.\r\n",(leaky == 1) ? "enabled" : "disabled");
+			}
+			if (0 == strcmp(argv[0], "multicast"))
+			{
+				if(RCP_OK != (ret = RCP_GetVlanMulticastLeaky(pRcpDev, &leaky)))
+					gw_cli_print(cli,  "  Get vlan multicast packet leaky failed.(%d)\r\n", ret);
+				else
+					gw_cli_print(cli,  "  multicast packet leaky %s.\r\n",(leaky == 1) ? "enabled" : "disabled");
+			}
 		}
-		if (0 == strcmp(argv[0], "unicast"))
+		else
 		{
-			if(RCP_OK != (ret = RCP_GetVlanUnicastLeaky(pRcpDev, &leaky)))
-				gw_cli_print(cli,  "  Get vlan unicast packet leaky failed.(%d)\r\n", ret);
-			else
-				gw_cli_print(cli,  "  unicast packet leaky %s.\r\n",(leaky == 1) ? "enabled" : "disabled");
-		}
-		if (0 == strcmp(argv[0], "multicast"))
-		{
-			if(RCP_OK != (ret = RCP_GetVlanMulticastLeaky(pRcpDev, &leaky)))
-				gw_cli_print(cli,  "  Get vlan multicast packet leaky failed.(%d)\r\n", ret);
-			else
-				gw_cli_print(cli,  "  multicast packet leaky %s.\r\n",(leaky == 1) ? "enabled" : "disabled");
+			if (0 == strcmp(argv[0], "arp"))
+			{
+				if(0 == strcmp(argv[1], "enable"))
+				{
+					if(RCP_OK != (ret = RCP_SetVlanArpLeaky(pRcpDev, 1, RCP_CONFIG_2_REGISTER)))
+						gw_cli_print(cli,  "  Enable vlan arp packet leaky failed.(%d)\r\n", ret);
+				}
+				else
+				{
+					if(RCP_OK != (ret = RCP_SetVlanArpLeaky(pRcpDev, 0, RCP_CONFIG_2_REGISTER)))
+						gw_cli_print(cli,  "  Disable vlan arp packet leaky failed.(%d)\r\n", ret);
+				}
+			}
+			if (0 == strcmp(argv[0], "unicast"))
+			{
+				if(0 == strcmp(argv[1], "enable"))
+				{
+					if(RCP_OK != (ret = RCP_SetVlanUnicastLeaky(pRcpDev, 1, RCP_CONFIG_2_REGISTER)))
+						gw_cli_print(cli,  "  Enable vlan unicast packet leaky failed.(%d)\r\n", ret);
+				}
+				else
+				{
+					if(RCP_OK != (ret = RCP_SetVlanUnicastLeaky(pRcpDev, 0, RCP_CONFIG_2_REGISTER)))
+						gw_cli_print(cli,  "  Disable vlan unicast packet leaky failed.(%d)\r\n", ret);
+				}
+			}
+			if (0 == strcmp(argv[0], "multicast"))
+			{
+				if(0 == strcmp(argv[1], "enable"))
+				{
+					if(RCP_OK != (ret = RCP_SetVlanMulticastLeaky(pRcpDev, 1, RCP_CONFIG_2_REGISTER)))
+						gw_cli_print(cli,  "  Enable vlan multicast packet leaky failed.(%d)\r\n", ret);
+				}
+				else
+				{
+					if(RCP_OK != (ret = RCP_SetVlanMulticastLeaky(pRcpDev, 0, RCP_CONFIG_2_REGISTER)))
+						gw_cli_print(cli,  "  Disable vlan unicast packet leaky failed.(%d)\r\n", ret);
+				}
+			}
 		}
 	}
 	else
 	{
-		if (0 == strcmp(argv[0], "arp"))
-		{
-			if(0 == strcmp(argv[1], "enable"))
-			{
-				if(RCP_OK != (ret = RCP_SetVlanArpLeaky(pRcpDev, 1, RCP_CONFIG_2_REGISTER)))
-					gw_cli_print(cli,  "  Enable vlan arp packet leaky failed.(%d)\r\n", ret);
-			}
-			else
-			{
-				if(RCP_OK != (ret = RCP_SetVlanArpLeaky(pRcpDev, 0, RCP_CONFIG_2_REGISTER)))
-					gw_cli_print(cli,  "  Disable vlan arp packet leaky failed.(%d)\r\n", ret);
-			}
-		}
-		if (0 == strcmp(argv[0], "unicast"))
-		{
-			if(0 == strcmp(argv[1], "enable"))
-			{
-				if(RCP_OK != (ret = RCP_SetVlanUnicastLeaky(pRcpDev, 1, RCP_CONFIG_2_REGISTER)))
-					gw_cli_print(cli,  "  Enable vlan unicast packet leaky failed.(%d)\r\n", ret);
-			}
-			else
-			{
-				if(RCP_OK != (ret = RCP_SetVlanUnicastLeaky(pRcpDev, 0, RCP_CONFIG_2_REGISTER)))
-					gw_cli_print(cli,  "  Disable vlan unicast packet leaky failed.(%d)\r\n", ret);
-			}
-		}
-		if (0 == strcmp(argv[0], "multicast"))
-		{
-			if(0 == strcmp(argv[1], "enable"))
-			{
-				if(RCP_OK != (ret = RCP_SetVlanMulticastLeaky(pRcpDev, 1, RCP_CONFIG_2_REGISTER)))
-					gw_cli_print(cli,  "  Enable vlan multicast packet leaky failed.(%d)\r\n", ret);
-			}
-			else
-			{
-				if(RCP_OK != (ret = RCP_SetVlanMulticastLeaky(pRcpDev, 0, RCP_CONFIG_2_REGISTER)))
-					gw_cli_print(cli,  "  Disable vlan unicast packet leaky failed.(%d)\r\n", ret);
-			}
-		}
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
 	}
+
 	return CLI_OK;
 }
 
@@ -3583,47 +3663,56 @@ int cli_int_vlan_insert_pvid(struct cli_def *cli, char *command, char *argv[], i
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}
-	
-	if(argc == 1)
+
+	if(argc >= 1)
 	{
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+		if(argc == 1)
 		{
-			if(ulPort > pRcpDev->numOfPorts)
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
 			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				if(RCP_OK != (ret = RCP_GetVlanInsertPVID(pRcpDev, 1, ulPort, &insert)))
+				{
+					gw_cli_print(cli,  "  Get vlan insert pvid failed.(%d)\r\n", ret);
+					return CLI_OK;
+				}
+				else
+					gw_cli_print(cli,  "  Port %ld's insert pvid is : %s.\r\n", ulPort, (insert == 1) ? "Enable" : "Disable");
 			}
-			if(RCP_OK != (ret = RCP_GetVlanInsertPVID(pRcpDev, 1, ulPort, &insert)))
-			{
-				gw_cli_print(cli,  "  Get vlan insert pvid failed.(%d)\r\n", ret);
-				return CLI_OK;
-			}
-			else
-				gw_cli_print(cli,  "  Port %ld's insert pvid is : %s.\r\n", ulPort, (insert == 1) ? "Enable" : "Disable");
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
 		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		else
+		{
+			if(0 == strcmp(argv[1], "enable"))
+				insert = 1;
+			else
+				insert = 0;
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+			{
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				if(RCP_OK != (ret = RCP_SetVlanInsertPVID(pRcpDev, 1, ulPort, insert, RCP_CONFIG_2_REGISTER)))
+				{
+					gw_cli_print(cli,  "  Set vlan insert pvid failed.(%d)\r\n", ret);
+					return CLI_OK;
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		}
 	}
 	else
 	{
-		if(0 == strcmp(argv[1], "enable"))
-			insert = 1;
-		else
-			insert = 0;
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
-		{
-			if(ulPort > pRcpDev->numOfPorts)
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
-			}
-			if(RCP_OK != (ret = RCP_SetVlanInsertPVID(pRcpDev, 1, ulPort, insert, RCP_CONFIG_2_REGISTER)))
-			{
-				gw_cli_print(cli,  "  Set vlan insert pvid failed.(%d)\r\n", ret);
-				return CLI_OK;
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
 	}
+	
 	return CLI_OK;
 }
 
@@ -3658,46 +3747,55 @@ int cli_int_vlan_output_tag(struct cli_def *cli, char *command, char *argv[], in
         }
 	}
 
-	if(argc == 1)
+	if(argc >= 1)
 	{
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+		if(argc == 1)
 		{
-			if(ulPort > pRcpDev->numOfPorts)
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
 			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				if(RCP_OK != (ret = RCP_GetVlanOutPortTag(pRcpDev, 1, ulPort, &tag)))
+				{
+					gw_cli_print(cli,  "  Get vlan insert pvid failed.(%d)\r\n", ret);
+					return CLI_OK;
+				}
+				else
+					gw_cli_print(cli,  "  Port %ld's output tag is : %s.\r\n", ulPort, (tag == 0) ? "Remove" : "Don't touch");
 			}
-			if(RCP_OK != (ret = RCP_GetVlanOutPortTag(pRcpDev, 1, ulPort, &tag)))
-			{
-				gw_cli_print(cli,  "  Get vlan insert pvid failed.(%d)\r\n", ret);
-				return CLI_OK;
-			}
-			else
-				gw_cli_print(cli,  "  Port %ld's output tag is : %s.\r\n", ulPort, (tag == 0) ? "Remove" : "Don't touch");
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
 		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		else
+		{
+			if(0 == strcmp(argv[1], "enable"))
+				tag = 0;
+			else
+				tag = 3;
+			BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
+			{
+				if(ulPort > pRcpDev->numOfPorts)
+				{
+					gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+					return CLI_OK;
+				}
+				if(RCP_OK != (ret = RCP_SetVlanOutPortTag(pRcpDev, 1, ulPort, tag, RCP_CONFIG_2_REGISTER)))
+				{
+					gw_cli_print(cli,  "  Set output tag failed.(%d)\r\n", ret);
+					return CLI_OK;
+				}
+			}
+			END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		}
 	}
 	else
 	{
-		if(0 == strcmp(argv[1], "enable"))
-			tag = 0;
-		else
-			tag = 3;
-		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
-		{
-			if(ulPort > pRcpDev->numOfPorts)
-			{
-				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
-				return CLI_OK;
-			}
-			if(RCP_OK != (ret = RCP_SetVlanOutPortTag(pRcpDev, 1, ulPort, tag, RCP_CONFIG_2_REGISTER)))
-			{
-				gw_cli_print(cli,  "  Set output tag failed.(%d)\r\n", ret);
-				return CLI_OK;
-			}
-		}
-		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
 	}
+	
 	return CLI_OK;
 }
 
@@ -3737,6 +3835,13 @@ int cli_int_stat_rx(struct cli_def *cli, char *command, char *argv[], int argc)
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}   
+
+	if(argc < 1)
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	if(argc == 1 )
 	{
 		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
@@ -3845,6 +3950,13 @@ int cli_int_stat_tx(struct cli_def *cli, char *command, char *argv[], int argc)
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}
+
+	if(argc < 1)
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	if(argc == 1 )
 	{
 		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
@@ -3954,6 +4066,13 @@ int cli_int_stat_diag(struct cli_def *cli, char *command, char *argv[], int argc
             return gw_cli_arg_help(cli, argc > 2, NULL);
         }
 	}
+
+	if(argc < 1)
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	if(argc == 1 )
 	{
 		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
@@ -4494,6 +4613,13 @@ int cli_int_qos_port_priority(struct cli_def *cli, char *command, char *argv[], 
             return gw_cli_arg_help(cli, argc > 1, NULL);
         }
 	}
+
+	if(argc < 1)
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+	
 	if(argc == 1)
 	{
 		BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
@@ -4903,6 +5029,12 @@ int cli_int_cable_test_port(struct cli_def *cli, char *command, char *argv[], in
         }
 	}
 
+	if(argc < 1)
+	{
+		gw_cli_print(cli, "too short arguments!");
+		return CLI_OK;
+	}
+
 	BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,pRcpDev->numOfPorts)
 	{
 		if(ulPort > pRcpDev->numOfPorts)
@@ -5076,6 +5208,7 @@ int cli_int_mgt_config_clear(struct cli_def *cli, char *command, char *argv[], i
             return gw_cli_arg_help(cli, argc > 1, NULL);
         }
 	}
+
     counter=0;
     ret = RCP_OK;
 	gw_cli_print(cli, "%s  Loading factory configuration to %s switch, please wait....", VTY_NEWLINE, (argc == 1)?argv[0]:"this");

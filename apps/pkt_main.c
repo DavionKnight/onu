@@ -193,7 +193,7 @@ gw_int32 gwlib_sendPktToQueue(gw_int8 *pkt, const gw_int32 len, gw_int32 portid)
 	if(pri != GW_OSAL_MAX_QUEUE_PRI)
 	{
 
-		gw_printf("pkt %d, pri %d\r\n", type, pri);
+//		gw_printf("pkt %d, pri %d\r\n", type, pri);
 			
 		data = malloc(len);
 		if(data)
