@@ -14,7 +14,7 @@
 #define CLI_ERROR_ARG       -3
 
 #define MAX_HISTORY             10
-#define MAX_WORDS_NUM           64
+#define MAX_WORDS_NUM           32
 
 /*#ifdef HAVE_ZTE_OAM
 #define MAX_WORDS_LEN           128
@@ -22,7 +22,7 @@
 #define MAX_WORDS_LEN           32
 #endif*/
 
-#define MAX_WORDS_LEN           128
+#define MAX_WORDS_LEN           192
 #define MAX_LINE_LENTH         256
 #define MAX_FILTER_NUM           8
 #define MAX_PRINT_BUF_LEN     1024

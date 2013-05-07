@@ -2366,7 +2366,7 @@ int cmd_onu_mgt_config_device_name_local(struct cli_def *cli, char *command, cha
 int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int  len, i;
-	unsigned char tmpStr[64];
+	unsigned char tmpStr[129];
 
         
     // deal with help
@@ -2385,9 +2385,9 @@ int cmd_onu_mgt_config_device_name(struct cli_def *cli, char *command, char *arg
 
     if(1 == argc)
     {   
-		if((len = strlen(argv[0])) > 64)
+		if((len = strlen(argv[0])) > 128)
 		{
-			gw_cli_print(cli, "  The length of device name must be less than %d.\r\n", 15);
+			gw_cli_print(cli, "  The length of device name must be less than %d.\r\n", 128);
 			return CLI_OK;
 		}
 
