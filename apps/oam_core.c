@@ -800,6 +800,7 @@ static void OamPtyConFreeReqPro(GWTT_OAM_SESSION_INFO *pSeInf)
 	    {
 	        char  bResBuf[8] = {0};
             char  bQuitCmd[8] = {13, 13, 3, 0};
+			int i = 0;
 
 			bResBuf[0] = CON_CTL_CODE_FREERES;
 			bResBuf[1] = PTY_CONNECT_REQ_RESP_ACCEPT;  /* Í¬Òâ */
@@ -812,15 +813,17 @@ static void OamPtyConFreeReqPro(GWTT_OAM_SESSION_INFO *pSeInf)
 
             strcpy(bQuitCmd, "quit\r");
 
-            pty_write(gmCliPtyCtrl.lFd, bQuitCmd, strlen(bQuitCmd)); /*Ä£Äâ·¢ËÍquit*/
+			for(i=0; i<strlen(bQuitCmd); i++)
+	            pty_write(gmCliPtyCtrl.lFd, bQuitCmd+i, 1); /*Ä£Äâ·¢ËÍquit*/
 
 //			OamPtyDeleteSubTask();
 
 //			cl_pty_fd_free(gmCliPtyCtrl.lFd);
 
-			gmCliPtyCtrl.lConnect = FALSE;
-			gmCliPtyCtrl.lFd      = 0;
-			memset(gmCliPtyCtrl.bSessionId, 0, 8);
+//              comment by wangxy 2013-05-06
+//			gmCliPtyCtrl.lConnect = FALSE;
+//			gmCliPtyCtrl.lFd      = 0;
+//			memset(gmCliPtyCtrl.bSessionId, 0, 8);
 	    }
 	}
 }
