@@ -9,7 +9,7 @@
 
 #include "../include/gw_timer.h"
 #include "../include/gw_os_common.h"
-
+#include "../apps/gw_log.h"
 gw_uint32 timer_thread_count = 0;
 gw_uint32 sys_interval_in_tick = 1;
 gw_timer_control_t gw_timers;
@@ -327,7 +327,7 @@ void gw_timer_thread()
 }
 
 #define TIMER_THREAD_NAME "timer thread"
-#define TIMER_THREAD_STACK_SIZE (4*1024)
+#define TIMER_THREAD_STACK_SIZE (8*1024)
 #define  TIMER_THREAD_PRIORITY 8
 
 gw_int32 gw_timer_init()
@@ -363,6 +363,12 @@ gw_int32 gw_timer_init()
 //        gw_mempool_destroy(timer_pool_id);
         return GW_TIMER_ERROR;
     }
+	else
+		{
+			gw_log(GW_LOG_LEVEL_DEBUG,"---------------------------------------------------------\n");
+			gw_log(GW_LOG_LEVEL_DEBUG,"-----------------*gw_timer_thread creat success----------\n");
+			gw_log(GW_LOG_LEVEL_DEBUG,"---------------------------------------------------------\n");
+		}
 
     return GW_TIMER_OK;
 }

@@ -304,18 +304,15 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
 		{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_PARAM;
 		}
 
 	if(NULL == pkt)
 		{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
 		}
 	if(RCP_OK != Rcp_ChipId_AuthCheck(pkt))
 		{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_UNKOWN;
 		}
 
@@ -326,7 +323,6 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 	{
 		if(NULL == (rcpDevList[parentPort] = (RCP_DEV *)malloc( sizeof(RCP_DEV))))
 			{
-			gw_printf("%s %d\n",__func__,__LINE__);
 			return RCP_NO_MEM;
 			}
 		memset(rcpDevList[parentPort], 0, sizeof(RCP_DEV));
@@ -395,33 +391,28 @@ int RCP_RegList_Update(unsigned long parentPort, char *pkt)
 
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
 		{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_PARAM;
 		}
 
 	if(NULL == pkt)
 		{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
 		}
 		
 	if(NULL == rcpDevList[parentPort])
 	{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_NOT_INITIALIZED;
 	}
 
 	payload = (RCP_GET_REPLY_PAYLOAD *)(pkt + 12 + 4 + 4);	/* MACs + VlanTag + RcpTag */
 	if(memcmp(rcpDevList[parentPort]->authenKey, &pkt[RCP_HELLO_PAYLOAD_OFFSET], 2) != 0)
 	{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_UNKOWN;
 	}
 	regAddress = GET_RCP_PKT_SHORT(payload->regAddress);
 	if(NULL == (pstRcpReg = RCP_RegList_Search(rcpDevList[parentPort], regAddress)))
 	{
 		RCP_DEBUG(("\r\n  RCP_RegList_Update : NOT found 0x%x!", regAddress));
-		gw_printf("\r\n  RCP_RegList_Update : NOT found 0x%x ", regAddress);
 		//gw_printf("%s %d parentPort:%ld\n",__func__,__LINE__,parentPort);
 		return RCP_NO_SUCH;
 	}
@@ -6685,7 +6676,6 @@ int rrcp_packet_handler(unsigned int srcPort, unsigned int len, unsigned char *p
     unsigned char oui[3] = {0x00, 0x0f, 0xe9};
 	if(NULL == packet)
 		{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
 		}
 
@@ -6694,13 +6684,11 @@ int rrcp_packet_handler(unsigned int srcPort, unsigned int len, unsigned char *p
     {
         if(memcmp(packet + RCP_MAC_SIZE, oui, 3) != 0)
         	{
-        	gw_printf("%s %d\n",__func__,__LINE__);
             return RCP_ILLEGAL_AUTHKEY;
         	}
     }
 	if(ntohs(p_stEnetParse->en_pro_II) != ETH_TYPE_RRCP)
 		{
-		gw_printf("%s %d\n",__func__,__LINE__);
 		return RCP_BAD_VALUE;
 		}
 

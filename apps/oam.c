@@ -61,7 +61,7 @@ static int GwOamMessageListNodeRem(GWTT_OAM_MESSAGE_NODE *pNode);
 static int GwOamAlarmResponse(GWTT_OAM_MESSAGE_NODE *pRequest );
 short int CtcOnuMsgReveive(CTC_OAM_MESSAGE_NODE **ppMessage,unsigned char *MessagData, unsigned short PayloadLength);
 
-#if 0
+#if 1
 void OamMessageRecevTimeOut(epon_timer_t *timer);
 #else
 void OamMessageRecevTimeOut(void *);
@@ -262,7 +262,9 @@ void GwOamMessageListNodeFree(GWTT_OAM_MESSAGE_NODE *pNode)
 	if(NULL == pNode)
 		return;
 	if(GWD_RETURN_OK!=GwOamMessageListNodeRem(pNode))
-//		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeFree::GwOamMessageListNodeRem failed\n");
+		{
+			gw_log(GW_LOG_LEVEL_DEBUG,"GwOamMessageListNodeAdd::GwOamMessageListGetNode failed\n");
+		}
 	if(NULL != pNode->pPayLoad)
 //		iros_free(pNode->pPayLoad);
 		free(pNode->pPayLoad);
@@ -281,6 +283,9 @@ static void GwOamMessageListNodeAdd(GWTT_OAM_MESSAGE_NODE *pNode)
 	if(NULL == pNode)
 		return;
 	if(NULL != GwOamMessageListGetNode(pNode->SendSerNo))
+		{
+			gw_log(GW_LOG_LEVEL_DEBUG,"GwOamMessageListNodeAdd::GwOamMessageListGetNode failed\n");
+		}
 //		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeAdd::GwOamMessageListGetNode failed\n");
 //	cyg_semaphore_wait(&OamListSem);
 	gw_semaphore_wait(OamListSem, GW_OSAL_WAIT_FOREVER);
@@ -446,7 +451,7 @@ int CommOnuMsgReveive(GWTT_OAM_MESSAGE_NODE **ppMessage,unsigned char *MessagDat
 				memcpy(pMessageNode->pPayLoad,payload,PayloadLength);
 				GwOamMessageListNodeAdd(pMessageNode);	
 				*ppMessage = NULL;
-#if 0
+#if 1
 				(pMessageNode->TimerID).opaque = (void *)(pMessageNode->SendSerNo);
 
 				epon_timer_add(&(pMessageNode->TimerID), OamMessageRecevTimeOut, WAIT_TIME_FOR_OAM_MESSAGE);
@@ -475,7 +480,7 @@ int CommOnuMsgReveive(GWTT_OAM_MESSAGE_NODE **ppMessage,unsigned char *MessagDat
 			}
 			if((pMessageNode->RevPktLen+PayloadLength) == pMessageNode->WholePktLen)
 			{
-#if 0
+#if 1
 				epon_timer_del(&(pMessageNode->TimerID));
 #else
 				gw_timer_del(pMessageNode->TimerID);
@@ -488,7 +493,7 @@ int CommOnuMsgReveive(GWTT_OAM_MESSAGE_NODE **ppMessage,unsigned char *MessagDat
 			}
 			else
 			{
-#if 0
+#if 1
 				epon_timer_del(&(pMessageNode->TimerID));
 				epon_timer_add(&(pMessageNode->TimerID), (pMessageNode->TimerID).tmfunc, WAIT_TIME_FOR_OAM_MESSAGE);
 #else
@@ -645,12 +650,12 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 }
 
 
-#if 0
+#if 1
 void OamMessageRecevTimeOut(epon_timer_t *timer)
 {
 	GWTT_OAM_MESSAGE_NODE *pNode;
 	unsigned int SerNo = (unsigned int)(timer->opaque);
-
+	gw_printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
 	pNode = GwOamMessageListGetNode(SerNo);
 	if(NULL != pNode)
 		GwOamMessageListNodeFree(pNode);
@@ -660,7 +665,7 @@ void OamMessageRecevTimeOut(void *data)
 {
 	GWTT_OAM_MESSAGE_NODE *pNode;
 	unsigned int SerNo = *(unsigned int*)data;
-
+	gw_printf("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n");
 	pNode = GwOamMessageListGetNode(SerNo);
 	if(NULL != pNode)
 		GwOamMessageListNodeFree(pNode);
@@ -1756,7 +1761,7 @@ int Debug_Print_Rx_OAM(GWTT_OAM_MESSAGE_NODE *pMessage)
     OAMDBGERR("    SessionID:   ");
     for (i=0; i<8; i++)
         OAMDBGERR("%02X", pMessage->SessionID[i]);
-#if 0
+#if 1
     OAMDBGERR("\r\n    TimerID:     %u\r\n", (unsigned int)((pMessage->TimerID).opaque));
 #else
     OAMDBGERR("\r\n    TimerID:     %u\r\n", (unsigned int)((pMessage->TimerID)));

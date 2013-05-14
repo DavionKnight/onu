@@ -11,12 +11,13 @@
 
 void gwd_onu_init();
 extern void gwd_thread_init(void);
+extern gw_int32 gw_timer_init();
 void plat_init()
 {
 	gw_osal_core_init();
 
 	init_im_interfaces();
-
+	gw_timer_init();
 	init_pkt_proc();
 
 	gwd_onu_init();

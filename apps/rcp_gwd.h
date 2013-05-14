@@ -828,7 +828,7 @@ typedef enum {
 
 #define	RCP_MAC_SIZE					6
 #define MAX_RRCP_SWITCH_TO_MANAGE		NUM_PORTS_PER_SYSTEM
-#define MAX_RTL_REG_TO_ACCESS			10
+#define MAX_RTL_REG_TO_ACCESS			30
 #define MAX_RCP_SWITCH_TO_MANAGE		24
 #define MAX_RCP_VLAN_NUM                32
 #define MAX_RCP_PORT_NUM                32

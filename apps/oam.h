@@ -12,6 +12,42 @@
 
 #include "plat_common.h"
 #endif
+typedef unsigned char                   epon_boolean_t;
+typedef char                            epon_int8_t;
+typedef short                           epon_int16_t;
+typedef int                             epon_int32_t;
+typedef long long                       epon_int64_t;
+typedef unsigned char                   epon_uint8_t;
+typedef unsigned short                  epon_uint16_t;
+typedef unsigned int                    epon_uint32_t;
+typedef unsigned long long              epon_uint64_t;
+typedef unsigned int                    epon_mask_t;
+
+typedef unsigned char                   *epon_macaddr_pt;
+typedef unsigned int                    epon_ipaddr_t;
+
+struct epon_timer_t;
+
+typedef void (* epon_timer_func_t) (struct epon_timer_t *timer);
+
+/* currently, we implemented timer based sorted absolution tick to
+   expire. we may implement delta timer in the future */
+struct epon_timer_t {
+        /* the tick to expire */
+        epon_uint32_t                   tick;
+        /* timer double link list */
+        struct epon_timer_t             *prev;
+        struct epon_timer_t             *next;
+        /* timer function */
+        epon_timer_func_t               tmfunc;
+        void                            * opaque;
+};
+
+typedef struct epon_timer_t epon_timer_t;
+
+extern void epon_timer_add(epon_timer_t *, epon_timer_func_t , epon_uint32_t);
+
+extern void epon_timer_del(epon_timer_t *);
 typedef gw_uint32 epon_port_id_t;
 
 /* This struct should be moved to a header file */
@@ -128,7 +164,7 @@ typedef struct gwtt_oam_message_list_node
 	unsigned short WholePktLen;
 	unsigned short RevPktLen;
 	unsigned char SessionID[8];
-#if 0
+#if 1
 	struct epon_timer_t TimerID;
 #else
 	gw_uint32 TimerID;

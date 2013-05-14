@@ -19,11 +19,11 @@ typedef struct queue_para{
 
 gw_pkt_cb_func_t gw_pkt_cb_func_tab[GW_PKT_MAX];
 
-#define GW_PKT_THREAD_STACK_SIZE (4*1024)
+#define GW_PKT_THREAD_STACK_SIZE (6*1024)
 static gw_uint32 gw_pkt_threadid, gw_pkt_thread_prio = 13;
 static gw_uint8 gw_pkt_thread_name[]="GW_PKT_THREAD";
 
-static gw_uint32 gw_pkt_queueid, gw_pkt_queue_depth = 400, gw_pkt_msg_size = sizeof(queue_para_t);
+static gw_uint32 gw_pkt_queueid, gw_pkt_queue_depth = 200, gw_pkt_msg_size = sizeof(queue_para_t);
 static gw_uint8 gw_pkt_queue_name[]="GW_PKT_QUEUE";
 
 
@@ -71,9 +71,9 @@ void gw_pkt_proc_main(gw_uint32 * para)
 					free(p->pkt);
 				}
 			}
-			else
+			//else
 
-			gw_thread_delay(5);
+			//gw_thread_delay(5);
 		}
 		free(buf);
 	}
