@@ -22,6 +22,9 @@
 #include "../include/gwdonuif.h"
 #include "gwdonuif_interval.h"
 #include "gw_log.h"
+
+//#define __DEBUG__
+
 extern int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char *pSentData,const unsigned short SendDataSize, unsigned char  *pSessionIdfield);
 extern gw_macaddr_t g_sys_mac;
 extern gw_uint32 g_uni_port_num;
@@ -200,17 +203,17 @@ void broad_storm_thread(void* data)
 			for(logical_port=1; logical_port <= gw_onu_read_port_num(); logical_port++)
 				{
 					if(gwd_logical_to_physical(logical_port,&physical_port))
-						return;
+						continue;
 					ret = call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, logical_port, &port_status);
 					//ret = gwd_onu_sw_port_admin_status_get(logical_port,&port_status);
 					if(ret)
-						return;
+						continue;
 						//gw_printf("get gwd onu port admin status fail\n");
 						
 					if(port_status == GW_PORT_ADMIN_UP)
 						{
 							if(gwd_port_rate_update(physical_port))
-								return;
+								continue;
 							//gwd_port_current_pkt_status_save(physical_port,dsts);
 							#ifdef __DEBUG__
 							if(logical_port == 1)
@@ -258,6 +261,7 @@ void broad_storm_thread(void* data)
 													startCouter[physical_port] = 1;
 													timeCouter[physical_port] = 0;
 													havebroadcaststorm_end[physical_port]=0;
+													havebroadcaststorm[physical_port] = 0;
 												}
 										}
 								}
@@ -280,6 +284,7 @@ void broad_storm_thread(void* data)
 										{
 											if(!havebroadcaststorm[physical_port])
 												{
+													printf("input port limit speed\n");
 													if(call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3,64))
 														gw_printf("Broadcast storm speed limit failure\n");
 													#ifdef __NOT_USE__
@@ -314,7 +319,7 @@ void broad_storm_thread(void* data)
 										}
 									startCouter[physical_port] = 0;
 									timeCouter[physical_port] = 0;
-									havebroadcaststorm[physical_port] = 0;
+//									havebroadcaststorm[physical_port] = 0;
 								}
 						}
 					else
