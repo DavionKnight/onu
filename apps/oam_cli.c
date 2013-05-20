@@ -372,7 +372,7 @@ int cmd_oam_atu_age(struct cli_def *cli, char *command, char *argv[], int argc)
 
 int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	unsigned char laser_mode = 0;
+	unsigned int laser_mode = 0;
 
 	// deal with help
 	if (CLI_HELP_REQUESTED) {
@@ -419,7 +419,7 @@ int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
 		        strcpy(ststr, "unknow");
 		        break;
 		    }
-			gw_cli_print(cli, "laser status is %s", laser_mode?"normal":"always on");
+			gw_cli_print(cli, "laser status is %s", laser_mode?"always on":"normal");
 		}
 	}
 
