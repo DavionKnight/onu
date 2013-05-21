@@ -1323,7 +1323,7 @@ void lpbDetectCheckMacTable(unsigned short usVid, char * oamSession)
 	return;
 }
 
-long lpbDetectRevPacketHandle(char *packet, unsigned long len, unsigned long slot, unsigned long port, unsigned short vid)
+long lpbDetectRevPacketHandle(unsigned char *packet, unsigned long len, unsigned long slot, unsigned long port, unsigned short vid)
 {
     int iRet, printFlag;
     unsigned char sysMac[6] = {0};
