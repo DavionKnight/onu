@@ -2620,7 +2620,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
 
-        gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", idx,
+        gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],
             mac[1],
             mac[2],
@@ -2631,7 +2631,6 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
             statics-1,
             vid
         	);
-		idx++;
 		gw_thread_delay(100);
     }
 	gw_cli_print(cli,"----------------------------------------------------------------------------------");
