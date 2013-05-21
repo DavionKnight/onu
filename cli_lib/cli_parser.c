@@ -1303,7 +1303,7 @@ int gw_cli_loop(struct cli_def *cli)
     }
 
     if (cli->banner)
-        gw_cli_error(cli, "%s", cli->banner);
+        gw_cli_error(cli, "\r\n\r\n%s", cli->banner);
 
     // Set the last action now so we don't time immediately
     if (cli->idle_timeout)

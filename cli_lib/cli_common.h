@@ -56,7 +56,7 @@
 #define TELNETD_PORT            23
 #define DFT_SESSION_TIMEOUT     300 //in seconds for telnet
 
-#define CLI_BANNER              "iROS ONU CLI"
+#define CLI_BANNER              "Gwdelight ONU CLI"
 #ifdef HAVE_ZTE_OAM
 #define ZTE_CLI_BANNER          "\n\
 ************************************************\n\
