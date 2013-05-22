@@ -235,7 +235,6 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 		if(argc == 1)
 			en = atoi(argv[0]);
 
-
 		if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port, en) != GW_OK)
 			gw_cli_print(cli, "port %d set isolate %s fail!\r\n", port, en?"enabled":"disabled");
 		else
@@ -524,7 +523,7 @@ int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 }
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 {
-	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL,*reboot= NULL;
+	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL;
 
 	portcmd = gw_cli_register_command(cmd_root, NULL, "port", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port config or get");
 	gw_cli_register_command(cmd_root, portcmd, "mode", cmd_oam_port_mode, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
@@ -544,8 +543,8 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 
 	c = gw_cli_register_command(cmd_root, NULL, "event", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "event show");
 	gw_cli_register_command(cmd_root, c, "show", cmd_oam_event_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show");
-	reboot = gw_cli_register_command(cmd_root, NULL, "ONU",NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
-	gw_cli_register_command(cmd_root,reboot, "reboot", cmd_onu_reboot, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
+	//reboot = gw_cli_register_command(cmd_root, NULL, "ONU",NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
+	gw_cli_register_command(cmd_root,NULL, "reboot", cmd_onu_reboot, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
 
 
     return;

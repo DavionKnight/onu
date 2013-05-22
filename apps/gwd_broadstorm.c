@@ -252,6 +252,7 @@ void broad_storm_thread(void* data)
 													startCouter[physical_port] = 1;
 													timeCouter[physical_port] = 0;
 													havebroadcaststorm_end[physical_port]=0;
+													havebroadcaststorm[physical_port] = 0;
 												}
 										}
 								}
@@ -308,7 +309,7 @@ void broad_storm_thread(void* data)
 										}
 									startCouter[physical_port] = 0;
 									timeCouter[physical_port] = 0;
-									havebroadcaststorm[physical_port] = 0;
+									//havebroadcaststorm[physical_port] = 0;
 								}
 						}
 					else
