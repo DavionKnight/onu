@@ -2989,6 +2989,8 @@ extern void init_oam_send_relay();
 
 	gw_semaphore_init(&g_pkt_send_sem, g_pkt_send_sem_name, 1, 0);
 
+	gw_lpb_detect_init();
+
 	GwOamMessageListInit();
 
 	GW_Onu_Sysinfo_Get();
