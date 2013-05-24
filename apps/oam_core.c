@@ -704,11 +704,14 @@ static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 					 *(pPayLoad+1) = 0x0d;
 
 //				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0)) pty_write(gmCliPtyCtrl.lFd, pPayLoad + 1, lPayLen);
-				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0) && *(unsigned char*)(pPayLoad+1) != 0xff) //forbidden telnet option string 
+				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0) )
 				 {
-				 	int i = 0;
-					for(i=0; i<lPayLen; i++)
-					 	pty_write(gmCliPtyCtrl.lFd, pPayLoad + 1+i, 1);
+				 	if(*(unsigned char*)(pPayLoad+1) != 0xff) //forbidden telnet option string 
+				 	{
+					 	int i = 0;
+						for(i=0; i<lPayLen; i++)
+						 	pty_write(gmCliPtyCtrl.lFd, pPayLoad + 1+i, 1);
+				 	}
 				 }
 				 else
 				 {
