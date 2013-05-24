@@ -20,7 +20,13 @@ typedef unsigned long	oid;
 #define FLASH_GWD_RCG_SWITCH_CFG_MAX_SIZE	(11*1024)	/*the end of the gwd rcg switch config file*/
 #define FLASH_GWD_RCG_SWITCH_CFG_OFFSET		(8*1024) /*the start of the gwd rc switch config file*/
 
+#define VENDOR_AUTHKEY_LEN_MAX                    0x20   // 32 bytes
+#define OAM_CONFIG_LEN_MAX                        0x100  // For  OAM config
+#define GPIO_CONFIG_LEN_MAX                       0x14   // 4 bytes magic number + 16 bytes, magic number 0x179e5173 in little endianess.
 
+#define LIOD_PASSWD_LEN_MAX                      0x24   //36 bytes
+
+#define USER_DATA_USED_LEN                       (VENDOR_AUTHKEY_LEN_MAX+OAM_CONFIG_LEN_MAX+GPIO_CONFIG_LEN_MAX+LIOD_PASSWD_LEN_MAX)
 
 //platform added new type and micro define
 

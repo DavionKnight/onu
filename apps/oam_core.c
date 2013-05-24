@@ -336,7 +336,7 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 		length = pty_read(g_pty_master, rdata+1, sizeof(rdata)-1);
 		if(length > 0)
 		{
-			//gw_thread_delay(30);
+			gw_thread_delay(30);
 			rdata[length+1] = 0;
 #if 0
 			gw_printf("pty sub thread recv:\r\n");

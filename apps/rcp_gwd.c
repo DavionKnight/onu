@@ -6817,19 +6817,19 @@ int device_conf_write_switch_conf_to_flash(char * buf, long int length)
     	goto END;
     }
 
-    tempBuff = malloc( FLASH_USER_DATA_MAX_SIZE);
+    tempBuff = malloc( FLASH_USER_DATA_MAX_SIZE+USER_DATA_USED_LEN);
 	if(tempBuff == NULL) {
        gw_printf("Config save failed\n");
        ret= GWD_RETURN_ERR;
 	   goto END;
 	}
 
-	memset(tempBuff, 0x00, FLASH_USER_DATA_MAX_SIZE);
-	user_data_config_Read(0,tempBuff, FLASH_USER_DATA_MAX_SIZE);
-	pConfig = (unsigned char *)(tempBuff+FLASH_GWD_RCG_SWITCH_CFG_OFFSET);
+	memset(tempBuff, 0x00, FLASH_USER_DATA_MAX_SIZE+USER_DATA_USED_LEN);
+	user_data_config_Read(0,tempBuff, FLASH_USER_DATA_MAX_SIZE+USER_DATA_USED_LEN);
+	pConfig = (unsigned char *)(tempBuff+FLASH_GWD_RCG_SWITCH_CFG_OFFSET+USER_DATA_USED_LEN);
 	memcpy(pConfig,buf,length);
 
-	user_data_config_Write(tempBuff, FLASH_USER_DATA_MAX_SIZE);
+	user_data_config_Write(tempBuff, FLASH_USER_DATA_MAX_SIZE+USER_DATA_USED_LEN);
 	if (tempBuff !=NULL ) {
 	    free(tempBuff);
 	}
@@ -6860,7 +6860,7 @@ int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
 	}
 
 	memset(tempBuff, 0x00, FLASH_USER_DATA_MAX_SIZE);
-	user_data_config_Read(0,tempBuff, FLASH_USER_DATA_MAX_SIZE);
+	user_data_config_Read(USER_DATA_USED_LEN,tempBuff, FLASH_USER_DATA_MAX_SIZE);
 	pConfig = (unsigned char *)(tempBuff+FLASH_GWD_RCG_SWITCH_CFG_OFFSET);
 
 	memcpy(buf, pConfig, *length);
@@ -7110,7 +7110,7 @@ error:
 #if 1
 unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)
 {
-	unsigned long roter_port[20];
+	unsigned long roter_port[50];
     unsigned long ulState = STATE_S;
 	unsigned long ulPort;
 	unsigned long ulPort_E;
@@ -7374,6 +7374,7 @@ unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num)
 	memcpy(rt_roter_port,roter_port,(port_i+1)*sizeof(unsigned long));
 	return rt_roter_port;
 error:
+	free(list);
 	return NULL;
 
        
