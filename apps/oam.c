@@ -102,8 +102,17 @@ struct {
 } gwd_oam_timer;
 #endif
 
-unsigned char *irosbootver = "iROSBoot ONU 02.08.01 1286761672 Oct 11 2010";
-unsigned char *iros_version = "";
+unsigned char *irosbootver = "GT813_ABoot ONU V1R01B001"\
+        __DATE__" "__TIME__" ""\n";
+
+#define IROS_FW_VER_MAJOR "1"
+#define IROS_FW_VER_MINOR "1"
+#define IROS_FW_VER_BUILD "001"
+
+unsigned char *iros_version = "GT813_A ONU" \
+        IROS_FW_VER_MAJOR"." \
+        IROS_FW_VER_MINOR"."\
+        IROS_FW_VER_BUILD" "__DATE__" "__TIME__"\n";
 
 /*packet send sem declare*/
 gw_uint32 g_pkt_send_sem;
@@ -1957,13 +1966,17 @@ int GW_Onu_Sysinfo_Save_To_Flash(VOID)
 
 static void resetSysInfoToDefault()
 {
-	unsigned char ucsDeviceNameDef[] = "CTC_ONU";
+//	unsigned char ucsDeviceNameDef[] = "";
+
+	unsigned int portnum = gw_onu_read_port_num();
 
 	ONU_SYS_INFO_TOTAL * pi = &gw_onu_system_info_total;
 
 	memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 
-	snprintf(pi->device_name, sizeof(pi->device_name), "%s", ucsDeviceNameDef);
+	snprintf(pi->device_name, sizeof(pi->device_name), "ONU_%dFE", portnum);
+
+//	snprintf(pi->device_name, sizeof(pi->device_name), "%s", ucsDeviceNameDef);
 	pi->product_type = DEVICE_TYPE_UNKNOWN;
 	snprintf(pi->serial_no, sizeof(pi->serial_no), "%s", "SN00000001");
 	snprintf(pi->sw_version, sizeof(pi->sw_version), "%s", "V1R01B001");
@@ -2017,7 +2030,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 int GW_Onu_Sysinfo_Save(void)
 {
 	/* Save to flash */
-	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT870;
+	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT813_A;
 	gw_onu_system_info_total.valid_flag = 'E';
 	/*sprintf(gw_onu_system_info_total.sw_version, "V%dR%02dB%03d", 
 		SYS_SOFTWARE_MAJOR_VERSION_NO,
@@ -2461,7 +2474,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT813A");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT813_A");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
