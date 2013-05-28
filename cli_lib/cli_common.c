@@ -269,6 +269,45 @@ void cli_start()
     return;
 }
 
+void cli_console_start()
+{
+    struct cli_def *cli = NULL;
+
+    // init command tree
+    if(gw_cmd_tree == NULL)
+    {
+        gw_cmd_tree = gw_cli_tree_init();
+        if(!gw_cmd_tree)
+        {
+            gw_printf("--------root cmd init fail--------!\r\n");
+                return;
+        }
+    }
+
+    // init console session
+    cli = gw_cli_init(gw_cmd_tree, CHANNEL_SERIAL);
+    if(NULL == cli)
+    {
+        gw_printf("--------cli_init fail--------\r\n");
+            return;
+    }
+
+    // configure session
+    cli->sockfd = 0;
+    cli->channel = CHANNEL_SERIAL;
+    gw_cli_set_banner(cli, CLI_BANNER);
+    gw_cli_set_hostname(cli, HOST_NAME);
+
+#if 1
+    gw_cli_loop(cli);
+
+    gw_cli_done(cli);
+#endif
+
+    return;
+}
+
+
 void oam_cli_start()
 {
     struct cli_def *cli = NULL;

@@ -43,13 +43,16 @@ void mon_read_char(char *c)
 {
 	return;
 }
-int mon_read_char_with_timeout(char *c)
+int mon_read_char_with_timeout(unsigned char *c)
 {
-	return TRUE;
+    if(gwd_console_read(c, 1) > 0)
+        return TRUE;
+    else
+        return FALSE;
 }
 void mon_write_chars(char* s, int n)
 {
-	return;
+    gwd_console_write(s, n);
 }
 
 #endif
@@ -73,6 +76,9 @@ char g_pty_cli_console_buff[MAX_PRINT_BUF_LEN];
 
 struct cli_def g_oam_cli_vty;
 char g_oam_cli_vty_buff[MAX_PRINT_BUF_LEN];
+
+struct cli_def g_ser_cli_vty;
+char g_ser_cli_vty_buff[MAX_PRINT_BUF_LEN];
 
 void gw_console_put_char(char c)
 {
@@ -558,6 +564,21 @@ struct cli_def *gw_cli_init(struct cli_command *cmd_root, int channel)
         memset(&g_oam_cli_vty,0,sizeof(struct cli_def));
         memset(g_oam_cli_vty_buff,0,MAX_PRINT_BUF_LEN);
         cli=&g_oam_cli_vty;
+        cli->buf_size = MAX_PRINT_BUF_LEN;
+        cli->buffer= g_oam_cli_vty_buff;
+        gw_cli_free_history(cli);
+
+        cli->commands = cmd_root;
+        cli->privilege = cli->mode = -1;
+        gw_cli_set_privilege(cli, PRIVILEGE_UNPRIVILEGED);
+        gw_cli_set_configmode(cli, MODE_EXEC, 0);
+    }
+    else
+    {
+        memset(&gw_parser_word[0][0],0,MAX_WORDS_LEN*MAX_WORDS_NUM);
+        memset(&g_ser_cli_vty,0,sizeof(struct cli_def));
+        memset(g_ser_cli_vty_buff,0,MAX_PRINT_BUF_LEN);
+        cli=&g_ser_cli_vty;
         cli->buf_size = MAX_PRINT_BUF_LEN;
         cli->buffer= g_oam_cli_vty_buff;
         gw_cli_free_history(cli);
@@ -1513,16 +1534,26 @@ int gw_cli_loop(struct cli_def *cli)
 #endif
             {
                 // read from console
-                while(1)
-                {
+//                while(1)
+//                {
                     res = mon_read_char_with_timeout(&c);
+#if 0
                     if (CHANNEL_SERIAL == gw_cur_chan && res) {
                         // Got a character
                         break;
                     }
-                }
+#else
+		    if(!(CHANNEL_SERIAL == gw_cur_chan && res))
+				continue;
+#endif
+//                }
 
-                if (cli->idle_timeout)
+//		gw_printf("recv char %02x\r\n", c);
+
+		if(c == '\n')
+			c = '\r';
+
+				if (cli->idle_timeout)
                     time(&cli->last_action);
             }
             else if(CHANNEL_PTY == cli->channel)
@@ -1987,7 +2018,8 @@ int gw_cli_loop(struct cli_def *cli)
                     oldl = cursor = l - 1;
                     break;
                 }
-                
+
+		if(cli->channel != CHANNEL_SERIAL)
                 gw_cli_raw_output(cli, (char*)&c, 1);
             }
             else
@@ -2124,7 +2156,7 @@ int gw_cli_loop(struct cli_def *cli)
                     diag_printf("add history failed.\n");
             }
 			
-            if (CLI_QUIT == gw_cli_run_command(cli, cmd) && (CHANNEL_TCP == cli->channel || CHANNEL_PTY == cli->channel) )
+            if (CLI_QUIT == gw_cli_run_command(cli, cmd))// && (CHANNEL_TCP == cli->channel || CHANNEL_PTY == cli->channel) )
                 break;
         }
 		

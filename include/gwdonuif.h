@@ -163,7 +163,7 @@ typedef gw_status (*libgwdonu_laser_set_t)(gw_EponTxLaserStatus state);
 
 typedef gw_status (*libgwdonu_port_loop_event_post_t)(gw_uint32 status);
 typedef gw_status (*libgwdonu_onu_register_special_frame_hanler_t)(libgwdonu_special_frame_handler_t handler);
-typedef gw_status (*liggwdonu_onu_register_out_if_t)(void * handler);
+typedef gw_status (*libgwdonu_onu_register_out_if_t)(void * handler);
 typedef gw_status (*libgwdonu_onu_current_timer_get_t)(gw_uint32* gw_time);
 typedef gw_status (*libgwdonu_onu_broadcast_speed_limit_set_t)(gw_uint32 gw_port,gwd_sw_port_inratelimit_mode_t gw_mode,gw_uint32 gw_rate);
 typedef gw_status (*libgwdonu_onu_localtime_get_t)(localtime_tm * tm);
@@ -179,7 +179,9 @@ typedef gw_status (*libgwdonu_ver_get)(char * sw_ver, const int sw_ver_len);
 typedef gw_status(*libgwdonu_syslog_heandler_t)(gw_int32 telve,gw_int8* logstring,...);
 typedef gw_status(*libgwdonu_syslog_register_heandler_t)(libgwdonu_syslog_heandler_t handler);
 
-
+typedef gw_int32 (*libgwdonu_console_read_t)(gw_uint8 *buf, gw_uint32 count);
+typedef gw_int32 (*libgwdonu_console_write_t)(gw_uint8 *buf, gw_uint32 count);
+typedef void (*libgwdonu_console_cli_entry_t)(libgwdonu_console_read_t r, libgwdonu_console_write_t w);
 
 typedef struct gwdonu_im_if_s{
 
@@ -221,7 +223,8 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_port_loop_event_post_t portloopnotify;
 
 	libgwdonu_onu_register_special_frame_hanler_t specialpkthandler;
-	liggwdonu_onu_register_out_if_t onuhwverget;
+	libgwdonu_onu_register_out_if_t onuhwverget;
+	libgwdonu_onu_register_out_if_t console_cli_register;
 
 	libgwdonu_onu_current_timer_get_t currenttimeget;
 	libgwdonu_onu_broadcast_speed_limit_set_t broadlimit;

@@ -24,6 +24,9 @@ gw_macaddr_t g_sys_mac;
 extern ONU_SYS_INFO_TOTAL gw_onu_system_info_total;
 extern gw_uint32 g_pkt_send_sem;
 
+extern int GW_Onu_Sysinfo_Get();
+extern void cli_console_start();
+
 gw_uint8 gw_onu_read_port_num()
 {
 	gw_log(GW_LOG_LEVEL_DEBUG, "read onu port num: %d\r\n", g_uni_port_num);
@@ -80,6 +83,44 @@ gw_status gwd_onu_out_if_hwver_get(gw_int8 * hwbuf, const gw_int32 len)
 		return GW_ERROR;
 }
 
+static libgwdonu_console_read_t sr=NULL;
+static libgwdonu_console_write_t sw=NULL;
+
+gw_int32 gwd_console_read(gw_uint8 *buf, gw_uint32 count)
+{
+    gw_int32 ret = 0;
+
+    if(sr)
+        ret = (*sr)(buf, count);
+    return ret;
+}
+
+gw_int32 gwd_console_write(gw_uint8 *buf, gw_uint32 count)
+{
+    gw_int32 ret = 0;
+
+    if(sw)
+        ret = (*sw)(buf, count);
+
+    return ret;
+}
+
+gw_status gwd_onu_console_cli_entry(libgwdonu_console_read_t r, libgwdonu_console_write_t w)
+{
+    if(r != NULL && w != NULL)
+    {
+        sr = r;
+        sw = w;
+        cli_console_start();
+        sr = NULL;
+        sw = NULL;
+
+        return GW_OK;
+    }
+    else
+        return GW_ERROR;
+}
+
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 {
 	gw_status ret = GW_E_ERROR;
@@ -110,6 +151,8 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 				call_gwdonu_if_api(LIB_IF_SPECIAL_PKT_HANDLER_REGIST, 1, gwlib_sendPktToQueue);
 				call_gwdonu_if_api(LIB_IF_ONU_SYSLOG_REGIST, 1, gw_syslog);
 				call_gwdonu_if_api(LIB_IF_REG_OUT_HWVER_GET, 1, gwd_onu_out_if_hwver_get);
+				call_gwdonu_if_api(LIB_IF_REG_CONSOLE_ENTRY, 1, gwd_onu_console_cli_entry);
+
 				GW_Onu_Sysinfo_Get();
 				call_gwdonu_if_api(LIB_IF_ONU_VER_GET, 2, gw_onu_system_info_total.sw_version, sizeof(gw_onu_system_info_total.sw_version));
 				ret = GW_E_OK;
@@ -124,7 +167,6 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 {
 	va_list ap;
 	gw_status ret = GW_ERROR;
-	struct cli_def *cli = NULL;
 	if(!g_im_ifs)
 	{
 		gw_log(GW_LOG_LEVEL_DEBUG, ("onu import api ifs not init!\r\n"));
@@ -194,7 +236,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 		case LIB_IF_PORT_ADMIN_GET:
 			if(g_im_ifs->portadminget)
-				ret = (*g_im_ifs->portadminget)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*));
+				ret = (*g_im_ifs->portadminget)(va_arg(ap, gw_uint32), va_arg(ap, gwd_port_admin_t*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "port admin get if is null!\r\n");
 			break;
@@ -206,7 +248,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 		case LIB_IF_PORT_OPER_STATUS_GET:
 			if(g_im_ifs->portoperstatusget)
-				ret = (*g_im_ifs->portoperstatusget)(va_arg(ap, gw_uint32), va_arg(ap, gw_int32*));
+				ret = (*g_im_ifs->portoperstatusget)(va_arg(ap, gw_uint32), va_arg(ap, gwd_port_oper_status_t*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "port oper status get if is null!\r\n");
 			break;
@@ -277,7 +319,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			break;
 		case LIB_IF_ATU_LEARN_GET:
 			if(g_im_ifs->atulearnget)
-				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_int32), va_arg(ap, gw_uint32*));
+				ret = (*g_im_ifs->atulearnget)(va_arg(ap, gw_int32), va_arg(ap, gw_int32*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "atu learn get if is null!\r\n");
 			break;			
@@ -423,7 +465,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 
 		case LIB_IF_LASER_GET:
 			if(g_im_ifs->laserget)
-				ret =(*g_im_ifs->laserget)(va_arg(ap, gw_int32*));
+				ret =(*g_im_ifs->laserget)(va_arg(ap, gw_EponTxLaserStatus*));
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "onu laser get if is null!\r\n");
 			break;
@@ -446,6 +488,10 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "gwonu syslog handler if is null!\r\n");
 			break;
+		case LIB_IF_REG_CONSOLE_ENTRY:
+		    if(g_im_ifs->console_cli_register)
+		        ret = (*g_im_ifs->console_cli_register)(va_arg(ap, void*));
+		    break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
