@@ -102,8 +102,7 @@ struct {
 } gwd_oam_timer;
 #endif
 
-unsigned char *irosbootver = "GT813_ABoot ONU V1R01B001"\
-        __DATE__" "__TIME__" ""\n";
+unsigned char *irosbootver = "GT813_A boot ";
 
 #define IROS_FW_VER_MAJOR "1"
 #define IROS_FW_VER_MINOR "1"
@@ -1974,7 +1973,7 @@ static void resetSysInfoToDefault()
 
 	memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 
-	snprintf(pi->device_name, sizeof(pi->device_name), "ONU_%dFE", portnum);
+	snprintf(pi->device_name, sizeof(pi->device_name), "ONU-%dFE", portnum);
 
 //	snprintf(pi->device_name, sizeof(pi->device_name), "%s", ucsDeviceNameDef);
 	pi->product_type = DEVICE_TYPE_UNKNOWN;
