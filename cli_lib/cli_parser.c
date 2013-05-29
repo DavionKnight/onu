@@ -2019,7 +2019,6 @@ int gw_cli_loop(struct cli_def *cli)
                     break;
                 }
 
-		if(cli->channel != CHANNEL_SERIAL)
                 gw_cli_raw_output(cli, (char*)&c, 1);
             }
             else
