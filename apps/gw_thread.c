@@ -27,9 +27,6 @@ extern void broad_storm_thread(void* data);
 ****************************************************/
 void gwd_thread_init(void)
 {
-	gw_printf("=============================================\n");
-	gw_printf("====  gw_borad_storm_thread_create===========\n");
-	gw_printf("=============================================\n");
 	if(gw_thread_create(&gw_broad_storm_id,
 				  "gwd_broad_storm",
 	              broad_storm_thread,

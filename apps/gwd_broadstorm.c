@@ -185,153 +185,159 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 }
 void broad_storm_thread(void* data)
 {
-	gw_uint32 logical_port;
-	gw_uint32 physical_port;
-	gwd_port_admin_t port_status;
-	gw_return_code_t ret;
-	gw_uint32 slot = 1;
-	gw_uint8 OAMsession[8]="";
-	gw_uint16 ulBcStormEventCnt[NUM_PORTS_PER_SYSTEM-1] = {0};
-    gw_uint16 ulBcStormStopCnt[NUM_PORTS_PER_SYSTEM-1] = {0};
-	gw_uint16 havebroadcaststorm[NUM_PORTS_PER_SYSTEM-1] = {0};
-	gw_uint16 havebroadcaststorm_end[NUM_PORTS_PER_SYSTEM-1] = {0};
-	gw_uint16 timeCouter[NUM_PORTS_PER_SYSTEM-1] = {0};
-	gw_uint16 startCouter[NUM_PORTS_PER_SYSTEM-1] = {0};
-	call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
-	while(GW_TRUE)
-		{
-			for(logical_port=1; logical_port <= gw_onu_read_port_num(); logical_port++)
-				{
-					if(gwd_logical_to_physical(logical_port,&physical_port))
-						continue;
-					ret = call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, logical_port, &port_status);
-					//ret = gwd_onu_sw_port_admin_status_get(logical_port,&port_status);
-					if(ret)
-						continue;
-						//gw_printf("get gwd onu port admin status fail\n");
-						
-					if(port_status == GW_PORT_ADMIN_UP)
-						{
-							if(gwd_port_rate_update(physical_port))
-								continue;
-							//gwd_port_current_pkt_status_save(physical_port,dsts);
-							#ifdef __DEBUG__
-							if(logical_port == 1)
-								{
-									gw_printf("port rate:%d\n",gulOctRateIn[physical_port]);
-								}
-							#else
-							if(gulOctRateIn[physical_port] > broad_storm.gulBcStormThreshold)
-							#endif
-							#ifdef __DEBUG__
-							if(logical_port == 1)
-								{
-									gw_printf("port rate:%d\n",gulOctRateIn[physical_port]);
-								}
-							if(gulOctRateIn[physical_port] > 1000)
-							#endif
-								{
-								#ifdef __DEBUG__
-									if(logical_port == 1)
-									{
-										gw_printf("event counter:%d\n",ulBcStormEventCnt[physical_port]);
-									}
-								#endif
-									ulBcStormEventCnt[physical_port]++;
-									ulBcStormStopCnt[physical_port] = 0;
-				                    timeCouter[physical_port] = 0;
-								}
-							else
-								{
-									ulBcStormEventCnt[physical_port] = 0;
-									if(startCouter[physical_port] == 0)
-				                    	timeCouter[physical_port] = 0;
-				                    else
-										timeCouter[physical_port]++;
-									if(havebroadcaststorm_end[physical_port])
-										{
-											ulBcStormStopCnt[physical_port]++;
-											if(ulBcStormStopCnt[physical_port] > 3)
-												{
-												    call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3,0);
-													//gw_printf("stop strom speed limit\n");
-													#ifdef __NOT_USE__
-													epon_onu_sw_set_port_stormctrl(logical_port, 3, 0);
-													#endif
-													startCouter[physical_port] = 1;
-													timeCouter[physical_port] = 0;
-													havebroadcaststorm_end[physical_port]=0;
-													havebroadcaststorm[physical_port] = 0;
-												}
-										}
-								}
-							if(ulBcStormEventCnt[physical_port] > 3)
-								{
-									if(broad_storm.gulBcStormStat == ENABLE)
-										{
-											ret = call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, logical_port, GW_PORT_ADMIN_DOWN);
-											#ifdef __NOT_USE__
-											ret = gwd_onu_sw_port_admin_status_set(logical_port,GW_PORT_ADMIN_DOWN);
-											if(ret)
-												return;
-											#endif
-											gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 2, 1,OAMsession);
-											//gw_printf("shutdown gwd onu port %d\n",logical_port);
-											//gw_time_get(&tm);
-											gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth1/%d detected Broadcast Storm,port shutdown",logical_port);
-										}
-									else
-										{
-											if(!havebroadcaststorm[physical_port])
-												{
-													printf("input port limit speed\n");
-													if(call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3,64))
-														gw_printf("Broadcast storm speed limit failure\n");
-													#ifdef __NOT_USE__
-													if(epon_onu_sw_set_port_stormctrl(logical_port, 3, 64))
-														gw_printf("Broadcast storm speed limit failure\n");
-													#endif
-													gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 1,OAMsession);
-													//gw_printf("discover gwd onu broadcast storm speed limit\n");
-													//gw_time_get(&tm);
-													gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth1/%d detected Broadcast Storm,rate limited to 64K.",logical_port);
-													//gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth0/%d detected Broadcast Storm,rate limited to 64K.",logical_port);
-													havebroadcaststorm[physical_port] = 1;
-													havebroadcaststorm_end[physical_port]=1;
-												}
-										}
-									ulBcStormEventCnt[physical_port] = 0;
-								}
-							if(timeCouter[physical_port] > 2)
-								{
-									gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 2,OAMsession);
-									if(gulOctRateIn[physical_port])
-										{
-											//gw_time_get(&tm);
-											gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth1/%d Broadcast Storm stopped, rate back to %dKbps.",logical_port,gulOctRateIn[physical_port]);
-											//gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth0/%d Broadcast Storm stopped, rate back to %dKbps.",logical_port,gulOctRateIn[physical_port]);
-										}
-									else
-										{
-											//gw_time_get(&tm);
-											gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth1/%d Broadcast Storm stopped, rate back to No Limit.",logical_port,gulOctRateIn[physical_port]);
-											//gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth0/%d Broadcast Storm stopped, rate back to No Limit.",logical_port);
-										}
-									startCouter[physical_port] = 0;
-									timeCouter[physical_port] = 0;
+    gw_uint32 logical_port;
+    gw_uint32 physical_port;
+    gwd_port_admin_t port_status;
+    gw_return_code_t ret;
+    gw_uint32 slot = 1;
+    gw_uint8 OAMsession[8] = "";
+    gw_uint16 ulBcStormEventCnt[NUM_PORTS_PER_SYSTEM - 1] =
+        { 0 };
+    gw_uint16 ulBcStormStopCnt[NUM_PORTS_PER_SYSTEM - 1] =
+        { 0 };
+    gw_uint16 havebroadcaststorm[NUM_PORTS_PER_SYSTEM - 1] =
+        { 0 };
+    gw_uint16 havebroadcaststorm_end[NUM_PORTS_PER_SYSTEM - 1] =
+        { 0 };
+    gw_uint16 timeCouter[NUM_PORTS_PER_SYSTEM - 1] =
+        { 0 };
+    gw_uint16 startCouter[NUM_PORTS_PER_SYSTEM - 1] =
+        { 0 };
+    call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2, g_sys_mac, &g_uni_port_num);
+    while (GW_TRUE)
+    {
+        for (logical_port = 1; logical_port <= gw_onu_read_port_num(); logical_port++)
+        {
+            if (gwd_logical_to_physical(logical_port, &physical_port))
+                continue;
+            ret = call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, logical_port, &port_status);
+            //ret = gwd_onu_sw_port_admin_status_get(logical_port,&port_status);
+            if (ret)
+                continue;
+            //gw_printf("get gwd onu port admin status fail\n");
+
+            if (port_status == GW_PORT_ADMIN_UP)
+            {
+                if (gwd_port_rate_update(physical_port))
+                    continue;
+                //gwd_port_current_pkt_status_save(physical_port,dsts);
+#ifdef __DEBUG__
+                if(logical_port == 1)
+                {
+                    gw_printf("port rate:%d\n",gulOctRateIn[physical_port]);
+                }
+#else
+                if (gulOctRateIn[physical_port] > broad_storm.gulBcStormThreshold)
+#endif
+#ifdef __DEBUG__
+                if(logical_port == 1)
+                {
+                    gw_printf("port rate:%d\n",gulOctRateIn[physical_port]);
+                }
+                if(gulOctRateIn[physical_port] > 1000)
+#endif
+                {
+#ifdef __DEBUG__
+                    if(logical_port == 1)
+                    {
+                        gw_printf("event counter:%d\n",ulBcStormEventCnt[physical_port]);
+                    }
+#endif
+                    ulBcStormEventCnt[physical_port]++;
+                    ulBcStormStopCnt[physical_port] = 0;
+                    timeCouter[physical_port] = 0;
+                }
+                else
+                {
+                    ulBcStormEventCnt[physical_port] = 0;
+                    if (startCouter[physical_port] == 0)
+                        timeCouter[physical_port] = 0;
+                    else
+                        timeCouter[physical_port]++;
+                    if (havebroadcaststorm_end[physical_port])
+                    {
+                        ulBcStormStopCnt[physical_port]++;
+                        if (ulBcStormStopCnt[physical_port] > 3)
+                        {
+                            call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3, 0);
+                            //gw_printf("stop strom speed limit\n");
+#ifdef __NOT_USE__
+                            epon_onu_sw_set_port_stormctrl(logical_port, 3, 0);
+#endif
+                            startCouter[physical_port] = 1;
+                            timeCouter[physical_port] = 0;
+                            havebroadcaststorm_end[physical_port] = 0;
+                            havebroadcaststorm[physical_port] = 0;
+                        }
+                    }
+                }
+                if (ulBcStormEventCnt[physical_port] > 3)
+                {
+                    if (broad_storm.gulBcStormStat == ENABLE)
+                    {
+                        ret = call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, logical_port, GW_PORT_ADMIN_DOWN);
+#ifdef __NOT_USE__
+                        ret = gwd_onu_sw_port_admin_status_set(logical_port,GW_PORT_ADMIN_DOWN);
+                        if(ret)
+                        return;
+#endif
+                        gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 2, 1, OAMsession);
+                        //gw_printf("shutdown gwd onu port %d\n",logical_port);
+                        //gw_time_get(&tm);
+                        gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth1/%d detected Broadcast Storm,port shutdown", logical_port);
+                    }
+                    else
+                    {
+                        printf("input port limit speed\n");
+                        if (call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3, 64))
+                            gw_printf("Broadcast storm speed limit failure\n");
+#ifdef __NOT_USE__
+                        if(epon_onu_sw_set_port_stormctrl(logical_port, 3, 64))
+                        gw_printf("Broadcast storm speed limit failure\n");
+#endif
+                        if (!havebroadcaststorm[physical_port])
+                        {
+                            gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 1, OAMsession);
+                            //gw_printf("discover gwd onu broadcast storm speed limit\n");
+                            //gw_time_get(&tm);
+                            gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth1/%d detected Broadcast Storm,rate limited to 64K.", logical_port);
+                            //gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth0/%d detected Broadcast Storm,rate limited to 64K.",logical_port);
+                            havebroadcaststorm[physical_port] = 1;
+                            havebroadcaststorm_end[physical_port] = 1;
+                        }
+                    }
+                    ulBcStormEventCnt[physical_port] = 0;
+                }
+                if (timeCouter[physical_port] > 2)
+                {
+                    gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 2, OAMsession);
+                    if (gulOctRateIn[physical_port])
+                    {
+                        //gw_time_get(&tm);
+                        gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth1/%d Broadcast Storm stopped, rate back to %dKbps.", logical_port, gulOctRateIn[physical_port]);
+                        //gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth0/%d Broadcast Storm stopped, rate back to %dKbps.",logical_port,gulOctRateIn[physical_port]);
+                    }
+                    else
+                    {
+                        //gw_time_get(&tm);
+                        gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth1/%d Broadcast Storm stopped, rate back to No Limit.", logical_port, gulOctRateIn[physical_port]);
+                        //gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth0/%d Broadcast Storm stopped, rate back to No Limit.",logical_port);
+                    }
+                    startCouter[physical_port] = 0;
+                    timeCouter[physical_port] = 0;
 //									havebroadcaststorm[physical_port] = 0;
-								}
-						}
-					else
-						{
-							gwd_onu_port_bcstorm_date_clear(physical_port);
-						}
-				}
-			gw_thread_delay(10000);
-		}
-	gw_printf("=======================================\n");
-	gw_printf("====Broadcast storm thread exit========\n");
-	gw_printf("=======================================\n");
+                }
+            }
+            else
+            {
+                gwd_onu_port_bcstorm_date_clear(physical_port);
+            }
+        }
+        gw_thread_delay(10000);
+    }
+    gw_printf("=======================================\n");
+    gw_printf("====Broadcast storm thread exit========\n");
+    gw_printf("=======================================\n");
 }
 
 
