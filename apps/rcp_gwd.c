@@ -183,6 +183,51 @@ unsigned long   gulDebugRcp = 0;
 #define RCP_DEBUG(str) if( gulDebugRcp ){ diag_printf str ;}
 #define DUMPRCPPKT(c, p, b, l)      if(gulDebugRcp) dumpPkt(c, p, b, l)
 
+
+
+int locateUserMac(char * mac, int * onuslot, int * onuport, unsigned char * subsw, char *sw_mac, int * sw_port)	
+{
+
+	int ret = GW_ERROR;
+    gw_uint32 vid = 0, egports = 0, idx = 0;
+	gw_uint8 macget[GW_MACADDR_LEN]={0,0,0,0,0,0};
+	gw_uint32 statics=0;
+    while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, macget, &vid, macget, &egports,&statics) == GW_OK)
+    {
+   
+		if(!memcmp(mac,macget,GW_MACADDR_LEN))
+		{				    
+			*onuslot = PORTNO_TO_ETH_SLOT(egports);
+			*onuport = PORTNO_TO_ETH_PORTID(egports);
+			if(*onuport > ONU_PAREANT_PORT_MAX || *onuport < ONU_PAREANT_PORT_LOW)
+				continue;
+			if( 1 == RCP_Dev_Is_Exist(*onuport))
+        	{	
+				*subsw = 1;
+				memcpy(sw_mac, rcpDevList[*onuport]->switchMac, 6);
+				*sw_port = 0;
+				ret = GW_OK;
+				break;
+        	}
+			else
+			{
+				*subsw = 0;
+				memset(sw_mac, 0 ,6 );
+				*sw_port = 0;
+				ret = GW_OK;
+				break;
+			}
+
+		}
+		else
+		{
+			continue;
+		}
+
+    }
+
+	return ret;
+}
 void gw_rcp_sem_create(unsigned int * semid, unsigned char *name,unsigned int initval)
 {
 	int ret;

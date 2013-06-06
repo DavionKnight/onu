@@ -28,6 +28,10 @@ typedef unsigned int                    epon_ipaddr_t;
 
 struct epon_timer_t;
 
+
+#define ONU_LOCATE_USER					200
+#define USR_MAC_ADDRES_CHEAK 		1
+
 typedef void (* epon_timer_func_t) (struct epon_timer_t *timer);
 
 /* currently, we implemented timer based sorted absolution tick to
@@ -110,6 +114,42 @@ typedef struct TLV_Varialbe_Indication
 	unsigned short leaf;
 	unsigned char var;
 } __attribute__ ((packed)) TLV_VARIALBE_INDICATION;
+
+
+
+typedef struct userMacRequest_s
+{
+    unsigned char swmac[6];		/*sub switch mac address*/
+}userMacRequest_t;
+typedef struct userMacRequest_pdu_s
+{
+	unsigned char type;			/*pdu type -- 200*/
+	unsigned char result;		/*location result 1:success, 2:fail*/
+	unsigned char mode;			/*query mode: 1:based user mac*/
+    unsigned char macNum;       /*mac number.*/
+    userMacRequest_t info[64];
+}__attribute__((packed)) userMacRequest_pdu_t; /*user mac location pdu define*/
+
+typedef struct userMacResponse_s
+{
+	unsigned char usermac[6];	/*user mac address*/
+	unsigned short reserved;	
+	unsigned char onuslot;		/*onu slot on which user mac learned*/
+	unsigned char onuport;		/*onu uni port on which user mac learned*/
+	unsigned char subsw;		/*whether if sub switch exist 0:no sub switch, other on the contrary*/
+	unsigned char swmac[6];		/*sub switch mac address*/
+	unsigned int swport;		/*sub switch port on which user mac learned*/
+}__attribute__((packed))userMacResponse_t;
+
+typedef struct userMacResponse_pdu_s
+{
+	unsigned char type;			/*pdu type -- 200*/
+	unsigned char result;		/*location result 1:success, 2:fail*/
+	unsigned char mode;			/*query mode: 1:based user mac*/
+    unsigned char macNum;       /*mac number.*/
+}__attribute__((packed)) userMacResponse_pdu_t; /*user mac location pdu define*/
+
+
 
 typedef struct TLV_Classification_Marking_Entry
 {
@@ -1066,5 +1106,6 @@ typedef struct enet_format_s
 	unsigned short  en_l4_sport;
 	unsigned short  en_l4_dport;
 } enet_format_t;
+extern int locateUserMac(char * mac, int * onuslot, int * onuport, unsigned char * subsw, char *sw_mac, int * sw_port);
 
 #endif

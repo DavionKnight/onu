@@ -851,6 +851,10 @@ typedef enum {
 #define ONU_UNI_PORT_FILST 1
 #define ONU_UNI_PORT_MAX 4
 
+
+#define ONU_PAREANT_PORT_MAX 4
+#define ONU_PAREANT_PORT_LOW 1
+
 /* Define the different device type that may exist in system */
 typedef enum
 {

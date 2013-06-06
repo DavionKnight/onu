@@ -48,7 +48,7 @@ unsigned long	gulGwOamConnect = 0;
 
 const unsigned char SYS_SOFTWARE_MAJOR_VERSION_NO = 2;
 const unsigned char SYS_SOFTWARE_RELEASE_VERSION_NO = 3;
-const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 4;
+const unsigned char SYS_SOFTWARE_BRANCH_VERSION_NO = 101;
 const unsigned char SYS_SOFTWARE_DEBUG_VERSION_NO = 1;
 
 const unsigned char SYS_HARDWARE_MAJOR_VERSION_NO = 2;
@@ -1538,15 +1538,78 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			return sendIpSourcManAck(IP_RESOURCE_FREE, 0, pRequest->SessionID);
 			break;
 #endif
+		case ONU_LOCATE_USER:
+			{
+				unsigned char swmac[6] = "", subsw = 0;
+				int onuslot =0, onuport=0, swport = 0;
+				userMacRequest_pdu_t *requestPdu = (userMacRequest_pdu_t *)pRequest->pPayLoad;
+                userMacResponse_pdu_t *responsePdu = NULL;
+                userMacResponse_t responseInfo[32] = {0};
+                int requestNum = 0;
+                int responseNum = 0;
+                unsigned char *tempP = Response;
 
+                responsePdu = malloc(sizeof(userMacResponse_pdu_t));
+                if (NULL == responsePdu)
+                {
+                    break;
+                }
+
+                ResLen = sizeof(userMacResponse_pdu_t);
+
+                for (requestNum = 0; requestNum < requestPdu->macNum; requestNum++)
+                {
+    				/*generating response pdu only for found the mac because of OLT broadcast oam request*/
+    				if(GWD_RETURN_OK == locateUserMac( requestPdu->info[requestNum].swmac, &onuslot, &onuport, &subsw, swmac, &swport ))
+    				{
+    					memcpy(responseInfo[responseNum].usermac, requestPdu->info[requestNum].swmac, 6);/*USR MAC*/
+    					responseInfo[responseNum].reserved = 0;
+    					responseInfo[responseNum].onuslot = onuslot;/*SLOT 单槽位为0*/
+    					responseInfo[responseNum].onuport = onuport;
+    					responseInfo[responseNum].subsw = subsw;
+    					memcpy(responseInfo[responseNum].swmac, swmac, 6);
+    					responseInfo[responseNum].swport = swport;
+
+                        responseNum++;
+                        ResLen += sizeof(userMacResponse_t);
+    				}
+
+                    if (responseNum >= 32)
+                    {
+                        break;
+                    }
+                }
+
+                ResLen += 1;/*reserved bit.*/
+                if (0 != responseNum)
+                {
+                	responsePdu->type = ONU_LOCATE_USER;/*cheak type*/
+                    responsePdu->result = 1;/*查询结果*/
+					responsePdu->mode	= USR_MAC_ADDRES_CHEAK;/*查询模式*/				
+                    responsePdu->macNum = responseNum;/*查到的MAC地址数*/
+                    
+                    memcpy(tempP, responsePdu, sizeof(userMacResponse_pdu_t));
+                    tempP += sizeof(userMacResponse_pdu_t);
+
+					memcpy(tempP, responseInfo, (responseNum*sizeof(userMacResponse_t)));
+					free(responsePdu);
+					responsePdu = NULL;
+                }
+                else
+                {
+                    ResLen = 0;
+					free(responsePdu);
+					responsePdu = NULL;
+					return GWD_RETURN_ERR;/*如果查询的MAC 都没有找到不回复，直接丢弃*/
+                }
+			}
+			break;
 		default:
 		{
-//			IROS_LOG_MAJ(IROS_MID_OAM, "OAM INFO request (%d) no suportted!", *pRequest->pPayLoad);
 			GWDOAMTRC("EQU_DEVICE_INFO_REQ - unknown received.(%d)\n", *pRequest->pPayLoad);
 			return GWD_RETURN_ERR;
 		}
 	}
-
 	return (CommOnuMsgSend(EQU_DEVICE_INFO_RESP, pRequest->SendSerNo, Response, ResLen, pRequest->SessionID));
 }
 

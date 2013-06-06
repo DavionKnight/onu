@@ -203,7 +203,7 @@ void broad_storm_thread(void* data)
 						
 					if(port_status == GW_PORT_ADMIN_UP)
 						{
-							if(gwd_port_rate_update(physical_port))
+							if(gwd_port_rate_update(physical_port))/*端口速率获取*/
 								return;
 							//gwd_port_current_pkt_status_save(physical_port,dsts);
 							#ifdef __DEBUG__
@@ -244,7 +244,7 @@ void broad_storm_thread(void* data)
 											ulBcStormStopCnt[physical_port]++;
 											if(ulBcStormStopCnt[physical_port] > 3)
 												{
-												    call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3,0);
+												    call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3,0);/*关闭广播风暴抑制*/
 													//gw_printf("stop strom speed limit\n");
 													#ifdef __NOT_USE__
 													epon_onu_sw_set_port_stormctrl(logical_port, 3, 0);
@@ -260,13 +260,13 @@ void broad_storm_thread(void* data)
 								{
 									if(broad_storm.gulBcStormStat == ENABLE)
 										{
-											ret = call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, logical_port, GW_PORT_ADMIN_DOWN);
+											ret = call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, logical_port, GW_PORT_ADMIN_DOWN);/*down端口*/
 											#ifdef __NOT_USE__
 											ret = gwd_onu_sw_port_admin_status_set(logical_port,GW_PORT_ADMIN_DOWN);
 											if(ret)
 												return;
 											#endif
-											gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 2, 1,OAMsession);
+											gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 2, 1,OAMsession);/*发告警*/
 											//gw_printf("shutdown gwd onu port %d\n",logical_port);
 											//gw_time_get(&tm);
 											gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth1/%d detected Broadcast Storm,port shutdown",logical_port);
@@ -275,13 +275,13 @@ void broad_storm_thread(void* data)
 										{
 											if(!havebroadcaststorm[physical_port])
 												{
-													if(call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3,64))
+													if(call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3,64))/*是能端口限速*/
 														gw_printf("Broadcast storm speed limit failure\n");
 													#ifdef __NOT_USE__
 													if(epon_onu_sw_set_port_stormctrl(logical_port, 3, 64))
 														gw_printf("Broadcast storm speed limit failure\n");
 													#endif
-													gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 1,OAMsession);
+													gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 1,OAMsession);/*发送告警*/
 													//gw_printf("discover gwd onu broadcast storm speed limit\n");
 													//gw_time_get(&tm);
 													gw_log(GW_LOG_LEVEL_MAJOR,"Interface  eth1/%d detected Broadcast Storm,rate limited to 64K.",logical_port);
@@ -294,7 +294,7 @@ void broad_storm_thread(void* data)
 								}
 							if(timeCouter[physical_port] > 2)
 								{
-									gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 2,OAMsession);
+									gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 2,OAMsession);/*发送清楚告警*/
 									if(gulOctRateIn[physical_port])
 										{
 											//gw_time_get(&tm);
