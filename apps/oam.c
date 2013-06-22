@@ -102,7 +102,7 @@ struct {
 } gwd_oam_timer;
 #endif
 
-unsigned char *irosbootver = "GT813_A boot ";
+unsigned char *irosbootver = "GT813_C boot ";
 
 #define IROS_FW_VER_MAJOR "1"
 #define IROS_FW_VER_MINOR "1"
@@ -2473,7 +2473,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT813_A");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT813_C");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
