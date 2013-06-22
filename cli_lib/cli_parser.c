@@ -45,10 +45,14 @@ void mon_read_char(char *c)
 }
 int mon_read_char_with_timeout(unsigned char *c)
 {
+	#if 0
     if(gwd_console_read(c, 1) > 0)
         return TRUE;
     else
         return FALSE;
+	#else
+	return gwd_console_read(c, 1);
+	#endif
 }
 void mon_write_chars(char* s, int n)
 {
@@ -1537,11 +1541,30 @@ int gw_cli_loop(struct cli_def *cli)
 //                while(1)
 //                {
                     res = mon_read_char_with_timeout(&c);
+#if 1
 #if 0
                     if (CHANNEL_SERIAL == gw_cur_chan && res) {
                         // Got a character
                         break;
                     }
+#else
+                    if (CHANNEL_SERIAL == gw_cur_chan) {
+                        // Got a character
+						if(res < 0)
+                        {
+							l = -1;
+							break;
+						}
+						else if(res == 0)
+							continue;
+
+                    }
+					else
+					{
+						l = -1;
+						break;
+					}
+#endif
 #else
 		    if(!(CHANNEL_SERIAL == gw_cur_chan && res))
 				continue;
