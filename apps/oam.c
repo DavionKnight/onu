@@ -102,13 +102,13 @@ struct {
 } gwd_oam_timer;
 #endif
 
-unsigned char *irosbootver = "GT813_A boot ";
+unsigned char *irosbootver = "GT873_A boot ";
 
 #define IROS_FW_VER_MAJOR "1"
 #define IROS_FW_VER_MINOR "1"
 #define IROS_FW_VER_BUILD "001"
 
-unsigned char *iros_version = "GT813_A ONU" \
+unsigned char *iros_version = "GT873_A ONU" \
         IROS_FW_VER_MAJOR"." \
         IROS_FW_VER_MINOR"."\
         IROS_FW_VER_BUILD" "__DATE__" "__TIME__"\n";
@@ -1979,7 +1979,7 @@ static void resetSysInfoToDefault()
 	pi->product_type = DEVICE_TYPE_UNKNOWN;
 	snprintf(pi->serial_no, sizeof(pi->serial_no), "%s", "SN00000001");
 	snprintf(pi->sw_version, sizeof(pi->sw_version), "%s", "V1R01B001");
-	snprintf(pi->hw_version, sizeof(pi->hw_version), "%s", "V1.0");
+	snprintf(pi->hw_version, sizeof(pi->hw_version), "%s", "V1.0R1");
 	snprintf(pi->hw_manufature_date, sizeof(pi->hw_manufature_date), "%s", "1970-01-01");
 
 	pi->valid_flag = 'E';
@@ -1996,11 +1996,10 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 //	if (GWD_RETURN_OK != (ret = get_userdata_from_flash((unsigned char *)&gw_onu_system_info_total, GWD_PRODUCT_CFG_OFFSET,  sizeof(gw_onu_system_info_total))))
 	if(GW_OK != call_gwdonu_if_api(LIB_IF_SYSCONF_RESTORE, 2, (unsigned char *)&gw_onu_system_info_total, sizeof(gw_onu_system_info_total)))
 	{
-//		memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
+	//		memset(&gw_onu_system_info_total, 0, sizeof(gw_onu_system_info_total));
 		resetSysInfoToDefault();
 //		ret = GWD_RETURN_ERR;
 	}
-		
 	/* Avoid invalid string data */
 	if('E' != gw_onu_system_info_total.valid_flag)
 	{
@@ -2013,7 +2012,6 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 	gw_onu_system_info_total.serial_no[iLastChar] = '\0';
 	iLastChar = sizeof(gw_onu_system_info_total.hw_manufature_date) - 1;
 	gw_onu_system_info_total.hw_manufature_date[iLastChar] = '\0';
-
 	/*
 	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT870;
 	sprintf(gw_onu_system_info_total.sw_version, "V%dR%02dB%03d", 
@@ -2022,14 +2020,13 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 		SYS_SOFTWARE_BRANCH_VERSION_NO);*/
 	
 	call_gwdonu_if_api(LIB_IF_ONU_VER_GET, 2, gw_onu_system_info_total.sw_version, sizeof(gw_onu_system_info_total.sw_version));
-
 	return ret;
 }
 
 int GW_Onu_Sysinfo_Save(void)
 {
 	/* Save to flash */
-	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT813_A;
+	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT873_A;
 	gw_onu_system_info_total.valid_flag = 'E';
 	/*sprintf(gw_onu_system_info_total.sw_version, "V%dR%02dB%03d", 
 		SYS_SOFTWARE_MAJOR_VERSION_NO,
@@ -2439,7 +2436,7 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT811C");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT873_A");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
@@ -2465,7 +2462,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
     		strMac[1],strMac[2],strMac[3],strMac[4],strMac[5]);
         
 	lRet = GW_Onu_Sysinfo_Get();
-	if (lRet != GWD_RETURN_OK)
+		if (lRet != GWD_RETURN_OK)
 	{
 		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
 		return CLI_OK;
@@ -2473,7 +2470,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT813_A");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT873_A");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);

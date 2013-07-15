@@ -485,6 +485,8 @@ unsigned char* onu_product_name_get(unsigned char productID)
 		    return "GT873";
 		case DEVICE_TYPE_GT813_A:
 			return "GT813_A";
+		case DEVICE_TYPE_GT873_A:
+			return "GT873_A";
 		default:
 			return "UNKNOWN";
 	}
@@ -1182,7 +1184,7 @@ int lpbDetectTransFrames(unsigned short usVid)
     packet_head->Ethtype = htons(ETH_TYPE_LOOP_DETECT);
     packet_head->LoopFlag = htons(LOOP_DETECT_CHECK);
     packet_head->OltType = type;
-    packet_head->OnuType = (unsigned char)DEVICE_TYPE_GT813_A;
+    packet_head->OnuType = (unsigned char)DEVICE_TYPE_GT873_A;
     memset(packet_head->OnuLocation, 0, 4);
     memset(&packet_head->OnuLocation[1], (unsigned char)ulSlot, 1);
     memset(&packet_head->OnuLocation[2], (unsigned char)ulPon, 1);
