@@ -108,7 +108,7 @@ unsigned char *irosbootver = "GT813_C boot ";
 #define IROS_FW_VER_MINOR "1"
 #define IROS_FW_VER_BUILD "001"
 
-unsigned char *iros_version = "GT813_A ONU" \
+unsigned char *iros_version = "GT813_C ONU" \
         IROS_FW_VER_MAJOR"." \
         IROS_FW_VER_MINOR"."\
         IROS_FW_VER_BUILD" "__DATE__" "__TIME__"\n";
@@ -2029,7 +2029,7 @@ int GW_Onu_Sysinfo_Get_From_Flash(VOID)
 int GW_Onu_Sysinfo_Save(void)
 {
 	/* Save to flash */
-	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT813_A;
+	gw_onu_system_info_total.product_type = DEVICE_TYPE_GT813_C;
 	gw_onu_system_info_total.valid_flag = 'E';
 	/*sprintf(gw_onu_system_info_total.sw_version, "V%dR%02dB%03d", 
 		SYS_SOFTWARE_MAJOR_VERSION_NO,
@@ -2969,6 +2969,9 @@ gw_int32 gw_oam_parser(gw_int8 * pkt, const gw_int32 len)
 	if(len < sizeof(GWTT_OAM_HEADER))
 		return GW_PKT_MAX;
 
+	if(hdr->std_hdr.type == ntohs(0x8100))
+		hdr = (GWTT_OAM_HEADER*)(pkt+4);
+	
 	if(hdr->std_hdr.type == ntohs(0x8809) &&
 			memcmp(hdr->oui, GwOUI, sizeof(GwOUI)) == 0)
 		return GW_PKT_OAM;
@@ -2979,7 +2982,16 @@ gw_int32 gw_oam_parser(gw_int8 * pkt, const gw_int32 len)
 
 gw_status gw_oam_handler(gw_int8 * pkt, const gw_int32 len, gw_int32 portid)
 {
-	Gwd_Oam_Handle(portid, pkt, len);
+	GWTT_OAM_HEADER * hdr = (GWTT_OAM_HEADER*)pkt;
+	gw_int32 rlen = len;
+
+	if(hdr->std_hdr.type == ntohs(0x8100))
+	{
+		memmove(pkt+12, pkt+16, rlen-16);
+		rlen-=4;
+	}
+	
+	Gwd_Oam_Handle(portid, pkt, rlen);
 	return GW_OK;
 }
 void gw_broadcast_storm_init()

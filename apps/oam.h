@@ -289,8 +289,8 @@ extern unsigned long   gulDebugOamFileOp;
 #define DEVICE_TYPE_GT872                       0x0025
 #define DEVICE_TYPE_GT873                       0x0028
 #define DEVICE_TYPE_GT870                       0x002C
-#define DEVICE_TYPE_GT813_A 			0X002D
-#define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT813_A
+#define DEVICE_TYPE_GT813_C 			0X002D
+#define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT813_C
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
 
 
