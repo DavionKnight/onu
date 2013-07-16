@@ -181,7 +181,7 @@ int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int arg
 		pbuf = gw_log_get_record(slot-1);
 
 		if(pbuf)
-			gw_cli_print(cli, "%s\r\n", pbuf);
+			gw_cli_print(cli, "%s", pbuf);
 		else
 			gw_cli_print(cli, "empty slot!\r\n");
 
@@ -211,7 +211,7 @@ int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int arg
 			if(pbuf)
 			{
 				flag = 1;
-				gw_cli_print(cli, "%s\r\n", pbuf);
+				gw_cli_print(cli, "%s", pbuf);
                 gw_thread_delay(100);                                                
 			}
 		}

@@ -141,6 +141,14 @@ log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM] =
 
 char port_loop_back_session[8]="";
 
+char olt_type_string[][16] = {
+	"UNKNOWN",
+	"GFA6100",
+	"GFA6700",
+	"GFA6900",
+	"UNKNOWN"
+};
+
 extern OAM_ONU_LPB_DETECT_FRAME oam_onu_lpb_detect_frame, tframe;
 long ethLoopBackDetectActionCall( int enable, char * oamSession);
 int sendOamLpbDetectNotifyMsg(unsigned char port, unsigned char state, unsigned short uvid,unsigned char *session, ALARM_LOOP *pAlarmInfo);
@@ -483,8 +491,8 @@ unsigned char* onu_product_name_get(unsigned char productID)
 		    return "GT872";
 		case DEVICE_TYPE_GT873:
 		    return "GT873";
-		case DEVICE_TYPE_GT813_A:
-			return "GT813_A";
+		case DEVICE_TYPE_GT813_C:
+			return "GT813_C";
 		default:
 			return "UNKNOWN";
 	}
@@ -850,7 +858,7 @@ int setPortLpbStatus(const unsigned short vid, const int lport, const int shutdo
 		{
 			if(shutdown == 0)
    	                      LOOPBACK_DETECT_DEBUG(("\r\nNot shutdown port , lpbmask[%lu] : %d", lport, pCtrl->lpbmask[lport]));
-   	                 gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth%d/%lu marked loopback in vlan %u\n", 1, lport, vid);				
+   	                 gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth%d/%lu marked loopback in vlan %u\n", 1, lport, vid);
 		}
 		pCtrl->lpbClearCnt[lport] = 0;
         	pCtrl->lpbmask[lport] = 1;
@@ -884,6 +892,8 @@ int setPortLpbStatus(const unsigned short vid, const int lport, const int shutdo
 			}
 			
 			pCtrl->lpbportdown[lport] = 1;
+			if(shutdown)
+				gw_log(GW_LOG_LEVEL_MAJOR, "Interface eth%d/%lu shut down for loopback\r\n",1,lport);			
 		}
 
 		if(NULL != pInfo)
@@ -912,6 +922,9 @@ int setPortLpbStatus(const unsigned short vid, const int lport, const int shutdo
 				pCtrl->lpbmask[lport] = 1;
 				pCtrl->lpbStateChg[lport] = 1;
 				LOOPBACK_DETECT_DEBUG(("\r\nNew vlan(%d) (&pCtrl = %p) and set lpbmask[%d]: %d", vid, pCtrl, lport, pCtrl->lpbmask[lport]));
+				gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth%d/%lu marked loopback in vlan %u\n", 1, lport, vid);
+				if(shutdown)
+					gw_log(GW_LOG_LEVEL_MAJOR, "Interface eth%d/%lu shut down for loopback\r\n",1,lport);
 				
 				if(shutdown == 0)
 					pCtrl->lpbportdown[lport] = 0;
@@ -1182,7 +1195,7 @@ int lpbDetectTransFrames(unsigned short usVid)
     packet_head->Ethtype = htons(ETH_TYPE_LOOP_DETECT);
     packet_head->LoopFlag = htons(LOOP_DETECT_CHECK);
     packet_head->OltType = type;
-    packet_head->OnuType = (unsigned char)DEVICE_TYPE_GT813_A;
+    packet_head->OnuType = (unsigned char)DEVICE_TYPE_GT813_C;
     memset(packet_head->OnuLocation, 0, 4);
     memset(&packet_head->OnuLocation[1], (unsigned char)ulSlot, 1);
     memset(&packet_head->OnuLocation[2], (unsigned char)ulPon, 1);
@@ -1357,8 +1370,8 @@ void lpbDetectCheckMacTable(unsigned short usVid, char * oamSession)
                                 setPortLpbStatus(usVid, lport, 1, oamSession, NULL);
                     			LOOPBACK_DETECT_DEBUG(("\r\nadmin down port %lu in vlan %d OK", lport, usVid));
                                 LOOPBACK_DETECT_DEBUG(("\r\nset lpbportdown[%lu] = 1", lport));
-                                gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth%d/%lu marked loopback in vlan %d.\n", 1, lport, usVid);
-                                gw_log(GW_LOG_LEVEL_MAJOR, "Interface eth%d/%lu shut down for loopback\r\n",1,lport);
+//                                gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth%d/%lu marked loopback in vlan %d.\n", 1, lport, usVid);
+//                                gw_log(GW_LOG_LEVEL_MAJOR, "Interface eth%d/%lu shut down for loopback\r\n",1,lport);
                     		}
                     		else
                     			LOOPBACK_DETECT_DEBUG(("\r\nadmin down fail for port %lu, in vlan %d", lport, usVid));
@@ -1483,9 +1496,9 @@ long lpbDetectRevPacketHandle(unsigned char *packet, unsigned long len, unsigned
     else
     	memset(sendLoopAlarmOam.onuPort, 0, 4);
     printFlag = 0;
-    if(revLoopFrame->OnuLocation[1] >= 1&&revLoopFrame->OnuLocation[2] <= MAX_GWD_OLT_SLOT
+    if(revLoopFrame->OnuLocation[1] >= 1&&revLoopFrame->OnuLocation[1] <= MAX_GWD_OLT_SLOT
     	&&revLoopFrame->OnuLocation[2] >= 1&&revLoopFrame->OnuLocation[2] <= MAX_GWD_OLT_PORT
-        &&revLoopFrame->OltType > GWD_OLT_NONE &&revLoopFrame->OltType < GWD_OLT_NOMATCH)
+        &&revLoopFrame->OltType >= GWD_OLT_NONE &&revLoopFrame->OltType <= GWD_OLT_NOMATCH)
     {
         printFlag = 1;
     }
@@ -1514,30 +1527,34 @@ long lpbDetectRevPacketHandle(unsigned char *packet, unsigned long len, unsigned
                 LOOPBACK_DETECT_DEBUG(("\r\nprintFlag : %d", printFlag));
                 gulPortDownWhenLpbFound[ulLoopPort] = 1;
                 LOOPBACK_DETECT_DEBUG(("\r\nreceive packet,admin down port %lu/%lu in vlan %d OK", ulslot, ulport, vid));
-                setPortLpbStatus(vid, ulLoopPort, 1, port_loop_back_session, (void *)&sendLoopAlarmOam);
-                reportPortsLpbStatus(vid, port_loop_back_session);
+
                 if(0 == printFlag)
                 {
+#if 0					
                 	gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
-			gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
+                	gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
                     ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700", SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
                     revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2], onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],
                     revLoopFrame->Onumac[1],revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],vid);
+#endif					
                 }
                 else if(onuIfindex == 0)
                 {
                 	gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
-                    ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700", SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
+                    ulslot, ulport, olt_type_string[revLoopFrame->OltType]/*(revLoopFrame->OltType == 1)?"GFA6100":"GFA6700"*/, SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
                     revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2], onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],
                     revLoopFrame->Onumac[1],revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],vid);
                 }
                 else
                 {
                 	gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)P(%d/%d)V(%d)]\n",
-                    ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700", SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
+                    ulslot, ulport, olt_type_string[revLoopFrame->OltType]/*(revLoopFrame->OltType == 1)?"GFA6100":"GFA6700"*/, SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
                     revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2],onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],revLoopFrame->Onumac[1],
                     revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],sendLoopAlarmOam.onuPort[2], sendLoopAlarmOam.onuPort[3],vid);
                 }
+
+		setPortLpbStatus(vid, ulLoopPort, 1, port_loop_back_session, (void *)&sendLoopAlarmOam);
+                reportPortsLpbStatus(vid, port_loop_back_session);
             }
             else
                 LOOPBACK_DETECT_DEBUG(("\r\nreceiver packet,admin down fail for port %lu/%lu, in vlan %d", ulslot, ulport, vid));
@@ -1594,30 +1611,30 @@ long lpbDetectRevPacketHandle(unsigned char *packet, unsigned long len, unsigned
 	  else
 #endif	  	
 	  {
-    	  setPortLpbStatus(vid, ulLoopPort, 0, port_loop_back_session, (void *)&sendLoopAlarmOam);
+		  if(!gw_port_is_lpb_mark(vid, ulLoopPort))
+		  {
 
-	  if(!gw_port_is_lpb_mark(vid, ulLoopPort))
-	  {
+				  if(0 == printFlag)
+				  {
+//					  gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
+				  }
+				  else if(onuIfindex == 0)
+				  {
+					  gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
+					  ulslot, ulport, olt_type_string[revLoopFrame->OltType]/*(revLoopFrame->OltType == 1)?"GFA6100":"GFA6700"*/, SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
+					  revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2], onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],
+					  revLoopFrame->Onumac[1],revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],vid);
+				  }
+				  else
+				  {
+					  gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)P(%d/%d)V(%d)]\n",
+					  ulslot, ulport, olt_type_string[revLoopFrame->OltType]/*(revLoopFrame->OltType == 1)?"GFA6100":"GFA6700"*/,SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
+					  revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2],onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],revLoopFrame->Onumac[1],
+					  revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],sendLoopAlarmOam.onuPort[2], sendLoopAlarmOam.onuPort[3],vid);
+				  }
+		  }
 
-	          if(0 == printFlag)
-	          {
-	              gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu marked loopback in vlan %d.\n", ulslot, ulport, vid);
-	          }
-	          else if(onuIfindex == 0)
-	          {
-	              gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)V(%d)]\n",
-	              ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700", SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5],
-	              revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2], onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],
-	              revLoopFrame->Onumac[1],revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],vid);
-	          }
-	          else
-	          {
-	              gw_log(GW_LOG_LEVEL_CRI, "Interface  eth%lu/%lu loop[%s(%02x%02x.%02x%02x.%02x%02x)%d/%d %s(%02x%02x.%02x%02x.%02x%02x)P(%d/%d)V(%d)]\n",
-	              ulslot, ulport, (revLoopFrame->OltType == 1)?"GFA6100":"GFA6700",SrcMac[0], SrcMac[1],SrcMac[2],SrcMac[3],SrcMac[4],SrcMac[5], 
-	              revLoopFrame->OnuLocation[1], revLoopFrame->OnuLocation[2],onu_product_name_get(revLoopFrame->OnuType), revLoopFrame->Onumac[0],revLoopFrame->Onumac[1],
-	              revLoopFrame->Onumac[2],revLoopFrame->Onumac[3],revLoopFrame->Onumac[4],revLoopFrame->Onumac[5],sendLoopAlarmOam.onuPort[2], sendLoopAlarmOam.onuPort[3],vid);
-	          }	  	
-	  }
+		  setPortLpbStatus(vid, ulLoopPort, 0, port_loop_back_session, (void *)&sendLoopAlarmOam);
 	  }
 #endif
     }
