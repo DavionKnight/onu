@@ -98,7 +98,7 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"<port_list>", "Input one fe port number", NULL );
+					"<1-%d>", gw_onu_read_port_num(), "Input one fe port number", NULL );
 				break;
 
 			default:
@@ -110,8 +110,13 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 	if(argc == 1)
 	{
 		portid = atoi(argv[0]);
-    	gw_cli_print(cli,"\n===========================port %d stat===========================",portid);
-		show_port_statistic(cli, portid);
+		if(portid > 0 && portid <= gw_onu_read_port_num())
+		{
+			gw_cli_print(cli,"\n===========================port %d stat===========================",portid);
+			show_port_statistic(cli, portid);
+		}
+		else
+			return CLI_ERROR_ARG;
 	}
 	else
 	{		

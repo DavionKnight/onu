@@ -29,7 +29,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"<1-24>", "port id selected", NULL);
+					"<1-%d>", gw_onu_read_port_num(), "port id selected", NULL);
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0, 
@@ -46,6 +46,10 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 		int spd, duplex, en;
 					
 		port = atoi(argv[0]);
+
+		if(port < 1 || port > gw_onu_read_port_num())
+			return CLI_ERROR_ARG;
+
 		if(argc > 1)
 			mode = atoi(argv[1]);
 
