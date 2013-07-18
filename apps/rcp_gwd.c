@@ -6708,7 +6708,8 @@ gw_int32 gw_rcppktparser(gw_int8 *pkt, gw_int32 len)
 
 	if(pkt && len > 18)
 	{
-		if(pkt[12] == 0x81 && pkt[13] == 0x00)
+		//if(pkt[12] == 0x81 && pkt[13] == 0x00)
+		if(ntohs(*(gw_uint16*)(pkt+12)) == 0x8100)
 			eth_type = ntohs(*(gw_uint16*)(pkt+16));
 		else
 			eth_type = ntohs(*(gw_uint16*)(pkt+12));
