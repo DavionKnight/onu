@@ -67,12 +67,12 @@ static unsigned long int get_onuport_from_cli_index(struct cli_def * cli)
     return ETH_SLOTPORT_TO_PORTNO(cli->index.port_u.slot, cli->index.port_u.port);
 }
 
-
+unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num);
 #define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(portlist, ifindex,devonuport_num) \
 {\
     gw_uint32 * _pulIfArray;\
     gw_uint32 _i = 0;\
-    _pulIfArray = ETH_ParsePortList(portlist,devonuport_num);\
+    _pulIfArray = (gw_uint32*)ETH_ParsePortList(portlist,devonuport_num);\
     if(!_pulIfArray)\
     	{\
     		ifindex = 0;\
@@ -142,7 +142,7 @@ static unsigned long int get_onuport_from_cli_index(struct cli_def * cli)
 
 struct _XCVR_DATA_{
 	unsigned short cAddr;
-	unsigned char * pcName;
+	char * pcName;
 	unsigned short cLen;
 	unsigned short cType;
 };
@@ -157,7 +157,7 @@ struct _XCVR_DATA_ RCPBoardInfoArr[] = {
 };
 struct _XPORT_RATE_DATA_{
 	unsigned long  rate;
-	unsigned char  *pcName;
+	char  *pcName;
 };
 struct _XPORT_RATE_DATA_  RCPPortRate[] ={
 	{0,     "No limit"},

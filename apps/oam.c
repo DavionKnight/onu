@@ -102,13 +102,13 @@ struct {
 } gwd_oam_timer;
 #endif
 
-unsigned char *irosbootver = "GT813_C boot ";
+unsigned char *irosbootver = " boot ";
 
 #define IROS_FW_VER_MAJOR "1"
 #define IROS_FW_VER_MINOR "1"
 #define IROS_FW_VER_BUILD "001"
 
-unsigned char *iros_version = "GT813_C ONU" \
+unsigned char *iros_version = " ONU" \
         IROS_FW_VER_MAJOR"." \
         IROS_FW_VER_MINOR"."\
         IROS_FW_VER_BUILD" "__DATE__" "__TIME__"\n";
@@ -2473,12 +2473,12 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	else
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT813_C");
+		gw_cli_print(cli,  "    ONU type         : %s", onu_product_name_get(PRODUCT_TYPE));
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
-		gw_cli_print(cli,  "    Firmware version : %s", iros_version);
-		gw_cli_print(cli,  "    Bootload version : %s", irosbootver);
+		gw_cli_print(cli,  "    Firmware version : %s%s", onu_product_name_get(PRODUCT_TYPE), iros_version);
+		gw_cli_print(cli,  "    Bootload version : %s%s", onu_product_name_get(PRODUCT_TYPE), irosbootver);
 		gw_cli_print(cli,  "    Manufature date  : %s", gw_onu_system_info_total.hw_manufature_date);
 		gw_cli_print(cli,  "    Serial number    : %s", gw_onu_system_info_total.serial_no);
     	gw_cli_print(cli,  "    Onu mac address  : %s", strMac);
