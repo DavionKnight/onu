@@ -5453,7 +5453,7 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
 		gw_cli_print(cli, "  NO.    Location     MgtPort      MAC(ports)          Status");
 		gw_cli_print(cli, "---------------------------------------------------------------");
 		ulIndex = 1;
-		for(onuPort = 1; onuPort < MAX_RCP_SWITCH_TO_MANAGE; onuPort++)
+		for(onuPort = 1; onuPort < gulNumOfPortsPerSystem; onuPort++)
 		{
 			call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, onuPort, &port_opr_status);
 			if(port_opr_status == PORT_OPER_STATUS_UP)
