@@ -105,8 +105,9 @@ gw_int32 gwd_console_write(gw_uint8 *buf, gw_uint32 count)
     return ret;
 }
 
-gw_status gwd_onu_console_cli_entry(libgwdonu_console_read_t r, libgwdonu_console_write_t w)
+gw_status gwd_onu_console_cli_entry(gw_int32 type, gw_int32 fd, libgwdonu_console_read_t r, libgwdonu_console_write_t w)
 {
+#if 0
     if(r != NULL && w != NULL)
     {
         sr = r;
@@ -119,6 +120,15 @@ gw_status gwd_onu_console_cli_entry(libgwdonu_console_read_t r, libgwdonu_consol
     }
     else
         return GW_ERROR;
+#endif
+
+    sr = r;
+    sw = w;
+    cli_console_start(type, fd);
+    sr = NULL;
+    sw = NULL;
+
+    return GW_OK;
 }
 
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)

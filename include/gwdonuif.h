@@ -123,6 +123,13 @@ typedef enum {
     GwEponTxLaserStatusNum
 } gw_EponTxLaserStatus;
 
+typedef enum{
+	channel_serial=1,
+	channel_tcp,
+	channel_pty,
+	channel_oam
+}gw_cli_channel_type;
+
 typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
 typedef gw_status (*libgwdonu_out_hw_version)(gw_int8 *hwbuf, const gw_int32 hwbuflen);
 
@@ -181,7 +188,7 @@ typedef gw_status(*libgwdonu_syslog_register_heandler_t)(libgwdonu_syslog_heandl
 
 typedef gw_int32 (*libgwdonu_console_read_t)(gw_uint8 *buf, gw_uint32 count);
 typedef gw_int32 (*libgwdonu_console_write_t)(gw_uint8 *buf, gw_uint32 count);
-typedef void (*libgwdonu_console_cli_entry_t)(libgwdonu_console_read_t r, libgwdonu_console_write_t w);
+typedef void (*libgwdonu_console_cli_entry_t)(gw_int32 type, gw_int32 fd, libgwdonu_console_read_t r, libgwdonu_console_write_t w);
 
 typedef struct gwdonu_im_if_s{
 

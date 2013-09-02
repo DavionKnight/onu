@@ -269,7 +269,7 @@ void cli_start()
     return;
 }
 
-void cli_console_start()
+void cli_console_start(gw_int32 type, gw_int32 fd)
 {
     struct cli_def *cli = NULL;
 
@@ -285,7 +285,7 @@ void cli_console_start()
     }
 
     // init console session
-    cli = gw_cli_init(gw_cmd_tree, CHANNEL_SERIAL);
+    cli = gw_cli_init(gw_cmd_tree, type);
     if(NULL == cli)
     {
         gw_printf("--------cli_init fail--------\r\n");
@@ -293,8 +293,8 @@ void cli_console_start()
     }
 
     // configure session
-    cli->sockfd = 0;
-    cli->channel = CHANNEL_SERIAL;
+    cli->sockfd = fd;
+    cli->channel = type;
     gw_cli_set_banner(cli, CLI_BANNER);
     gw_cli_set_hostname(cli, HOST_NAME);
 
