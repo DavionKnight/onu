@@ -67,6 +67,9 @@ enum{
 	LIB_IF_REG_OUT_HWVER_GET,
 	LIB_IF_REG_CONSOLE_ENTRY,
 
+	LIB_IF_VFILE_OPEN,
+	LIB_IF_VFILE_CLOSE,
+
 };
 
 gw_status init_im_interfaces();

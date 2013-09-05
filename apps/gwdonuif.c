@@ -502,6 +502,19 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 		    if(g_im_ifs->console_cli_register)
 		        ret = (*g_im_ifs->console_cli_register)(va_arg(ap, void*));
 		    break;
+		case LIB_IF_VFILE_OPEN:
+			if(g_im_ifs->vfileopen)
+				ret = (*g_im_ifs->vfileopen)(va_arg(ap, gw_uint8*), va_arg(ap, gw_int32), va_arg(ap, gw_int32*), va_arg(ap, gw_uint8 **));
+			else
+				printf("gwdonu_vfile_open is NULL\n");
+			break;
+
+		case LIB_IF_VFILE_CLOSE:
+			if(g_im_ifs->vfileclose)
+				ret = (*g_im_ifs->vfileclose)(va_arg(ap, void*));
+			else
+				printf("gwdonu_vfile_close is NULL\n");
+			break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

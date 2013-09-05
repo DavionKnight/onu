@@ -190,6 +190,9 @@ typedef gw_int32 (*libgwdonu_console_read_t)(gw_uint8 *buf, gw_uint32 count);
 typedef gw_int32 (*libgwdonu_console_write_t)(gw_uint8 *buf, gw_uint32 count);
 typedef void (*libgwdonu_console_cli_entry_t)(gw_int32 type, gw_int32 fd, libgwdonu_console_read_t r, libgwdonu_console_write_t w);
 
+typedef gw_int32 (*libgwdonu_vfile_open)(gw_uint8 * fname, gw_int32 mode, gw_int32 * fd, gw_uint8 ** pv);
+typedef gw_int32 (*libgwdonu_vfile_close)(void *data);
+
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -250,6 +253,9 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_ver_get				onuverget;
 
 	libgwdonu_syslog_register_heandler_t     sysloghandler;
+
+	libgwdonu_vfile_open         vfileopen;
+	libgwdonu_vfile_close        vfileclose;
 
 
 }gwdonu_im_if_t;
