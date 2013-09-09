@@ -855,7 +855,6 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 	
 	if(0 == gulEthRxTaskReady)
 	{
-		gw_printf("%s error %d\n",__func__,__LINE__);
 		return RCP_NOT_INITIALIZED;
 	}
 	switchMac = RcpHelloDMacDefault;

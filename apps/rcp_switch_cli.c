@@ -5754,7 +5754,7 @@ int rcp_dev_status_check(void)
 	unsigned char NullSwitchMac[8]="";
 	unsigned char onuRegister;
 	int counter,n,i,j,ret, error, shouldUpdateVlan;
-
+    unsigned int onu_solt_num = 0;
 	for(n=1; n<=MAX_RRCP_SWITCH_TO_MANAGE;n++)
 	{
 		previousPort[n] = 1;
@@ -5766,6 +5766,7 @@ int rcp_dev_status_check(void)
 
 	for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
 	{
+        onu_solt_num = PORTNO_TO_ETH_SLOT(i);
 		if(RCP_Dev_Is_Valid(i))
 		{
 			if(1 != RCP_Dev_Is_Exist(i))	/* Switch offline */
@@ -5782,7 +5783,10 @@ int rcp_dev_status_check(void)
 					rcpDevList[i]->alarmStatus |= RCP_ALARM_STATUS_OFFLINE;
 					rcpDevList[i]->previousOnlineStatus = 0;	/* Next time will not send alarm again */
 					rcpDevList[i]->timeoutFlag = 1;
-					gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] offline(%02X,%d).\n", i, rcpDevList[i]->switchMac[5], rcpDevList[i]->alarmMask, ret);
+					gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] offline(%02X,%d).\n", onu_solt_num,i, 
+                        rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                        rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5],
+                        rcpDevList[i]->alarmMask, ret);
 				}
 
 				/* if the same switch apears on the other port, clear the old one */
@@ -5823,7 +5827,10 @@ int rcp_dev_status_check(void)
 	                    }
 
 						rcpDevList[i]->previousOnlineStatus = rcpDevList[i]->onlineStatus = 1;
-						gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] register(%02X,%d).\n", i, rcpDevList[i]->switchMac[5], rcpDevList[i]->alarmMask, ret);
+						gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] register(%02X,%d).\n", onu_solt_num,i, 
+                        rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                        rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5],
+                        rcpDevList[i]->alarmMask, ret);
 					}
 					else	/* Switch changed */
 					{
@@ -5834,7 +5841,10 @@ int rcp_dev_status_check(void)
 							{
 	                    		ret = pushOneSwitchStatusChgMsg(rcpDevList[i]->paPort, rcpDevList[i]->previousswitchMac, ONU_SWITCH_STATUS_CHANGE_ALM_OFFLINE, 0);
 		                    }
-							gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] offline(%02X,%d).\n", i, rcpDevList[i]->previousswitchMac[5], rcpDevList[i]->alarmMask, ret);
+							gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] offline(%02X,%d).\n",onu_solt_num, i,
+                            rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                            rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5],
+                            rcpDevList[i]->alarmMask, ret);
 							rcpDevList[i]->timeoutFlag = 1;
 
 						}
@@ -5846,7 +5856,10 @@ int rcp_dev_status_check(void)
 	                    }
 
 						rcpDevList[i]->alarmStatus = RCP_ALARM_STATUS_REGISTER;
-						gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] register(%02X,%d).\n", i, rcpDevList[i]->switchMac[5], rcpDevList[i]->alarmMask, ret);
+						gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] register(%02X,%d).\n",onu_solt_num, i,
+                        rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                        rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5],
+                        rcpDevList[i]->alarmMask, ret);
 					}
                     
                     memcpy(rcpDevList[i]->previousswitchMac,rcpDevList[i]->switchMac, RCP_MAC_SIZE);
@@ -5854,7 +5867,10 @@ int rcp_dev_status_check(void)
 
 					if(RCP_OK != (ret = restoreRcpDevCfgFromFlash(rcpDevList[i])))
 					{
-						gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] restore config failed(%d).\n", i, rcpDevList[i]->switchMac[5], ret);
+						gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] restore config failed(%d).\n",onu_solt_num, i,
+                        rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                        rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5],
+                        ret);
 					}
                 }
 				else	/* Switch re-register */
@@ -5865,7 +5881,10 @@ int rcp_dev_status_check(void)
 
 						if(!(rcpDevList[i]->alarmStatus & RCP_ALARM_STATUS_OFFLINE))	/* Not send offline alarm */
 						{
-							gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] online(no ALC).\n", i, rcpDevList[i]->switchMac[5]);
+							gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] online(no ALC).\n",onu_solt_num, i,
+                            rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                            rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5]
+                            );
 						}
 						else
 						{
@@ -5875,14 +5894,20 @@ int rcp_dev_status_check(void)
 		                    	ret = pushOneSwitchStatusChgMsg(rcpDevList[i]->paPort, rcpDevList[i]->switchMac, ONU_SWITCH_STATUS_CHANGE_ALM_REREG, 0);
 		                    }
 		                    
-							gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] online(%02X, %d).\n", i, rcpDevList[i]->switchMac[5], rcpDevList[i]->alarmMask, ret);
+							gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] online(%02X, %d).\n",onu_solt_num, i, 
+                            rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                            rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5],
+                            rcpDevList[i]->alarmMask, ret);
 						}
 						rcpDevList[i]->previousOnlineStatus = 1;	/* Next time will not send alarm again */
 						rcpDevList[i]->alarmStatus = RCP_ALARM_STATUS_RE_REGISTER; /* Mark Re-register alarm has been handled */
 
 						if(RCP_OK != (ret = restoreRcpDevCfgFromFlash(rcpDevList[i])))
 						{
-							gw_log(GW_LOG_LEVEL_CRI, "Switch %d[MAC[6]=0x%02X] restore config failed(%d).\n", i, rcpDevList[i]->switchMac[5], ret);
+							gw_log(GW_LOG_LEVEL_CRI, "Switch %d/%d[MAC=%02x:%02x:%02x:%02x:%02x:%02x] restore config failed(%d).\n",onu_solt_num, i,
+                            rcpDevList[i]->switchMac[0],rcpDevList[i]->switchMac[1],rcpDevList[i]->switchMac[2],
+                            rcpDevList[i]->switchMac[3],rcpDevList[i]->switchMac[4],rcpDevList[i]->switchMac[5],
+                            ret);
 						}
                     }
                 }
