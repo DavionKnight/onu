@@ -130,6 +130,12 @@ typedef enum{
 	channel_oam
 }gw_cli_channel_type;
 
+typedef struct {
+	gw_uint32 port;
+	gw_uint32 vid;
+	gw_uint32 queue;
+}gw_qos_vlan_queue_data_t;
+
 typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
 typedef gw_status (*libgwdonu_out_hw_version)(gw_int8 *hwbuf, const gw_int32 hwbuflen);
 
@@ -192,6 +198,10 @@ typedef void (*libgwdonu_console_cli_entry_t)(gw_int32 type, gw_int32 fd, libgwd
 
 typedef gw_int32 (*libgwdonu_vfile_open)(gw_uint8 * fname, gw_int32 mode, gw_int32 * fd, gw_uint8 ** pv);
 typedef gw_int32 (*libgwdonu_vfile_close)(void *data);
+
+typedef gw_int32 (*libgwdonu_qos_vlan_queue_map_t)(gw_int32 count, gw_qos_vlan_queue_data_t * data);
+
+typedef gw_int32 (*libgwdonu_config_write_to_flash_t)();
 
 typedef struct gwdonu_im_if_s{
 
@@ -257,6 +267,8 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_vfile_open         vfileopen;
 	libgwdonu_vfile_close        vfileclose;
 
+	libgwdonu_qos_vlan_queue_map_t qosvlanqueuemap;
+	libgwdonu_config_write_to_flash_t wrflash;
 
 }gwdonu_im_if_t;
 

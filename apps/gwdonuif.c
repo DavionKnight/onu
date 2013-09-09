@@ -515,6 +515,18 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				printf("gwdonu_vfile_close is NULL\n");
 			break;
+		case LIB_IF_QOS_VLAN_QUEUE_MAP:
+			if(g_im_ifs->qosvlanqueuemap)
+				ret = (*g_im_ifs->qosvlanqueuemap)(va_arg(ap, gw_int32), va_arg(ap, gw_qos_vlan_queue_data_t *));
+			else
+				printf("gwdonu qos vlan queue map is NULL\n");
+			break;
+		case LIB_IF_CONF_WR_FLASH:
+			if(g_im_ifs->wrflash)
+				ret = (*g_im_ifs->wrflash)();
+			else
+				printf("gwdonu write flash is NULL\n");
+			break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

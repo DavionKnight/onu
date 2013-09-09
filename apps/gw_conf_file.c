@@ -192,7 +192,7 @@ gw_int32 gw_conf_file_init()
 	return 0;
 }
 
-gw_int32 gw_conf_save()
+gw_int32 gw_conf_save(gw_int32 mgt_code)
 {
 
 	gw_int32 ret = -1, iv = 0;
@@ -206,27 +206,31 @@ gw_int32 gw_conf_save()
 
 	pf->offset = 8; //headlen and tlvlen
 
-	gw_lst_scan(&(pf->handle_list), p, gw_conf_handle_t *)
+	if(mgt_code == 1) //save operation
 	{
-		printf("%s    handle type %d\n", __func__, p->type);
-		if( p->func_s )
-		{
-			gw_int32 len = 0;
-			gw_uint8 * pv = NULL;
-			if(p->func_s(&len, &pv) == GW_OK)
-			{
-				if(!pf->isfs > 0 && pf->offset+len > pf->len) //not fs surpported and the data exceed the buffer limit
-					break;
-				pf->write(pf, pf->offset, 4, (gw_uint8*)&p->type);
-				pf->offset += 4;
-				pf->write(pf, pf->offset, 4, (gw_uint8*)&len);
-				pf->offset += 4;
-				pf->write(pf, pf->offset, len, pv);
-				pf->offset += len;
-			}
 
-			if(pv)
-				free(pv);
+		gw_lst_scan(&(pf->handle_list), p, gw_conf_handle_t *)
+		{
+			printf("%s    handle type %d\n", __func__, p->type);
+			if( p->func_s )
+			{
+				gw_int32 len = 0;
+				gw_uint8 * pv = NULL;
+				if(p->func_s(&len, &pv) == GW_OK)
+				{
+					if(!pf->isfs > 0 && pf->offset+len > pf->len) //not fs surpported and the data exceed the buffer limit
+						break;
+					pf->write(pf, pf->offset, 4, (gw_uint8*)&p->type);
+					pf->offset += 4;
+					pf->write(pf, pf->offset, 4, (gw_uint8*)&len);
+					pf->offset += 4;
+					pf->write(pf, pf->offset, len, pv);
+					pf->offset += len;
+				}
+
+				if(pv)
+					free(pv);
+			}
 		}
 	}
 
@@ -237,7 +241,7 @@ gw_int32 gw_conf_save()
 
 	pf->close(pf);
 
-	ret = 0;
+	ret = call_gwdonu_if_api(LIB_IF_CONF_WR_FLASH, 0);
 
 	return ret;
 }
@@ -252,8 +256,6 @@ gw_int32 gw_conf_restore()
 	if(pf->open(pf, NULL, 1) < 0)
 		return ret;
 
-	printf("%s  open vfile ok\n", __func__);
-
 	if(pf->isfs > 0)
 		pf->len = lseek(pf->vf, 0, SEEK_END);
 
@@ -263,28 +265,33 @@ gw_int32 gw_conf_restore()
 
 	pf->offset += iv;
 
-	while(pf->offset < pf->len)
+	pf->read(pf, 4, 4, (gw_uint8*)&iv); //get tlv_len
+
+	if(iv > 0) //tlv_len must > 0
 	{
-		pf->read(pf, pf->offset, 4, (gw_uint8*)&type);
-		pf->offset+=4;
-		pf->read(pf, pf->offset, 4, (gw_uint8*)&length);
-		pf->offset+=4;
-
-		if(pf->offset + length > pf->len)
-			break;
-
-		if((p = (gw_conf_handle_t*)gw_lst_find(&pf->handle_list, type)) != NULL)
+		while(pf->offset < pf->len)
 		{
-			gw_uint8 * data = malloc(length);
-			if(data)
-			{
-				pf->read(pf, pf->offset, length, data);
-				p->func_r(length, data);
-				free(data);
-			}
-		}
+			pf->read(pf, pf->offset, 4, (gw_uint8*)&type);
+			pf->offset+=4;
+			pf->read(pf, pf->offset, 4, (gw_uint8*)&length);
+			pf->offset+=4;
 
-		pf->offset += length;
+			if(pf->offset + length > pf->len)
+				break;
+
+			if((p = (gw_conf_handle_t*)gw_lst_find(&pf->handle_list, type)) != NULL)
+			{
+				gw_uint8 * data = malloc(length);
+				if(data)
+				{
+					pf->read(pf, pf->offset, length, data);
+					p->func_r(length, data);
+					free(data);
+				}
+			}
+
+			pf->offset += length;
+		}
 	}
 
 	pf->close(pf);
