@@ -410,19 +410,25 @@ int cmd_qos_vlan_queue_map_apply(struct cli_def *cli, char *command, char *argv[
 {
 
     int ret = CLI_ERROR;
+    int reset = 0;
 
     if (CLI_HELP_REQUESTED)
     {
 
     	switch (argc)
 		{
-        	default:
-        		return gw_cli_arg_help(cli, argc > 1, NULL );
+
+    	case 1:
+    		return gw_cli_arg_help(cli, 0, "reset", "reset qos vid-queue map config", NULL );
+    	default:
+        	return gw_cli_arg_help(cli, argc > 1, NULL );
 		}
 
     }
 
-    if(gw_qos_vlan_queue_rules_apply() != GW_OK)
+    reset = (argc == 1)?1:0;
+
+    if(gw_qos_vlan_queue_rules_apply(reset) != GW_OK)
     	gw_cli_print(cli, "qos vlan queue map apply fail!");
     else
     	ret = CLI_OK;
@@ -500,8 +506,8 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, cp, "portdown", cmd_bsctrl_policy, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port down config");
 	gw_cli_register_command(cmd_root, cp, "threshold", cmd_bsctrl_threshold, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config");
 	cp = gw_cli_register_command(cmd_root, NULL, "qos", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "QoS command");
-	gw_cli_register_command(cmd_root, cp, "vid-queue-map-add", cmd_qos_vlan_queue_map, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan queue map add cmd");
-	gw_cli_register_command(cmd_root, cp, "vid-queue-map-del", cmd_qos_vlan_queue_map_del, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan queue map del cmd");
+	gw_cli_register_command(cmd_root, cp, "add-vid-queue-map", cmd_qos_vlan_queue_map, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan queue map add cmd");
+	gw_cli_register_command(cmd_root, cp, "del-vid-queue-map", cmd_qos_vlan_queue_map_del, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan queue map del cmd");
 	gw_cli_register_command(cmd_root, cp, "show-vid-queue-map", cmd_qos_vlan_queue_map_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show vlan queue map cmd");
 	gw_cli_register_command(cmd_root, cp, "apply-vid-queue-map", cmd_qos_vlan_queue_map_apply, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "apply vlan queue map cmd");
 	//	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");

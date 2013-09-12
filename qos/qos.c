@@ -103,14 +103,17 @@ gw_int32 gw_qos_vlan_queue_entry_get_by_port(gw_uint8 port, gw_qos_vlan_queue_da
 	return ret;
 }
 
-gw_int32 gw_qos_vlan_queue_rules_apply()
+gw_int32 gw_qos_vlan_queue_rules_apply( gw_int32 reset )
 {
 	gw_int32 count = 0, ret = GW_OK;
 	gw_qos_vlan_queue_data_t *pd = NULL;
 
-	count = gw_qos_vlan_queue_entry_get_by_port(0xff, &pd);
+	if(reset)
+		count = 0;
+	else
+		count = gw_qos_vlan_queue_entry_get_by_port(0xff, &pd);
 
-	if(count > 0)
+	if(count >= 0)
 	{
 
 		if(call_gwdonu_if_api(LIB_IF_QOS_VLAN_QUEUE_MAP, 2, count, pd) != GW_OK)
@@ -187,7 +190,7 @@ gw_int32 gw_qos_vlan_restore(gw_int32 len, gw_uint8 * pv)
 
 	}
 
-	gw_qos_vlan_queue_rules_apply();
+	gw_qos_vlan_queue_rules_apply(0);
 
 	return 0;
 }
