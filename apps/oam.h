@@ -12,6 +12,8 @@
 
 #include "plat_common.h"
 #endif
+
+#include "gw_port.h"
 typedef gw_uint32 epon_port_id_t;
 
 #define ONU_LOCATE_USER					200

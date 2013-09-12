@@ -1592,10 +1592,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 				
 			    userMacResponse_pdu_t *responsePdu = NULL;
                 unsigned char *tempP = Response;
-				
+		
 				userMacRequest_pdu_t *requestPdu = (userMacRequest_pdu_t *)pRequest->pPayLoad;
 				requestlen = sizeof(userMacRequest_pdu_t);
                 #ifdef __USE_MAC__
+                int i=0;
                 gw_printf("into ONU_LOCATE_USER now\n");
                 #endif
                 responsePdu = malloc(sizeof(userMacResponse_pdu_t));

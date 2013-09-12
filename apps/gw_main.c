@@ -14,7 +14,6 @@ extern void gwd_thread_init(void);
 void plat_init()
 {
 	gw_osal_core_init();
-
 	if(gw_timer_init() == GW_OK)
 		gw_printf("gw timer init ok!\r\n");
 
