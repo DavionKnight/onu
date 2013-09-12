@@ -1573,7 +1573,145 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			return sendIpSourcManAck(IP_RESOURCE_FREE, 0, pRequest->SessionID);
 			break;
 #endif
+#if (RPU_MODULE_PPPOE_RELAY == RPU_YES)
+		case ONU_LOCATE_USER:
+			{
+				unsigned char swmac[USR_MAC_LEN] = "", subsw = 0;
+				userMacRequest_t info[USR_MAC_REQUEST_MAX];
+			    userMacResponse_t responseInfo[USR_MAC_RESPONS_MAC_MAX] = {0};
+				unsigned char nullmac[USR_MAC_LEN]={0,0,0,0,0,0};
+				localMacsave_t macbuf[USR_MAC_MAX_T]={0};
+				gw_uint8 lastmac[GW_MACADDR_LEN]={0,0,0,0,0,0};
+				
+				int onuslot =0, onuport=0, swport = 0;
+				int	requestNum = 0,responseNum = 0;				
+				int requestlen=0;
 
+				int ifhavemac = 0;
+				int macnumberget = 0;
+				
+			    userMacResponse_pdu_t *responsePdu = NULL;
+                unsigned char *tempP = Response;
+				
+				userMacRequest_pdu_t *requestPdu = (userMacRequest_pdu_t *)pRequest->pPayLoad;
+				requestlen = sizeof(userMacRequest_pdu_t);
+                #ifdef __USE_MAC__
+                gw_printf("into ONU_LOCATE_USER now\n");
+                #endif
+                responsePdu = malloc(sizeof(userMacResponse_pdu_t));
+                if (NULL == responsePdu)
+                {
+                   gw_printf("usermac malloc error\n");
+                   return GWD_RETURN_ERR;
+                }
+				
+                ResLen = sizeof(userMacResponse_pdu_t);
+				
+				/*********************************************************************
+				��ȡusermac oam request ���е�mac
+				*********************************************************************/
+				for (requestNum = 0; requestNum < requestPdu->macNum; requestNum++)
+				{
+					memcpy(info[requestNum].swmac,(pRequest->pPayLoad+requestlen),USR_MAC_LEN);
+					requestlen += USR_MAC_LEN;
+				}
+                #ifdef __USE_MAC__
+                gw_printf("===============================\n");
+                for(i = 0; i < requestPdu->macNum; i++)
+                {
+                    
+                    gw_printf("%02x %02x %02x %02x %02x %02x \n",info[i].swmac[0],info[i].swmac[1],info[i].swmac[2],info[i].swmac[3],info[i].swmac[4],info[i].swmac[5]);
+                   
+                }
+                 gw_printf("===============================\n");
+				gw_printf("requestPdu->macNum:%d\n",requestPdu->macNum);
+                #endif
+                
+				while(!ifhavemac)
+				{					
+					/*��ȡfdb���е�ǰ256 ��mac ,���û��ȡȫ�´��ڽ��Ż�ȡ֪��ȫ��ȡ��*/
+					if(user_mac_onu_fdb_get(macbuf,lastmac,&macnumberget,&ifhavemac))
+					{
+						return GWD_RETURN_ERR;
+					}
+                    
+                    #ifdef __USE_MAC__
+					gw_printf("macnumberget:%d\n",macnumberget);
+                    #endif
+                    
+                    if(0 == macnumberget)
+                    {
+                        break;
+                    }
+                    
+	                for (requestNum = 0; requestNum < requestPdu->macNum; requestNum++)
+	                {
+	    				/*generating response pdu only for found the mac because of OLT broadcast oam request*/
+						if(!memcmp(info[requestNum].swmac,nullmac,USR_MAC_LEN))/*��ǰһ���Ѿ�ȡ����mac��ξͲ���ȥ�ڲ���*/
+						{
+							continue;
+						}
+						
+	    				if(GW_OK == locateUserMac( info[requestNum].swmac,macbuf,macnumberget,&onuslot, &onuport, &subsw, swmac, &swport))
+	    				{
+	    					memcpy(responseInfo[responseNum].usermac, info[requestNum].swmac, USR_MAC_LEN);/*USR MAC*/
+	    					responseInfo[responseNum].reserved = 0;
+	    					responseInfo[responseNum].onuslot = onuslot;/*SLOT ����λΪ0*/
+	    					responseInfo[responseNum].onuport = onuport;
+	    					responseInfo[responseNum].subsw = subsw;
+	    					memcpy(responseInfo[responseNum].swmac, swmac, USR_MAC_LEN);
+	    					responseInfo[responseNum].swport = swport;
+							memset(info[requestNum].swmac,0,USR_MAC_LEN);/*�ҵ�֮�����mac���´ξͲ���Ҫ�ڲ���*/
+	                        responseNum++;
+	                        ResLen += sizeof(userMacResponse_t);
+							/*****************************************************************************
+							���Ҫ���mac�����Ѿ�����fdb���Ҷ��ҵ��˾Ͳ���Ҫ������
+							����ҵ�mac�����32��
+							*******************************************************************************/
+							if((responseNum == requestPdu->macNum) || (responseNum >= USR_MAC_RESPONS_MAC_MAX))
+							{
+								ifhavemac=1;
+								macnumberget = 0;
+                                #ifdef __USE_MAC__
+                                gw_printf("while responseNum:%d\n",responseNum);
+                                #endif
+								goto END;
+							}
+	    				}
+	                }
+					ifhavemac=0;
+						
+				}
+END:
+    #ifdef __USE_MAC__
+				gw_printf("true responseNum:%d\n",responseNum);
+    #endif
+                ResLen += 1;/*reserved bit.*/
+                if (0 != responseNum)
+                {
+                	responsePdu->type = ONU_LOCATE_USER;/*cheak type*/
+                    responsePdu->result = 1;/*��ѯ���*/
+					responsePdu->mode	= USR_MAC_ADDRES_CHEAK;/*��ѯģʽ*/				
+                    responsePdu->macNum = responseNum;/*�鵽��MAC��ַ��*/
+                    
+                    memcpy(tempP, responsePdu, sizeof(userMacResponse_pdu_t));
+                    tempP += sizeof(userMacResponse_pdu_t);
+
+					memcpy(tempP, responseInfo, (responseNum*sizeof(userMacResponse_t)));
+					free(responsePdu);
+					responsePdu = NULL;
+                }
+                else
+                {
+                    ResLen = 0;
+					free(responsePdu);
+					responsePdu = NULL;
+					return GWD_RETURN_ERR;/*����ѯ��MAC ��û���ҵ����ظ���ֱ�Ӷ���*/
+                }
+				
+			}
+			break;
+#endif
 		default:
 		{
 //			IROS_LOG_MAJ(IROS_MID_OAM, "OAM INFO request (%d) no suportted!", *pRequest->pPayLoad);

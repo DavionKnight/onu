@@ -30,7 +30,7 @@ extern gw_macaddr_t g_sys_mac;
 extern gw_uint32 g_uni_port_num;
 
 
-#define NUM_PORTS_PER_SYSTEM 26
+//#define NUM_PORTS_PER_SYSTEM 26
 gw_uint64 gulCurrentpktCntIn[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulCurrentpktCntOut[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulOctRateIn[NUM_PORTS_PER_SYSTEM-1] = {0};

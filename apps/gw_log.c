@@ -130,7 +130,19 @@ gw_int32 gw_log_get_current_msg_slot()
 	return log_current_slot;
 }
 
-
+gw_int32 func_pointer_error_syslog(const gw_int8 *String,...)
+{
+	char data[256] = "";
+	int ret = 0;
+	va_list ap;
+	
+	va_start(ap, String);
+    ret = diag_vsprintf(data, String, ap);
+    va_end(ap);
+	
+	gw_syslog(GW_LOG_LEVEL_MAJOR,data);
+	return GW_OK;
+}
 gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...)
 {
     va_list ap;

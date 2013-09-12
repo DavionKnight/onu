@@ -14,6 +14,54 @@
 #endif
 typedef gw_uint32 epon_port_id_t;
 
+#define ONU_LOCATE_USER					200
+#define USR_MAC_ADDRES_CHEAK 		1
+#define USR_MAC_MAX_T 256
+#define USR_MAC_RESPONS_MAC_MAX 32
+#define USR_MAC_REQUEST_MAX 64
+#define USR_MAC_LEN 6
+#define PHY_ERROR 0
+#define PHY_OK 1
+
+typedef struct userMacRequest_s
+{
+    unsigned char swmac[6];		/*sub switch mac address*/
+}userMacRequest_t;
+
+typedef struct localMacsave
+{
+	unsigned int egport;
+    unsigned char swmac[6];		/*sub switch mac address*/
+}localMacsave_t;
+
+typedef struct userMacRequest_pdu_s
+{
+	unsigned char type;			/*pdu type -- 200*/
+	unsigned char result;		/*location result 1:success, 2:fail*/
+	unsigned char mode;			/*query mode: 1:based user mac*/
+    unsigned char macNum;       /*mac number.*/
+}__attribute__((packed)) userMacRequest_pdu_t; /*user mac location pdu define*/
+
+typedef struct userMacResponse_s
+{
+	unsigned char usermac[6];	/*user mac address*/
+	unsigned short reserved;	
+	unsigned char onuslot;		/*onu slot on which user mac learned*/
+	unsigned char onuport;		/*onu uni port on which user mac learned*/
+	unsigned char subsw;		/*whether if sub switch exist 0:no sub switch, other on the contrary*/
+	unsigned char swmac[6];		/*sub switch mac address*/
+	unsigned int swport;		/*sub switch port on which user mac learned*/
+}__attribute__((packed))userMacResponse_t;
+
+typedef struct userMacResponse_pdu_s
+{
+	unsigned char type;			/*pdu type -- 200*/
+	unsigned char result;		/*location result 1:success, 2:fail*/
+	unsigned char mode;			/*query mode: 1:based user mac*/
+    unsigned char macNum;       /*mac number.*/
+}__attribute__((packed)) userMacResponse_pdu_t; /*user mac location pdu define*/
+
+
 /* This struct should be moved to a header file */
 typedef struct standard_oam_header
 {
@@ -824,7 +872,7 @@ typedef struct alarm_loop
         unsigned char onuPort[4];
 } __attribute__ ((packed)) ALARM_LOOP;
 
-#define NUM_PORTS_PER_SYSTEM 26//5
+//#define NUM_PORTS_PER_SYSTEM 26//5
 #define IFM_ETH_ALARM_STATUS_LOOP     0x08
 
 /*added by wangxiaoyu 2009-03-11*/
@@ -933,7 +981,7 @@ typedef union tagIFM_ETH_IfIndex
 #define ONU_ALM_E1_LOFSMF	0x0004
 #define ONU_ALM_E1_CRC3		0x0002
 #define ONU_ALM_E1_CRC6		0x0001
-
+#if 0
 #define NUM_UNITS_PER_SYSTEM    5
 #define PHY_PORT_MAX 			26//11
 
@@ -943,6 +991,7 @@ typedef struct log_phy_map_s {
     unsigned char unit;
     unsigned char physical_port;
 } log_phy_map_t;
+#endif
 
 /*begin: added by wangxiaoyu 2008-12-26*/
 enum{
