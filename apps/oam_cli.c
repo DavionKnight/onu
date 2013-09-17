@@ -430,6 +430,35 @@ int cmd_gw_laser(struct cli_def *cli, char *command, char *argv[], int argc)
 	return CLI_OK;
 }
 
+int cmd_gw_conf(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int ret = CLI_OK, code = 1;
+
+	if (CLI_HELP_REQUESTED) {
+		switch (argc) {
+		case 1:
+			return gw_cli_arg_help(cli, 0, "[save|clear]", "save or clear config file",
+					NULL );
+		default:
+			return gw_cli_arg_help(cli, argc > 1, NULL );
+		}
+	}
+
+	if(argc == 1)
+	{
+		if(strcmp(argv[0], "clear") == 0 )
+			code = 0;
+	}
+	else
+		ret = CLI_ERROR_ARG;
+
+	
+	if(gw_conf_save(code) != GW_OK)
+		ret = CLI_ERROR;
+
+	return ret;
+}
+
 int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	gw_uint32 gw_port;
@@ -578,7 +607,8 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, c, "port_isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
 	
 	c = gw_cli_register_command(cmd_root, NULL, "mgt", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "ONU device management");
-	c = gw_cli_register_command(cmd_root, c, "laser", cmd_gw_laser, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Laser status");
+	gw_cli_register_command(cmd_root, c, "laser", cmd_gw_laser, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Laser status");
+	gw_cli_register_command(cmd_root, c, "config", cmd_gw_conf, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "config save");
 
 	c = gw_cli_register_command(cmd_root, NULL, "event", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "event show");
 	gw_cli_register_command(cmd_root, c, "show", cmd_oam_event_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show");

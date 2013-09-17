@@ -123,6 +123,19 @@ typedef enum {
     GwEponTxLaserStatusNum
 } gw_EponTxLaserStatus;
 
+typedef enum{
+	channel_serial=1,
+	channel_tcp,
+	channel_pty,
+	channel_oam
+}gw_cli_channel_type;
+
+typedef struct {
+	gw_uint32 port;
+	gw_uint32 vid;
+	gw_uint32 queue;
+}gw_qos_vlan_queue_data_t;
+
 typedef gw_int32 (*libgwdonu_special_frame_handler_t)(gw_int8 *pkt, const gw_int32 len, gw_int32 portid);
 typedef gw_status (*libgwdonu_out_hw_version)(gw_int8 *hwbuf, const gw_int32 hwbuflen);
 
@@ -181,7 +194,14 @@ typedef gw_status(*libgwdonu_syslog_register_heandler_t)(libgwdonu_syslog_heandl
 
 typedef gw_int32 (*libgwdonu_console_read_t)(gw_uint8 *buf, gw_uint32 count);
 typedef gw_int32 (*libgwdonu_console_write_t)(gw_uint8 *buf, gw_uint32 count);
-typedef void (*libgwdonu_console_cli_entry_t)(libgwdonu_console_read_t r, libgwdonu_console_write_t w);
+typedef void (*libgwdonu_console_cli_entry_t)(gw_int32 type, gw_int32 fd, libgwdonu_console_read_t r, libgwdonu_console_write_t w);
+
+typedef gw_int32 (*libgwdonu_vfile_open)(gw_uint8 * fname, gw_int32 mode, gw_int32 * fd, gw_uint8 ** pv);
+typedef gw_int32 (*libgwdonu_vfile_close)(void *data);
+
+typedef gw_int32 (*libgwdonu_qos_vlan_queue_map_t)(gw_int32 count, gw_qos_vlan_queue_data_t * data);
+
+typedef gw_int32 (*libgwdonu_config_write_to_flash_t)();
 
 typedef struct gwdonu_im_if_s{
 
@@ -244,6 +264,11 @@ typedef struct gwdonu_im_if_s{
 
 	libgwdonu_syslog_register_heandler_t     sysloghandler;
 
+	libgwdonu_vfile_open         vfileopen;
+	libgwdonu_vfile_close        vfileclose;
+
+	libgwdonu_qos_vlan_queue_map_t qosvlanqueuemap;
+	libgwdonu_config_write_to_flash_t wrflash;
 
 }gwdonu_im_if_t;
 

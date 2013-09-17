@@ -4,6 +4,7 @@
 #include <network.h>
 #else
 #include <sys/errno.h>
+#include <netinet/in.h>
 #endif
 #include "cli_common.h"
 #include "../apps/gw_log.h"
@@ -546,6 +547,9 @@ struct cli_def *gw_cli_init(struct cli_command *cmd_root, int channel)
     cli->timeout_tm.tv_sec = 1;
     cli->timeout_tm.tv_usec = 0;
 
+	// default to 1 minute timout for login user
+	cli->idle_timeout = 60;
+
     }
     else if(channel == CHANNEL_PTY)
     {
@@ -584,7 +588,7 @@ struct cli_def *gw_cli_init(struct cli_command *cmd_root, int channel)
         memset(g_ser_cli_vty_buff,0,MAX_PRINT_BUF_LEN);
         cli=&g_ser_cli_vty;
         cli->buf_size = MAX_PRINT_BUF_LEN;
-        cli->buffer= g_oam_cli_vty_buff;
+        cli->buffer= g_ser_cli_vty_buff;
         gw_cli_free_history(cli);
 
         cli->commands = cmd_root;
@@ -1339,7 +1343,7 @@ int gw_cli_loop(struct cli_def *cli)
 
     if(CHANNEL_TCP == cli->channel)
     {
-        gw_cli_set_privilege(cli, PRIVILEGE_UNPRIVILEGED);
+        gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
         /*#ifdef HAVE_ZTE_OAM 
         gw_cli_set_configmode(cli, MODE_ZTE, NULL);
         #endif*/
@@ -1456,7 +1460,7 @@ int gw_cli_loop(struct cli_def *cli)
                 }
 
                 if (sr == 0)
-                {
+                {					
                     if (cli->regular_callback && cli->regular_callback(cli) != CLI_OK)
                     {
                         strncpy(cmd, "quit", MAX_LINE_LENTH-1);
@@ -1465,6 +1469,13 @@ int gw_cli_loop(struct cli_def *cli)
 
                     if (cli->idle_timeout)
                     {
+						struct sockaddr_in addr;
+						int len = sizeof(addr);
+						getpeername(cli->sockfd, (struct sockaddr*)&addr, &len);
+
+//						printf("peer sock port is %d\r\n", htons(addr.sin_port));
+//						printf("time check: time -- %u, lastact time -- %u, timeout -- %u\r\n", time(NULL), cli->last_action, cli->idle_timeout);
+						
                         if (time(NULL) - cli->last_action >= cli->idle_timeout)
                         {
                             /* gw_cli_error(cli, "Idle timeout"); */
@@ -1533,6 +1544,9 @@ int gw_cli_loop(struct cli_def *cli)
 
                     is_telnet_option = 0;
                 }
+
+				if(c == '\n')
+					c = '\r';
             }
             else if(CHANNEL_SERIAL == cli->channel)
 #endif
@@ -2326,12 +2340,17 @@ void _gw_print(struct cli_def *cli, int print_mode, const char *format, va_list 
 #ifdef HAVE_TELNET_CLI
                 else if(CHANNEL_TCP == cli->channel)
                 {
+					#if 0
                     gw_uint32 i;
                     for(i = 0; i < strlen(p); i++) {
                         gw_console_put_char(p[i]);
                     }
                     gw_console_put_char('\r');
                     gw_console_put_char('\n');
+					#else
+					write(cli->sockfd, p, strlen(p));
+					write(cli->sockfd, "\r\n", 2);
+					#endif
                 }
 #endif
                 else if(CHANNEL_OAM == cli->channel)
@@ -2860,7 +2879,7 @@ int gw_do_telnet_legacy_cmd(struct cli_def *cli,char * p)
                     }
 
                     if (cli->idle_timeout)
-                    {
+                    {						
                         if (time(NULL) - cli->last_action >= cli->idle_timeout)
                         {
                             	gw_cli_error(cli, "Idle timeout");

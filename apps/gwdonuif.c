@@ -105,8 +105,9 @@ gw_int32 gwd_console_write(gw_uint8 *buf, gw_uint32 count)
     return ret;
 }
 
-gw_status gwd_onu_console_cli_entry(libgwdonu_console_read_t r, libgwdonu_console_write_t w)
+gw_status gwd_onu_console_cli_entry(gw_int32 type, gw_int32 fd, libgwdonu_console_read_t r, libgwdonu_console_write_t w)
 {
+#if 0
     if(r != NULL && w != NULL)
     {
         sr = r;
@@ -119,6 +120,15 @@ gw_status gwd_onu_console_cli_entry(libgwdonu_console_read_t r, libgwdonu_consol
     }
     else
         return GW_ERROR;
+#endif
+
+    sr = r;
+    sw = w;
+    cli_console_start(type, fd);
+    sr = NULL;
+    sw = NULL;
+
+    return GW_OK;
 }
 
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
@@ -492,6 +502,31 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 		    if(g_im_ifs->console_cli_register)
 		        ret = (*g_im_ifs->console_cli_register)(va_arg(ap, void*));
 		    break;
+		case LIB_IF_VFILE_OPEN:
+			if(g_im_ifs->vfileopen)
+				ret = (*g_im_ifs->vfileopen)(va_arg(ap, gw_uint8*), va_arg(ap, gw_int32), va_arg(ap, gw_int32*), va_arg(ap, gw_uint8 **));
+			else
+				printf("gwdonu_vfile_open is NULL\n");
+			break;
+
+		case LIB_IF_VFILE_CLOSE:
+			if(g_im_ifs->vfileclose)
+				ret = (*g_im_ifs->vfileclose)(va_arg(ap, void*));
+			else
+				printf("gwdonu_vfile_close is NULL\n");
+			break;
+		case LIB_IF_QOS_VLAN_QUEUE_MAP:
+			if(g_im_ifs->qosvlanqueuemap)
+				ret = (*g_im_ifs->qosvlanqueuemap)(va_arg(ap, gw_int32), va_arg(ap, gw_qos_vlan_queue_data_t *));
+			else
+				printf("gwdonu qos vlan queue map is NULL\n");
+			break;
+		case LIB_IF_CONF_WR_FLASH:
+			if(g_im_ifs->wrflash)
+				ret = (*g_im_ifs->wrflash)();
+			else
+				printf("gwdonu write flash is NULL\n");
+			break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

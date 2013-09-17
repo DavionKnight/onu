@@ -12,6 +12,8 @@
 #include "gw_log.h"
 #include "gwdonuif_interval.h"
 #include "../include/gwdonuif.h"
+#include "../qos/qos.h"
+
 extern broadcast_storm_s broad_storm;
 char   g_cSetTime[20]= {0};
 #define PORT_DOWN_ENABLE 1
@@ -332,6 +334,153 @@ int cmd_timer_show(struct cli_def *cli, char *command, char *argv[], int argc)
     return 1;
 	
 }
+
+int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+    int ret = CLI_ERROR;
+
+    if (CLI_HELP_REQUESTED)
+    {
+
+        switch (argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0, "<1-%d>", gw_onu_read_port_num()+2, "Input one port number", NULL );
+        case 2:
+        	return gw_cli_arg_help(cli, 0, "<2-%d>", 4092, "Input vlan id", NULL);
+        case 3:
+        	return gw_cli_arg_help(cli, 0, "<0-7>", "Input a queue value", NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL );
+        }
+
+    }
+
+    if(argc >= 3)
+    {
+    	gw_uint8 port = atoi(argv[0]);
+    	gw_uint32 vlan = atoi(argv[1]);
+    	gw_uint32 queue = atoi(argv[2]);
+
+    	if(gw_qos_vlan_queue_add(port, vlan, queue) == GW_OK)
+    		ret = CLI_OK;
+    	else
+    		gw_cli_print(cli, "add qos vlan id queue map fail!");
+    }
+
+    return ret;
+}
+
+int cmd_qos_vlan_queue_map_del(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+    int ret = CLI_ERROR;
+
+    if (CLI_HELP_REQUESTED)
+    {
+
+        switch (argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0, "<1-%d>", gw_onu_read_port_num()+2, "Input one port number", NULL );
+        case 2:
+        	return gw_cli_arg_help(cli, 0, "<2-%d>", 4092, "Input vlan id", NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL );
+        }
+
+    }
+
+    if(argc >= 2)
+    {
+    	gw_uint8 port = atoi(argv[0]);
+    	gw_uint32 vlan = atoi(argv[1]);
+
+    	if(gw_qos_vlan_queue_remove(port, vlan) == GW_OK)
+    		ret = CLI_OK;
+    	else
+    		gw_cli_print(cli, "del qos vlan id queue map fail!");
+    }
+
+    return ret;
+}
+
+int cmd_qos_vlan_queue_map_apply(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+    int ret = CLI_ERROR;
+    int reset = 0;
+
+    if (CLI_HELP_REQUESTED)
+    {
+
+    	switch (argc)
+		{
+
+    	case 1:
+    		return gw_cli_arg_help(cli, 0, "reset", "reset qos vid-queue map config", NULL );
+    	default:
+        	return gw_cli_arg_help(cli, argc > 1, NULL );
+		}
+
+    }
+
+    reset = (argc == 1)?1:0;
+
+    if(gw_qos_vlan_queue_rules_apply(reset) != GW_OK)
+    	gw_cli_print(cli, "qos vlan queue map apply fail!");
+    else
+    	ret = CLI_OK;
+
+    return ret;
+}
+
+int cmd_qos_vlan_queue_map_show(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+    int ret = CLI_ERROR, c = 0;
+    gw_uint8 port = 0;
+    gw_qos_vlan_queue_data_t *pd = NULL;
+
+    if (CLI_HELP_REQUESTED)
+    {
+
+        switch (argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0, "<1-%d>", gw_onu_read_port_num()+2, "Input one port number", NULL );
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL );
+        }
+
+    }
+
+    if(argc >= 1)
+    	port = atoi(argv[0]);
+    else
+    	port = 0xff;
+
+    if((c = gw_qos_vlan_queue_entry_get_by_port(port, &pd)))
+    {
+
+    	gw_int32 i = 0;
+
+    	gw_cli_print(cli, "%-8s%-8s%-8s%-8s", "id", "port", "vlan", "queue");
+
+    	while(c > 0)
+    	{
+    		gw_cli_print(cli, "%-8d%-8d%-8d%-8d", i+1, pd[i].port, pd[i].vid, pd[i].queue);
+		i++;
+		c--;
+    	}
+
+    	ret = CLI_OK;
+    }
+
+    return ret;
+}
+
 int gw_time_get(localtime_tm *tm)
 {
 	memcpy(&tm,&w_gw_tim,sizeof(localtime_tm));
@@ -356,7 +505,12 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 	cp = gw_cli_register_command(cmd_root, cp, "storm", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast storm config");
 	gw_cli_register_command(cmd_root, cp, "portdown", cmd_bsctrl_policy, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port down config");
 	gw_cli_register_command(cmd_root, cp, "threshold", cmd_bsctrl_threshold, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config");
-//	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");
+	cp = gw_cli_register_command(cmd_root, NULL, "qos", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "QoS command");
+	gw_cli_register_command(cmd_root, cp, "add-vid-queue-map", cmd_qos_vlan_queue_map, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan queue map add cmd");
+	gw_cli_register_command(cmd_root, cp, "del-vid-queue-map", cmd_qos_vlan_queue_map_del, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "vlan queue map del cmd");
+	gw_cli_register_command(cmd_root, cp, "show-vid-queue-map", cmd_qos_vlan_queue_map_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show vlan queue map cmd");
+	gw_cli_register_command(cmd_root, cp, "apply-vid-queue-map", cmd_qos_vlan_queue_map_apply, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "apply vlan queue map cmd");
+	//	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");
 //	time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
 //	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
 
