@@ -3,6 +3,7 @@
 #ifndef _osal_confige_h_
 #define _osal_confige_h_
 
+#include "gw_config.h"
 /*
 ** Platform Configuration Parameters for the OS API
 */

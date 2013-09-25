@@ -156,7 +156,10 @@ gw_int32 gwd_oam_cli_printf(gw_int8 * p, gw_int32 len)
 	if(len)
 	{
 		if(len+g_oam_cli_out_len < OAM_CLI_OUT_BUF_LENGTH)
+		{
 			g_oam_cli_out_len += sprintf(g_oam_cli_out_buf+g_oam_cli_out_len, "%s", p);
+			g_oam_cli_out_len += sprintf(g_oam_cli_out_buf+g_oam_cli_out_len, "%s", "\r\n");
+		}
 		else
 		{
 			len = OAM_CLI_OUT_BUF_LENGTH-g_oam_cli_out_len-1;
@@ -217,9 +220,9 @@ void gw_oam_async_thread_entry(gw_uint32 * para)
 
 					gw_cli_run_oam_command( msg->pPayLoad);
 
-					gw_log(GW_LOG_LEVEL_DEBUG, "oam_cli result(len == %d):\r\n", g_oam_cli_out_len);
-					gw_dump_pkt(g_oam_cli_out_buf, g_oam_cli_out_len, 16);
-					gw_log(GW_LOG_LEVEL_DEBUG, "\r\n");
+				//	gw_log(GW_LOG_LEVEL_DEBUG, "oam_cli result(len == %d):\r\n", g_oam_cli_out_len);
+				//	gw_dump_pkt(g_oam_cli_out_buf, g_oam_cli_out_len, 16);
+				//	gw_log(GW_LOG_LEVEL_DEBUG, "\r\n");
 
 					CommOnuMsgSend(CLI_RESP_TRANSMIT, msg->SendSerNo, g_oam_cli_out_buf, g_oam_cli_out_len, msg->SessionID);
 

@@ -1,4 +1,4 @@
-#include "../include/gw_config.h"
+#include "../include/gw_os_api_core.h"
 #include "../include/gw_types.h"
 #include "oam.h"
 #include "rcp_gwd.h"

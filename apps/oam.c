@@ -12,6 +12,7 @@
 #include "pkt_main.h"
 #include "oamsnmp.h"
 
+
 //#include "sdl_api.h"
 
 #define OAMDBGERR               diag_printf
@@ -590,7 +591,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	if(epon_request_onu_mpcp_llid_get(context, 0, 0, &llid) != GW_OK)
 		return GWD_RETURN_ERR;
 	 */
-
+    
 	GWDOAMTRC("CommOnuMsgSend -- len: %d, start %p\r\n", SendDataSize, pSentData);
 
 	if( GWD_RETURN_OK != Gwd_OAM_get_length_negotiation(&usOAMFrameLen) )
@@ -924,12 +925,12 @@ localtime_tm w_gw_tim;
 static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 {
 	unsigned char ver[4] = {1, 1, 1, 1};
-	unsigned char Response[1024]={'\0'},*ptr, *pReq;
+	unsigned char Response[1024]={'\0'},*ptr, *pReq; 
 	unsigned char temp[128];
 	int ResLen=0;
 	unsigned short device_type;
 	int tmpRet;
-	
+
 	if(NULL == pRequest)
 		return GWD_RETURN_ERR;
 	if(EQU_DEVICE_INFO_REQ != pRequest->GwOpcode)
@@ -953,7 +954,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr ++ = 0x00;
 			*ptr ++ = 0x0f;
 			*ptr ++ = 0xe9;
-
 			/* Contents */
 			memset(temp, '\0', sizeof(temp));
 //			ResLen = sprintf(temp, "V%d.%dB%d",SYS_HARDWARE_MAJOR_VERSION_NO, SYS_HARDWARE_RELEASE_VERSION_NO, SYS_HARDWARE_BRANCH_VERSION_NO);
@@ -961,7 +961,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr++ = ResLen;
 			sprintf(ptr,"%s",temp);
 			ptr += ResLen;
-
 			/*Boot Version*/
 			if (ver[0] != 0)
 			{
@@ -976,7 +975,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 				sprintf(ptr,"%s",GwONU831BootVer);
 				ptr += (strlen(GwONU831BootVer));
 			}
-			
 			/*Software version*/
 			memset(temp, '\0', sizeof(temp));
 			/*
@@ -996,7 +994,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr++ = ResLen;
 			sprintf(ptr,"%s",temp);
 			ptr += ResLen;
-
 			/*Onu name*/
 			ResLen = strlen(gw_onu_system_info_total.device_name);
 			if (ResLen > 128)
@@ -1034,7 +1031,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr ++ = ResLen;
 			memcpy(ptr, gw_onu_system_info_total.serial_no, ResLen);
 			ptr += ResLen;
-			
 			/*Manufacture Date*/
 			ResLen = strlen(gw_onu_system_info_total.hw_manufature_date);
 			*ptr ++ = ResLen;
@@ -1051,7 +1047,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
 			*ptr ++= 0x80; /*added ctc statistic function surpport*/
-			
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
 			gulGwOamConnect = 1;
@@ -1573,7 +1568,8 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			return sendIpSourcManAck(IP_RESOURCE_FREE, 0, pRequest->SessionID);
 			break;
 #endif
-#if (RPU_MODULE_PPPOE_RELAY == RPU_YES)
+
+#if (RPU_MODULE_USER_MAC_RELAY == USER_MAC_YES)
 		case ONU_LOCATE_USER:
 			{
 				unsigned char swmac[USR_MAC_LEN] = "", subsw = 0;
@@ -1611,6 +1607,11 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 				/*********************************************************************
 				��ȡusermac oam request ���е�mac
 				*********************************************************************/
+				if(requestPdu->macNum > USR_MAC_REQUEST_MAX)
+				{
+                    gw_printf("olt send mac number > mac_max(64)\n");
+                    return GWD_RETURN_ERR; 
+                }
 				for (requestNum = 0; requestNum < requestPdu->macNum; requestNum++)
 				{
 					memcpy(info[requestNum].swmac,(pRequest->pPayLoad+requestlen),USR_MAC_LEN);
@@ -1720,8 +1721,8 @@ END:
 			return GWD_RETURN_ERR;
 		}
 	}
-
 	return (CommOnuMsgSend(EQU_DEVICE_INFO_RESP, pRequest->SendSerNo, Response, ResLen, pRequest->SessionID));
+	//return GWD_RETURN_ERR;
 }
 
 static int GwOamAlarmResponse(GWTT_OAM_MESSAGE_NODE *pRequest )
