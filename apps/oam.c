@@ -1634,6 +1634,8 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 					/*��ȡfdb���е�ǰ256 ��mac ,���û��ȡȫ�´��ڽ��Ż�ȡ֪��ȫ��ȡ��*/
 					if(user_mac_onu_fdb_get(macbuf,lastmac,&macnumberget,&ifhavemac))
 					{
+                        free(responsePdu);
+					    responsePdu = NULL;
 						return GWD_RETURN_ERR;
 					}
                     
