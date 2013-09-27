@@ -527,6 +527,18 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				printf("gwdonu write flash is NULL\n");
 			break;
+        case LIB_IF_PORT_MIRROR_STAT_GET:
+            if(g_im_ifs->portmirrorstatget)
+                ret = (*g_im_ifs->portmirrorstatget)(va_arg(ap,gw_int32),va_arg(ap,gw_int32*));
+            else
+                printf("gwdonu get port mirror stat is NULL\n");
+            break;
+        case LIB_IF_PORT_MIRROR_STAT_SET:
+            if(g_im_ifs->portmirrorstatset)
+                ret = (*g_im_ifs->portmirrorstatset)(va_arg(ap,gw_int32),va_arg(ap,gw_int32));
+            else
+                printf("gwdonu set port mirror stat is NULL\n");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

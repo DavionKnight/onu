@@ -15,11 +15,11 @@
  * “RPU_YES”或“RPU_NO”，这一点将体现在后面的叙述中。
  * 注意，请不要修改这两个宏的值。
  */
-#define	USER_MAC_YES		1
-#define	USER_MAC_NO		0
+#define	RPU_YES		1
+#define	RPU_NO		0
 
 /***************************************************************************/
-#define RPU_MODULE_USER_MAC_RELAY USER_MAC_YES
+#define RPU_MODULE_USER_MAC_RELAY RPU_YES
 
 
 #define USERMAC_EN 0x1 

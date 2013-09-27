@@ -157,14 +157,14 @@ gw_int32 gwd_oam_cli_printf(gw_int8 * p, gw_int32 len)
 	{
 		if(len+g_oam_cli_out_len < OAM_CLI_OUT_BUF_LENGTH)
 		{
-			g_oam_cli_out_len += sprintf(g_oam_cli_out_buf+g_oam_cli_out_len, "%s", p);
-			g_oam_cli_out_len += sprintf(g_oam_cli_out_buf+g_oam_cli_out_len, "%s", "\r\n");
+			g_oam_cli_out_len += sprintf(g_oam_cli_out_buf+g_oam_cli_out_len, "%s\r\n", p);
+			//g_oam_cli_out_len += sprintf(g_oam_cli_out_buf+g_oam_cli_out_len, "%s", "\r\n");
 		}
 		else
 		{
-			len = OAM_CLI_OUT_BUF_LENGTH-g_oam_cli_out_len-1;
-			strncpy(g_oam_cli_out_buf+g_oam_cli_out_len, p, len);
-			g_oam_cli_out_len = OAM_CLI_OUT_BUF_LENGTH;
+			//len = OAM_CLI_OUT_BUF_LENGTH-g_oam_cli_out_len-1;
+			//strncpy(g_oam_cli_out_buf+g_oam_cli_out_len, p, len);
+			//g_oam_cli_out_len = OAM_CLI_OUT_BUF_LENGTH;
 		}
 	}
 

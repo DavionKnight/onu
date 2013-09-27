@@ -122,9 +122,9 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 
 	return CLI_OK;
 }
-
-
-int cmd_oam_port_mirror_src(struct cli_def *cli, char *command, char *argv[], int argc)
+#if 0
+#define OFF 0
+int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
 
@@ -145,15 +145,37 @@ int cmd_oam_port_mirror_src(struct cli_def *cli, char *command, char *argv[], in
 									"[0|1]", "1: select as source port; 0: not source port", NULL);
 				break;
 			default:
-				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				return gw_cli_arg_help(cli, argc > 1, NULL);
 				break;
 		}
 	}
+    gw_cli_print(cli,"------------hello mirror---------------\n");
+
+    gw_thread_delay(500);
+    
+    int mode = 0;
+    
+    if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,0,&mode) != GW_OK)
+        gw_cli_print(cli,"get port mirror stat fail\n");
+    else
+        gw_cli_print(cli,"mirror stat :%s",mode?"ON":"OFF");
+    
+    gw_thread_delay(500);
+    
+    if(mode == OFF)
+    {
+        mode = 1;
+        if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,0,mode)!= GW_OK)
+            gw_cli_print(cli,"set port mirror stat fail\n");
+        else
+            gw_cli_print(cli,"set port mirror stat %s success\n",mode?"ON":"OFF");
+    }
+    
 
 
 	return CLI_OK;
 }
-
+#endif
 
 int cmd_oam_event_show(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -595,6 +617,8 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 
 	portcmd = gw_cli_register_command(cmd_root, NULL, "port", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port config or get");
 	gw_cli_register_command(cmd_root, portcmd, "mode", cmd_oam_port_mode, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
+   // gw_cli_register_command(cmd_root, portcmd, "mirror_from", cmd_oam_port_mirror_from, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port mirror stat get");
+    
 
 	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "atu command");
 	gw_cli_register_command(cmd_root, atu, "learning", cmd_oam_atu_learn, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "learning enable");

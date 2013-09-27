@@ -42,7 +42,7 @@ int onu_phyport_to_logport_get(unsigned int *egports)
 		
 }
 #endif
-#if (RPU_MODULE_USER_MAC_RELAY == USER_MAC_YES)
+#if (RPU_MODULE_USER_MAC_RELAY == RPU_YES)
 int user_mac_onu_fdb_get(localMacsave_t macbuf[USR_MAC_MAX_T],unsigned char *lastmac,int *macnumberget,int *ifhavemac)
 {
     gw_uint32 vid = 0, egports = 0,statics=0;

@@ -1569,7 +1569,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			break;
 #endif
 
-#if (RPU_MODULE_USER_MAC_RELAY == USER_MAC_YES)
+#if (RPU_MODULE_USER_MAC_RELAY == RPU_YES)
 		case ONU_LOCATE_USER:
 			{
 				unsigned char swmac[USR_MAC_LEN] = "", subsw = 0;

@@ -203,6 +203,9 @@ typedef gw_int32 (*libgwdonu_qos_vlan_queue_map_t)(gw_int32 count, gw_qos_vlan_q
 
 typedef gw_int32 (*libgwdonu_config_write_to_flash_t)();
 
+typedef gw_int32 (*libgwdonu_port_mirror_stat_get_t)(gw_int32 unit,gw_int32*mode);
+typedef gw_int32 (*libgwdonu_port_mirror_stat_set_t)(gw_int32 unit,gw_int32 mode);
+
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -223,7 +226,9 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_port_isolate_set_t		portisolateset;
 	libgwdonu_port_statistic_get_t	portstatget;
 	libgwdonu_port_pvid_get_t		portpvidget;
-
+    libgwdonu_port_mirror_stat_get_t portmirrorstatget;
+    libgwdonu_port_mirror_stat_set_t portmirrorstatset;
+    
 	libgwdonu_vlan_entry_getnext_t		vlanentrygetnext;
 	libgwdonu_vlan_entry_get_t		vlanentryget;
 	libgwdonu_fdb_entry_get_t		fdbentryget;
