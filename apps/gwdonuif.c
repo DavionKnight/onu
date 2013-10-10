@@ -540,3 +540,80 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 	return ret;
 }
 
+
+char* onu_product_name_get(unsigned short int productID)
+{
+	switch(productID)
+	{
+		case DEVICE_TYPE_GT821:
+			return "GT821";
+
+		case DEVICE_TYPE_GT831:
+			return "GT831";
+
+		case DEVICE_TYPE_GT831_B:
+		case DEVICE_TYPE_GT831_B_CATV:
+			return "GT831_B";
+
+		case DEVICE_TYPE_GT810:
+			return "GT810";
+
+		case DEVICE_TYPE_GT816:
+			return "GT816";
+
+		case DEVICE_TYPE_GT811:
+			return "GT811";
+		case DEVICE_TYPE_GT811_A:
+			return "GT811_A";
+
+		case DEVICE_TYPE_GT812:
+			return "GT812";
+		case DEVICE_TYPE_GT812_A:
+			return "GT812_A";
+
+		case DEVICE_TYPE_GT813:
+			return "GT813";
+
+		case DEVICE_TYPE_GT865:
+			return "GT865";
+
+		case DEVICE_TYPE_GT861:
+			return "GT861";
+
+		case DEVICE_TYPE_GT815:
+			return "GT815";
+
+		case DEVICE_TYPE_GT812PB:
+			return "GT812_B";
+
+		case DEVICE_TYPE_GT866:
+			return "GT866";
+
+		case DEVICE_TYPE_GT863:
+			return "GT863";
+		case DEVICE_TYPE_GT871B:
+		    return "GT871B";
+		case DEVICE_TYPE_GT871R:
+		    return "GT871R";
+		case DEVICE_TYPE_GT872:
+		    return "GT872";
+		case DEVICE_TYPE_GT873:
+		    return "GT873";
+
+		case DEVICE_TYPE_GT813_C:
+			return "GT813_C";
+		case DEVICE_TYPE_GT811_C:
+			return "GT811_C";
+		case DEVICE_TYPE_GT812_C:
+			return "GT812_C";
+		case DEVICE_TYPE_GT815_C:
+			return "GT815_C";
+
+		case DEVICE_TYPE_GT873_A:
+			return "GT873_A";
+
+		default:
+			return "UNKNOWN";
+	}
+}
+

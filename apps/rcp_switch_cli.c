@@ -58,6 +58,8 @@ extern  "C"
 //struct slot_port *my_onu = NULL;
 //void *my_onu_port;
 
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
+
 int my_onu_port_arg;
 
 unsigned long int g_onu_tx_policy = 1; //onu comm msg tx ctrl policy, 1:enable all tx 0:disble all tx
@@ -6401,6 +6403,8 @@ int Rcp_Eeprom_Value_Set_Protect(struct cli_def *cli, RCP_DEV *pRcpDev, RCP_EEPR
 	return RCP_ERROR;
 
 }
+
+#endif
 
 #ifdef __cplusplus
 }

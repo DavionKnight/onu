@@ -306,6 +306,7 @@ extern unsigned long   gulDebugOamFileOp;
 #define  IGMP_TVM_RESP                     0x17
 #endif
 
+#if 0
 #define DEVICE_TYPE_GT821			0x0005	/* GT821 */
 #define DEVICE_TYPE_GT831			0x0006	/* GT831 */
 #define DEVICE_TYPE_GT813			0x0008	/* GT813 */
@@ -348,10 +349,9 @@ extern unsigned long   gulDebugOamFileOp;
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
 #define PRODUCT_TYPE                DEVICE_TYPE_GT813_C
 
-
 #define DeviceTypeIsValid( _device_type ) \
     ((_device_type)>=DEVICE_TYPE_VALID_MIN && (_device_type)<=DEVICE_TYPE_VALID_MAX)
-
+#endif
 #define MODULE_TYPE_GT861_NULL		0	/* empty */
 #define MODULE_TYPE_GT861_EPON_B	1	/* EPON_B */
 #define MODULE_TYPE_GT861_8POTS_A	2	/* RJ11 */

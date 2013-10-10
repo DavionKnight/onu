@@ -37,6 +37,9 @@
 #include "rcp_gwd.h"
 #include "oam.h"
 #include "gw_log.h"
+
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
+
 unsigned long gulGwdRcpAuth = 0;
 RCP_DEV *rcpDevList[MAX_RRCP_SWITCH_TO_MANAGE];
 
@@ -7709,6 +7712,7 @@ pucMacAddr[ 5 ] )
 
 }
 
+#endif
 #endif
 
 

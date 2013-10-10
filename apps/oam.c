@@ -358,8 +358,10 @@ int GwOamRecevOpcodeCheck(unsigned char GwOpcode )
 		case IGMP_AUTH_TRAN_REQ:
 		case IGMP_AUTH_TRAN_RESP:
 		case CLI_PTY_TRANSMIT:
+#if(RPU_MODULE_IGMP_TVM == RPU_YES)
 		case IGMP_TVM_REQ:
 		case IGMP_TVM_RESP:
+#endif
 			break;
 		default:
 			return OAM_MESSAGE_RECEV_OPCODE_ERR;
@@ -386,8 +388,10 @@ int GwOamSendOpcodeCheck(unsigned char GwOpcode)
 		case IGMP_AUTH_TRAN_REQ:
 		case IGMP_AUTH_TRAN_RESP:
 		case CLI_PTY_TRANSMIT:
+#if(RPU_MODULE_IGMP_TVM == RPU_YES)
 		case IGMP_TVM_REQ:
 		case IGMP_TVM_RESP:
+#endif
 			break;
 		default:
 			return OAM_MESSAGE_RECEV_OPCODE_ERR;
@@ -1513,6 +1517,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
         break;
     }      
 
+#if (RPU_MODULE_LOOPBACK_DETECT == RPU_YES)
 		case ONU_LPB_DETECT:
 		{
 			int nv = 0;
@@ -1563,6 +1568,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
 		}
 		return GWD_RETURN_OK;	
+#endif
 
 #if 0
 		case IP_RESOURCE_ALLOC:
@@ -3139,7 +3145,11 @@ void gw_broadcast_storm_init()
 
 void gwd_onu_init(void)
 {
+
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
 extern void Rcp_Mgt_init(void);
+#endif
+
 extern void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root);
 extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
@@ -3174,7 +3184,9 @@ extern void init_oam_send_relay();
 	oam_vendor_handler_register(GwOUI, gwd_oam_handlers);
 #endif
 
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
 	Rcp_Mgt_init();
+#endif
 
 	userCmdInitHandlerInit();
 

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+	targethfile=$PWD/../include/product.h
+	
+	if [ -n "$2" ]
+	then 
+		echo "force $1 type selected"
+		echo "#define $1 1" > $targethfile
+	else 
+		echo "don't force selection for $1"
+	fi
