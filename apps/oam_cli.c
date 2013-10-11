@@ -124,6 +124,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 }
 #if 0
 #define OFF 0
+#define ON 1
 int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
@@ -149,29 +150,45 @@ int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], i
 				break;
 		}
 	}
-    gw_cli_print(cli,"------------hello mirror---------------\n");
-
-    gw_thread_delay(500);
     
-    int mode = 0;
-    
-    if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,0,&mode) != GW_OK)
-        gw_cli_print(cli,"get port mirror stat fail\n");
-    else
-        gw_cli_print(cli,"mirror stat :%s",mode?"ON":"OFF");
-    
-    gw_thread_delay(500);
-    
-    if(mode == OFF)
+    int mode = OFF;
+    int UNIT = 0;
+    if(argc = 3)
     {
-        mode = 1;
-        if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,0,mode)!= GW_OK)
-            gw_cli_print(cli,"set port mirror stat fail\n");
+        if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,UNIT,&mode) != GW_OK)
+        {
+            gw_cli_print(cli,"get port mirror stat fail\n");
+            return CLI_ERROR;
+        }
         else
-            gw_cli_print(cli,"set port mirror stat %s success\n",mode?"ON":"OFF");
-    }
-    
+        {
+            gw_cli_print(cli,"mirror stat :%s",mode?"ON":"OFF");
+        }
+            
+        if(mode == OFF)
+        {
+            mode = ON;
+            if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_SET,2,UNIT,mode)!= GW_OK)
+            {
+                gw_cli_print(cli,"set port mirror stat fail\n");
+                return CLI_ERROR;
+            }
+            else
+            {
+                gw_cli_print(cli,"set port mirror stat %s success\n",mode?"ON":"OFF");
+            }   
+        }
 
+        if(strcmp(argv[0],"a") == 0)
+        {
+
+        }
+        else if(strcmp(argv[1],""))
+    }
+    else
+    {
+        gw_cli_print(cli,"  Invalid input!\r\n");
+    }
 
 	return CLI_OK;
 }
@@ -617,7 +634,7 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 
 	portcmd = gw_cli_register_command(cmd_root, NULL, "port", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port config or get");
 	gw_cli_register_command(cmd_root, portcmd, "mode", cmd_oam_port_mode, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
-   // gw_cli_register_command(cmd_root, portcmd, "mirror_from", cmd_oam_port_mirror_from, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port mirror stat get");
+    //gw_cli_register_command(cmd_root, portcmd, "mirror_from", cmd_oam_port_mirror_from, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port mirror stat get");
     
 
 	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "atu command");
