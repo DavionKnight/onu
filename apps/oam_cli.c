@@ -16,8 +16,38 @@
 #define GW_PORT_PRI_MAX 7
 #define GW_PORT_PRI_LAS 0
 
-extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
 
+#define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(portlist, ifindex,devonuport_num) \
+{\
+    gw_uint32 * _pulIfArray;\
+    gw_uint32 _i = 0;\
+    _pulIfArray = (gw_uint32*)ETH_ParsePortList(portlist,devonuport_num);\
+    if(!_pulIfArray)\
+    	{\
+    		ifindex = 0;\
+    	}\
+    if(_pulIfArray != NULL)\
+    {\
+        for(_i=0;_pulIfArray[_i]!=0;_i++)\
+        {\
+            ifindex = _pulIfArray[_i];\
+
+#define END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI() \
+        }\
+        free(_pulIfArray);\
+    }\
+}
+
+extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
+int cmd_oam_port_kill_thread_test(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int ret;
+    char buf[10]={0};
+
+    memset(&ret,0,10000);
+    
+    return ret;
+}
 int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
@@ -122,24 +152,147 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 
 	return CLI_OK;
 }
-#if 0
-#define OFF 0
-#define ON 1
+#if 1
+int cmd_oam_port_mirror_to(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int mode = OFF;
+    int UNIT = 0;
+    unsigned int unit = 0;
+    unsigned int phyport = 0;
+    unsigned int ulPort=0;
+    unsigned long maxportnumber = 0;
+    unsigned int portmap = 0;
+
+    maxportnumber = gw_onu_read_port_num();
+    
+    if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"[i|e|a]", "i: ingress; e: egress; a: All direction", NULL);
+				break;
+			case 2:
+				    gw_cli_arg_help(cli, 0,
+					"<port_list>", "Specify interface's port list(e.g.: 1; 1,2; 1-3)", NULL);
+
+				return gw_cli_arg_help(cli, 0,
+									"<0>", " Delete mirror to port", NULL);
+				break;
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL);
+				break;
+		}
+	}
+
+    if(argc == 2)
+    {
+        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(argv[1], ulPort,maxportnumber)
+        {
+			if(ulPort < 0)
+			{
+				gw_cli_print(cli, "%% valid input error.");
+				return CLI_OK;
+			}
+			if(ulPort > maxportnumber)
+			{
+				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+				return CLI_OK;
+			}
+            
+            boards_logical_to_physical(ulPort,&unit,&phyport);
+            portmap |= 1<< phyport;
+        }
+        END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI();
+        
+        if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,UNIT,&mode) != GW_OK)
+        {
+            gw_cli_print(cli,"get port mirror stat fail\n");
+            return CLI_ERROR;
+        }
+        else
+        {
+            gw_cli_print(cli,"mirror stat :%s",mode?"ON":"OFF");
+        }
+            
+        if(mode == OFF)
+        {
+            mode = ON;
+            if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_SET,2,UNIT,mode)!= GW_OK)
+            {
+                gw_cli_print(cli,"set port mirror stat fail\n");
+                return CLI_ERROR;
+            }
+            else
+            {
+                gw_cli_print(cli,"set port mirror stat %s success\n",mode?"ON":"OFF");
+            }   
+        }
+
+        if(strcmp(argv[0],"i") == 0)
+        {
+            if(call_gwdonu_if_api(LIB_IF_MIRROR_TO_PORT_SET,2,0,portmap) != GW_OK)
+            {
+                gw_cli_print(cli,"mirror to port fail\n");
+            }
+            else
+            {
+                gw_cli_print(cli,"mirror to port 1/%d\r\n",ulPort);            
+            }
+        }else if(strcmp(argv[0],"e") == 0)
+        {
+            if(call_gwdonu_if_api(LIB_IF_MIRROR_TO_PORT_SET,2,0,portmap) != GW_OK)
+            {
+                gw_cli_print(cli,"mirror to port fail\n");
+            }
+            else
+            {
+                gw_cli_print(cli,"mirror to port 1/%d\r\n",ulPort);            
+            }
+        }else if(strcmp(argv[0],"a") == 0)
+        {
+            if(call_gwdonu_if_api(LIB_IF_MIRROR_TO_PORT_SET,2,0,portmap) != GW_OK)
+            {
+                gw_cli_print(cli,"mirror to port fail\n");
+            }
+            else
+            {
+                gw_cli_print(cli,"mirror to port 1/%d\r\n",ulPort);            
+            }
+        }
+    }
+    else
+    {
+         gw_cli_print(cli,"  Invalid input!\r\n");
+    }
+
+    return GW_OK;
+}
 int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-
-
+    int mode = OFF;
+    int UNIT = 0;
+    unsigned long unit = 0;
+    unsigned int ulPort=0;
+    unsigned int phyport = 0;
+    unsigned long maxportnumber = 0;
+    unsigned int portmap = 0;
+    int stat = 0;
+    
+    maxportnumber = gw_onu_read_port_num();
+    
 	if(CLI_HELP_REQUESTED)
 	{
 		switch (argc)
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"[i|e|a]", "i: ingress; e: egress; a: both dir", NULL);
+					"[i|e|a]", "i: ingress; e: egress; a:All direction", NULL);
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0,
-					"<port_list>", "port num", NULL);
+					"<port_list>", "Specify interface's port list(e.g.: 1; 1,2; 1-3)", NULL);
 				break;
 			case 3:
 				return gw_cli_arg_help(cli, 0,
@@ -150,9 +303,8 @@ int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], i
 				break;
 		}
 	}
+
     
-    int mode = OFF;
-    int UNIT = 0;
     if(argc = 3)
     {
         if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,UNIT,&mode) != GW_OK)
@@ -178,12 +330,65 @@ int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], i
                 gw_cli_print(cli,"set port mirror stat %s success\n",mode?"ON":"OFF");
             }   
         }
-
-        if(strcmp(argv[0],"a") == 0)
+        
+        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(argv[1], ulPort,maxportnumber)
         {
+			if(ulPort < 0)
+			{
+				gw_cli_print(cli, "%% valid input error.");
+				return CLI_OK;
+			}
+			if(ulPort > maxportnumber)
+			{
+				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+				return CLI_OK;
+			}
+            
+            stat = atoi(argv[2]);
+            
+            boards_logical_to_physical(ulPort,&unit,&phyport);
+            
+            if(strcmp(argv[0],"i") == 0)
+            {           
+                if(call_gwdonu_if_api(LIB_IF_PORT_INGRESS_MIRROR_SET,3,0,phyport,stat) != GW_OK)
+                {
+                    gw_cli_print(cli,"set ingress mirror port fail\n");
+                }
+                else
+                {
+                    gw_cli_print(cli,"mirror ingress port 1/%d\r\n",ulPort);
+                }
+                
+            }
+            else if(strcmp(argv[0],"e") == 0)
+            {
+                if(call_gwdonu_if_api(LIB_IF_PORT_EGRESS_MIRROR_SET,3,0,phyport,stat) != GW_OK)
+                {
+                    gw_cli_print(cli,"set egress mirror port fail\n");
+                }
+                else
+                {
+                    gw_cli_print(cli,"mirror egress port 1/%d\r\n",ulPort);
+                }
+            }
+            else if(strcmp(argv[0],"a") == 0)
+            {
+                if(call_gwdonu_if_api(LIB_IF_PORT_INGRESS_MIRROR_SET,3,0,phyport,stat) != GW_OK)
+                {
+                    gw_cli_print(cli,"set ingress mirror port fail\n");
+                }
+
+                if(call_gwdonu_if_api(LIB_IF_PORT_EGRESS_MIRROR_SET,3,0,phyport,stat) != GW_OK)
+                {
+                    gw_cli_print(cli,"set egress mirror port fail\n");
+                }
+
+            }
 
         }
-        else if(strcmp(argv[1],""))
+        END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI();
+        
+
     }
     else
     {
@@ -634,9 +839,11 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 
 	portcmd = gw_cli_register_command(cmd_root, NULL, "port", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port config or get");
 	gw_cli_register_command(cmd_root, portcmd, "mode", cmd_oam_port_mode, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
-    //gw_cli_register_command(cmd_root, portcmd, "mirror_from", cmd_oam_port_mirror_from, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port mirror stat get");
+    gw_cli_register_command(cmd_root, portcmd, "mirror_from", cmd_oam_port_mirror_from, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port mirror from set");
+    gw_cli_register_command(cmd_root, portcmd, "mirror_to", cmd_oam_port_mirror_to, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port mirror to set");
     
-
+	//gw_cli_register_command(cmd_root, portcmd, "kill_thread", cmd_oam_port_kill_thread_test, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
+  
 	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "atu command");
 	gw_cli_register_command(cmd_root, atu, "learning", cmd_oam_atu_learn, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "learning enable");
 	gw_cli_register_command(cmd_root, atu, "aging", cmd_oam_atu_age, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "age set");

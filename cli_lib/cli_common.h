@@ -8,6 +8,10 @@
 //#include "plat_common.h"
 #include "../include/gw_os_api_core.h"
 
+
+#define OFF 0
+#define ON 1
+
 #define CLI_OK              0
 #define CLI_ERROR           -1
 #define CLI_QUIT            -2

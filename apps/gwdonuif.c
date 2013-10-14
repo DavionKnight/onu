@@ -539,6 +539,24 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             else
                 printf("gwdonu set port mirror stat is NULL\n");
             break;
+        case LIB_IF_PORT_INGRESS_MIRROR_SET:
+            if(g_im_ifs->portingressmirrorset)
+                ret = (*g_im_ifs->portingressmirrorset)(va_arg(ap,gw_int32),va_arg(ap,gw_int32),va_arg(ap,gw_int32));
+            else
+                printf("gwdonu set ingress mirror is NULL\n");
+            break;
+        case LIB_IF_PORT_EGRESS_MIRROR_SET:
+            if(g_im_ifs->portegressmirrorset)
+                ret = (*g_im_ifs->portegressmirrorset)(va_arg(ap,gw_int32),va_arg(ap,gw_int32),va_arg(ap,gw_int32));
+            else
+                printf("gwdonu set egress mirror is NULL\n");
+            break;
+        case LIB_IF_MIRROR_TO_PORT_SET:
+            if(g_im_ifs->mirrortoportset)
+                ret = (*g_im_ifs->mirrortoportset)(va_arg(ap,gw_int32),va_arg(ap,gw_int32));
+            else
+                printf("gwdonu set mirror to port is NULL");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
