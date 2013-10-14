@@ -555,7 +555,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             if(g_im_ifs->mirrortoportset)
                 ret = (*g_im_ifs->mirrortoportset)(va_arg(ap,gw_int32),va_arg(ap,gw_int32));
             else
-                printf("gwdonu set mirror to port is NULL");
+                printf("gwdonu set mirror to port is NULL\n");
+            break;
+        case LIB_IF_VER_BUILD_TIME_GET:
+            if(g_im_ifs->vertimeget)
+                ret = (*g_im_ifs->vertimeget)(va_arg(ap,gw_int8*));
+            else
+                printf("gwdionu get version build time is NULL\n");
             break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		

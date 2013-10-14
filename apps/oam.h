@@ -25,6 +25,9 @@ typedef gw_uint32 epon_port_id_t;
 #define PHY_ERROR 0
 #define PHY_OK 1
 
+
+#define BUILDTIMELEN 100
+
 typedef struct userMacRequest_s
 {
     unsigned char swmac[6];		/*sub switch mac address*/

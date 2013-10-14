@@ -2591,7 +2591,54 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 		return CLI_OK;
 	}
 }
+int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    long lRet = GWD_RETURN_OK;
+    char *buildtimebuf = NULL;
 
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+            default:
+                return gw_cli_arg_help(cli, 1, NULL);
+        }
+    }
+    
+    buildtimebuf = malloc(BUILDTIMELEN);
+    if(buildtimebuf == NULL)
+    {
+        gw_cli_print(cli,"malloc error\n");
+        return CLI_ERROR;
+    }
+    
+    lRet = GW_Onu_Sysinfo_Get();
+	if (lRet != GWD_RETURN_OK)
+	{
+		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
+        free(buildtimebuf);
+        buildtimebuf = NULL;
+		return CLI_ERROR;
+	}
+    else
+    {
+        memset(buildtimebuf,0,BUILDTIMELEN);
+        if(call_gwdonu_if_api(LIB_IF_VER_BUILD_TIME_GET,1,buildtimebuf) != GW_OK)
+        {
+            gw_cli_print(cli,"get version build time fail\r\n");
+            free(buildtimebuf);
+            buildtimebuf = NULL;
+            return CLI_ERROR;
+        }
+        gw_cli_print(cli,"Version %s %s\r\n",gw_onu_system_info_total.sw_version,buildtimebuf);
+    }
+
+    free(buildtimebuf);
+    buildtimebuf = NULL;
+
+    return CLI_OK;
+    
+}
 int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	long lRet = GWD_RETURN_OK;
@@ -2604,7 +2651,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
     		strMac[1],strMac[2],strMac[3],strMac[4],strMac[5]);
         
 	lRet = GW_Onu_Sysinfo_Get();
-		if (lRet != GWD_RETURN_OK)
+	if (lRet != GWD_RETURN_OK)
 	{
 		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
 		return CLI_OK;
@@ -3052,11 +3099,13 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     	gw_cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
     	gw_cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
     	gw_cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
-	gw_cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
+	    gw_cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
+   
 
     // display cmds in config mode
     show  = gw_cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");
     sys  = gw_cli_register_command(cmd_root, show, "product", cmd_show_system_information, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
+           gw_cli_register_command(cmd_root, show, "build_time", cmd_show_version_build_time, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
 	gw_cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
 
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");

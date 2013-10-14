@@ -169,11 +169,8 @@ int cmd_oam_port_mirror_to(struct cli_def *cli, char *command, char *argv[], int
 	{
 		switch (argc)
 		{
+
 			case 1:
-				return gw_cli_arg_help(cli, 0,
-					"[i|e|a]", "i: ingress; e: egress; a: All direction", NULL);
-				break;
-			case 2:
 				    gw_cli_arg_help(cli, 0,
 					"<port_list>", "Specify interface's port list(e.g.: 1; 1,2; 1-3)", NULL);
 
@@ -186,9 +183,9 @@ int cmd_oam_port_mirror_to(struct cli_def *cli, char *command, char *argv[], int
 		}
 	}
 
-    if(argc == 2)
+    if(argc == 1)
     {
-        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(argv[1], ulPort,maxportnumber)
+        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(argv[0], ulPort,maxportnumber)
         {
 			if(ulPort < 0)
 			{
@@ -230,37 +227,15 @@ int cmd_oam_port_mirror_to(struct cli_def *cli, char *command, char *argv[], int
             }   
         }
 
-        if(strcmp(argv[0],"i") == 0)
+        if(call_gwdonu_if_api(LIB_IF_MIRROR_TO_PORT_SET,2,0,portmap) != GW_OK)
         {
-            if(call_gwdonu_if_api(LIB_IF_MIRROR_TO_PORT_SET,2,0,portmap) != GW_OK)
-            {
-                gw_cli_print(cli,"mirror to port fail\n");
-            }
-            else
-            {
-                gw_cli_print(cli,"mirror to port 1/%d\r\n",ulPort);            
-            }
-        }else if(strcmp(argv[0],"e") == 0)
-        {
-            if(call_gwdonu_if_api(LIB_IF_MIRROR_TO_PORT_SET,2,0,portmap) != GW_OK)
-            {
-                gw_cli_print(cli,"mirror to port fail\n");
-            }
-            else
-            {
-                gw_cli_print(cli,"mirror to port 1/%d\r\n",ulPort);            
-            }
-        }else if(strcmp(argv[0],"a") == 0)
-        {
-            if(call_gwdonu_if_api(LIB_IF_MIRROR_TO_PORT_SET,2,0,portmap) != GW_OK)
-            {
-                gw_cli_print(cli,"mirror to port fail\n");
-            }
-            else
-            {
-                gw_cli_print(cli,"mirror to port 1/%d\r\n",ulPort);            
-            }
+            gw_cli_print(cli,"mirror to port fail\n");
         }
+        else
+        {
+            gw_cli_print(cli,"mirror to port 1/%d\r\n",ulPort);            
+        }
+
     }
     else
     {

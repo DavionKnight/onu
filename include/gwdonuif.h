@@ -208,6 +208,7 @@ typedef gw_int32 (*libgwdonu_port_mirror_stat_set_t)(gw_int32 unit,gw_int32 mode
 typedef gw_int32 (*libgwdonu_port_ingress_mirror_set_t)(gw_int32 unit,gw_int32 port,gw_int32 stat_val);
 typedef gw_int32 (*libgwdonu_port_egress_mirror_set_t)(gw_int32 unit,gw_int32 port,gw_int32 stat_val);
 typedef gw_int32 (*libgwdonu_port_mirror_to_port_set_t)(gw_int32 port,gw_int32 portmap);
+typedef gw_int32 (*libgwdonu_version_build_time_get_t)(gw_int8 *buildtime);
 
 typedef struct gwdonu_im_if_s{
 
@@ -280,6 +281,7 @@ typedef struct gwdonu_im_if_s{
 
 	libgwdonu_qos_vlan_queue_map_t qosvlanqueuemap;
 	libgwdonu_config_write_to_flash_t wrflash;
+    libgwdonu_version_build_time_get_t vertimeget;
 
 }gwdonu_im_if_t;
 
