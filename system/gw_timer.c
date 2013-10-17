@@ -17,6 +17,8 @@ gw_timer_control_t gw_timers;
 gw_uint32 timer_pool_id;
 gw_int32 gw_timers_debug = 0;
 
+gwint64 gw_mm_debug = 0;
+
 gw_int32 gw_timer_log( const gw_int8* string, ...)
 {
 	return gw_log(GW_LOG_LEVEL_DEBUG, string);

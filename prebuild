@@ -6,6 +6,19 @@
 	then 
 		echo "force $1 type selected"
 		echo "#define $1 1" > $targethfile
+		
+		if [ -d $PWD/../Debug ]
+		then
+		echo "building Debug"
+		cd $PWD/../Debug && make clean
+		fi
+		
+		if [ -d $PWD/../Release ]
+		then
+		echo "building Release"
+		cd $PWD/../Release && make clean
+		fi
+		
 	else 
 		echo "don't force selection for $1"
 	fi

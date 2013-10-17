@@ -44,8 +44,5 @@
 #define GW_OSAL_BUFFER_SIZE         172
 #define GW_OSAL_BUFFER_MSG_DEPTH    100
 
-#define __BIG_ENDIAN__
-
-
 #endif /* _osal_confige_h_ */
 

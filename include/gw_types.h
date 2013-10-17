@@ -24,6 +24,16 @@ typedef char                    gw_int8;
 typedef unsigned char           gw_boolean;
 typedef float					gw_float;
 
+typedef gw_uint64 gwuint64;
+typedef gw_int64  gwint64;
+typedef gw_uint32 gwuint32;
+typedef gw_int32  gwint32;
+typedef gw_uint16 gwuint16;
+typedef gw_int16  gwint16;
+typedef gw_uint8  gwuint8;
+typedef gw_int8   gwint8;
+
+
 typedef enum {
     GW_PON_PORT_ID     = 0x00,
     GW_UNI_PORT_ID1    = 0x01,
