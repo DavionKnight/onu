@@ -2916,10 +2916,13 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
 int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
 	extern unsigned long   gulDebugRcp;
-	extern unsigned long   gulDebugLoopBackDetect;
 	extern unsigned long   g_onu_tx_policy;
-
+#endif
+#if (RPU_MODULE_LOOPBACK_DETECT == RPU_YES)
+	extern unsigned long   gulDebugLoopBackDetect;
+#endif
 
     // deal with help
     if(CLI_HELP_REQUESTED)
@@ -2937,32 +2940,46 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
 
     if(1 == argc)
     {
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
     	if(strcmp(argv[0], "rcp") == 0)
     		gulDebugRcp = !gulDebugRcp;
-    	if(strcmp(argv[0], "loop") == 0)
-    		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
     	if(strcmp(argv[0], "txrcp") == 0)
     	    g_onu_tx_policy = ! g_onu_tx_policy;
-
+#endif
+#if(RPU_MODULE_LOOPBACK_DETECT == RPU_YES)
+    	if(strcmp(argv[0], "loop") == 0)
+    		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
+#endif
     	if(strcmp(argv[0], "all") == 0)
     	{
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
     		gulDebugRcp = !gulDebugRcp;
-    		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
     		g_onu_tx_policy = ! g_onu_tx_policy;
+#endif
+#if(RPU_MODULE_LOOPBACK_DETECT == RPU_YES)
+    		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
+#endif
     	}
     }
     else
     {
     	gw_cli_print(cli, "debug flag: ");
+
+#if(RPU_MODULE_LOOPBACK_DETECT == RPU_YES)
     	if(gulDebugLoopBackDetect)
     		gw_cli_print(cli, "loop ");
+#endif
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
     	if(gulDebugRcp)
     		gw_cli_print(cli, "rcp ");
     	if(!g_onu_tx_policy)
     	    gw_cli_print(cli, "txpolicy");
+#endif
 
+#if (RPU_MODULE_LOOPBACK_DETECT == RPU_YES && RPU_MODULE_RCP_SWITCH == RPU_YES)
     	if(!gulDebugLoopBackDetect && !gulDebugRcp && g_onu_tx_policy)
     		gw_cli_print(cli, "none");
+#endif
     }
 
     return CLI_OK;
@@ -3066,7 +3083,9 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
 
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
+#if (RPU_MODULE_LOOPBACK_DETECT == RPU_YES || RPU_MODULE_RCP_SWITCH == RPU_YES)
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
+#endif
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
 
     // RCP switch cmds in config mode
@@ -3148,18 +3167,22 @@ void gwd_onu_init(void)
 
 #if (RPU_MODULE_RCP_SWITCH == RPU_YES)
 extern void Rcp_Mgt_init(void);
-#endif
+
 
 extern void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root);
 extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
+#endif
+
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void init_oam_send_relay();
 
 	gw_semaphore_init(&g_pkt_send_sem, g_pkt_send_sem_name, 1, 0);
 
+#if (RPU_MODULE_LOOPBACK_DETECT == RPU_YES)
 	gw_lpb_detect_init();
+#endif
 
 	GwOamMessageListInit();
 
@@ -3193,7 +3216,7 @@ extern void init_oam_send_relay();
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
 
-
+#if (RPU_MODULE_RCP_SWITCH == RPU_YES)
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 
@@ -3202,6 +3225,7 @@ extern void init_oam_send_relay();
 
 	if(registerUserCmdInitHandler("rcp-switch-show", cli_reg_rcp_cmd) != GW_OK)
 		gw_printf("regist rcp  switch show cmds fail!\r\n");
+#endif
 
 	if(registerUserCmdInitHandler("oam-mgt", gw_cli_reg_oam_cmd) != GW_OK)
 		gw_printf("regist oam cmds fail!\r\n");

@@ -71,9 +71,9 @@ int user_mac_onu_fdb_get(localMacsave_t macbuf[USR_MAC_MAX_T],unsigned char *las
 			continue;
 		}
 
-		ret = onu_bitport_phyport_get(egports,phyportmember);/*bitÎ»×ª»»ÎªÎïÀíµØÖ·*/
+		ret = onu_bitport_phyport_get(egports,phyportmember);/*bitÎ»×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Ö·*/
 		
-		if(GW_ERROR == ret)/*²»ºÏ·¨µÄÎïÀí¶Ë¿Ú*/
+		if(GW_ERROR == ret)/*ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¿ï¿½*/
 		{
 			continue;
 		}
@@ -82,7 +82,7 @@ int user_mac_onu_fdb_get(localMacsave_t macbuf[USR_MAC_MAX_T],unsigned char *las
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{
-				if(!boards_physical_to_logical(0, phyport, &logport))/*ÎïÀíµØÖ·×ª»»ÎªÂß¼­µØÖ·*/
+				if(!boards_physical_to_logical(0, phyport, &logport))/*ï¿½ï¿½ï¿½ï¿½ï¿½Ö·×ªï¿½ï¿½Îªï¿½ß¼ï¿½ï¿½ï¿½Ö·*/
 				{
 					continue;
 				}
@@ -148,7 +148,8 @@ int locateUserMac(char * mac, localMacsave_t *macbuf,int macnumberget,int * onus
 			*onuslot = PORTNO_TO_ETH_SLOT(macbuf[i].egport);
 			*onuport = PORTNO_TO_ETH_PORTID(macbuf[i].egport);
 			
-			if( 1 == RCP_Dev_Is_Exist(*onuport))/*¼ì²âÕâ¸ö¶Ë¿ÚÏÂÊÇ·ñ´æÔÚ½»»»»ú*/
+#if (RPU_MODULE_RCP_SWITCH)
+			if( 1 == RCP_Dev_Is_Exist(*onuport))/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¿ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½*/
         	{	
 				*subsw = 1;
 				memcpy(sw_mac, rcpDevList[*onuport]->switchMac, GW_MACADDR_LEN);
@@ -157,6 +158,7 @@ int locateUserMac(char * mac, localMacsave_t *macbuf,int macnumberget,int * onus
 				break;
         	}
 			else
+#endif
 			{
 				*subsw = 0;
 				ret = GW_OK;
