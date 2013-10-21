@@ -88,6 +88,8 @@
 #define RPU_MODULE_RCP_SWITCH					RPU_YES
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 
+#define GW_THREAD_STACK_MIN_SIZE			(40*1024)
+
 #define __BIG_ENDIAN__
 
 #elif defined (PRODUCT_GT811C)
@@ -95,6 +97,8 @@
 #define RPU_MODULE_RCP_SWITCH					RPU_YES
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 #define PRODUCT_TYPE                DEVICE_TYPE_GT811_C
+
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
 
 #define __LITTLE_ENDIAN__
 
@@ -104,6 +108,8 @@
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 #define PRODUCT_TYPE                DEVICE_TYPE_GT811_D
 
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
+
 #define __LITTLE_ENDIAN__
 
 #elif defined PRODUCT_GT811G
@@ -112,6 +118,8 @@
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 #define PRODUCT_TYPE                DEVICE_TYPE_GT811_G
 
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
+
 #define __LITTLE_ENDIAN__
 
 #elif defined PRODUCT_GT810A
@@ -119,6 +127,9 @@
 #define RPU_MODULE_RCP_SWITCH					RPU_YES
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 #define PRODUCT_TYPE                DEVICE_TYPE_GT810_A
+
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
+
 #define __LITTLE_ENDIAN__
 
 #elif defined  PRODUCT_GT816A
@@ -126,6 +137,9 @@
 #define RPU_MODULE_RCP_SWITCH					RPU_YES
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 #define PRODUCT_TYPE                DEVICE_TYPE_GT816_A
+
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
+
 #define __LITTLE_ENDIAN__
 
 #elif defined  PRODUCT_GT873M
@@ -133,13 +147,19 @@
 #define RPU_MODULE_RCP_SWITCH					RPU_YES
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 #define PRODUCT_TYPE                DEVICE_TYPE_GT873_M
+
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
+
 #define __LITTLE_ENDIAN__
 #else
 #define RPU_MODULE_LOOPBACK_DETECT 		RPU_NO
 #define RPU_MODULE_RCP_SWITCH					RPU_NO
 #define RPU_MODULE_IGMP_TVM						RPU_NO
 #define PRODUCT_TYPE			(DEVICE_TYPE_VALID_MAX+1)
-#define __LITTLE_ENDIAN__
+
+#define GW_THREAD_STACK_MIN_SIZE			(40*1024)
+
+#define __BIG_ENDIAN__
 #endif
 
 #define USERMAC_EN 0x1 

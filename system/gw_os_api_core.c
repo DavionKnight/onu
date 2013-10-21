@@ -350,6 +350,12 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 
     /* Check Parameters */
 //    stack_buf = (gw_uint8 *)iros_malloc(IROS_MID_OSAL , stack_size);
+
+#ifdef GW_THREAD_STACK_MIN_SIZE
+    stack_size += GW_THREAD_STACK_MIN_SIZE;
+#else
+#warning "GW_THREAD_STACK_MIN_SIZE not defined!!!"
+#endif
     stack_buf = (gw_uint8*)malloc(stack_size);
     if (stack_buf == NULL) {
         osal_printf("\r\n Allocate thread's stack space failed");
