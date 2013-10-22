@@ -555,7 +555,11 @@ static int GwCommOamHeadBuild(GWTT_OAM_HEADER *pHead,  unsigned char GwOpcode,un
 	pHead->oui[2] = 0xE9;
 	pHead->opCode = GwOpcode;
 	pHead->senderSerNo = SendSerNo;
-	pHead->wholePktLen = gwd_htons(SendDataSize);	
+#if (BIG_ENDIAN == RPU_YES)
+	pHead->wholePktLen = gwd_htons(SendDataSize);
+#else
+	pHead->wholePktLen = SendDataSize;
+#endif
 	if(NULL != pSessionIdfield)
 		memcpy(pHead->sessionId,pSessionIdfield,8);
 	return GWD_RETURN_OK;
@@ -618,8 +622,13 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	{
 		while((usOAMPayloadLenGW+DataLenSended) < SendDataSize)
 		{
+#if (BIG_ENDIAN == RPU_YES)
 			avender->payLoadLength = gwd_htons(usOAMPayloadLenGW);
 			avender->payloadOffset = gwd_htons(DataLenSended);
+#else
+			avender->payLoadLength = (usOAMPayloadLenGW);
+			avender->payloadOffset = (DataLenSended);
+#endif
 			memset(OamFrame+sizeof(GWTT_OAM_HEADER), '\0',2048-sizeof(GWTT_OAM_HEADER));
 			memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,usOAMPayloadLenGW);
 //			oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
@@ -642,8 +651,13 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 			}
 		}
 
+#if (BIG_ENDIAN == RPU_YES)
 		avender->payLoadLength =gwd_htons ((SendDataSize-DataLenSended));
 		avender->payloadOffset = gwd_htons(DataLenSended);
+#else
+		avender->payLoadLength = (SendDataSize-DataLenSended);
+		avender->payloadOffset = (DataLenSended);
+#endif
 		memset(OamFrame+sizeof(GWTT_OAM_HEADER), '\0',2048-sizeof(GWTT_OAM_HEADER));
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,SendDataSize-DataLenSended);
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER) + SendDataSize - DataLenSended));
@@ -659,8 +673,13 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	}
 	else
 	{
+#if (BIG_ENDIAN == RPU_YES)
 		avender->payLoadLength = gwd_htons(SendDataSize);
 		avender->payloadOffset = 0;
+#else
+		avender->payLoadLength = (SendDataSize);
+		avender->payloadOffset = 0;
+#endif
 		memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData,SendDataSize);
 
 //		oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(sizeof(GWTT_OAM_HEADER)+SendDataSize));

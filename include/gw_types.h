@@ -160,33 +160,6 @@ typedef union {
 #define htonll(x)       (x)
 #endif
 
-#ifndef gwd_ntohl
-#define gwd_ntohl(x)     (X)
-#endif
-
-#ifndef gwd_htonl
-#define gwd_htonl(x)     (X)
-#endif
-
-
-#ifndef gwd_ntohs
-#define gwd_ntohs(x)     (X)
-#endif
-
-#ifndef gwd_htons
-#define gwd_htons(x)     (X)
-#endif
-
-
-#ifndef gwd_ntohll
-#define gwd_ntohll(x)    (X)
-#endif
-
-
-#ifndef gwd_htonll
-#define gwd_htonll(x)    (X)
-#endif
-
 #elif (LITTLE_ENDIAN == RPU_YES)
 
 #ifndef ntohl
@@ -227,6 +200,11 @@ typedef union {
                                  htonl((x) >> 32))
 #endif
 
+#else
+#error Endianness not defined
+#endif
+
+/*force switch*/
 #ifndef gwd_ntohl
 #define gwd_ntohl(x)        ((((x) & 0x000000ff) << 24) | \
                             (((x) & 0x0000ff00) <<  8) | \
@@ -264,12 +242,6 @@ typedef union {
 #define gwd_htonll(x)        ((((gw_uint64)htonl(x)) << 32) | \
                                  htonl((x) >> 32))
 #endif
-
-#else
-#error Endianness not defined
-#endif
-
-
 
 
 
