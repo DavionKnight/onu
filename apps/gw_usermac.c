@@ -1,4 +1,6 @@
 #include "../include/gw_config.h"
+#if (RPU_MODULE_USER_LOCATE == RPU_YES)
+
 #include "../include/gw_types.h"
 #include "oam.h"
 #include "rcp_gwd.h"
@@ -172,6 +174,7 @@ int locateUserMac(char * mac, localMacsave_t *macbuf,int macnumberget,int * onus
 
 	return ret;
 }
+#endif
 #endif
 
 

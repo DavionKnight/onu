@@ -1,132 +1,41 @@
 #ifndef __GW_CONFIG__
 #define __GW_CONFIG__
 
-#include "product.h"
-
-///device type declared list
-#define DEVICE_TYPE_GT821			0x0005	/* GT821 */
-#define DEVICE_TYPE_GT831			0x0006	/* GT831 */
-#define DEVICE_TYPE_GT813			0x0008	/* GT813 */
-#define DEVICE_TYPE_GT812			0x0007/*7*/	/* GT812 */
-#define DEVICE_TYPE_GT811			0x0004/*11 - a*/ /*4-*/	/* GT811 */
-#define DEVICE_TYPE_GT810			0x000c	/* GT810 */
-#define DEVICE_TYPE_GT816			0x0010	/* GT816 */
-#define DEVICE_TYPE_GT821_A			0x0013	/* GT821A */
-#define DEVICE_TYPE_GT831_A			0x0014	/* GT831A */
-#define DEVICE_TYPE_GT812_A			0x0012/*7*/	/* GT812 */
-#define DEVICE_TYPE_GT811_A			0x0011/*11 - a*/ /*4-*/	/* GT811 */
-#define DEVICE_TYPE_GT865			0x000F	/* GT865 */
-#define DEVICE_TYPE_GT861			0x000A	/* GT861 */
-#define DEVICE_TYPE_GT815			0x0015	/* GT815 */
-#define DEVICE_TYPE_UNKNOWN			0x0001	/* unknown */
-#define DEVICE_TYPE_GT812PB			0x0016	/* GT812PB */
-#define DEVICE_TYPE_GT831_B			0x0017	/* GT831B */
-#define DEVICE_TYPE_GT866			0x0018	/* GT866 */
-#define DEVICE_TYPE_GT811_B			0x0019	/* GT811_B */
-#define DEVICE_TYPE_GT851			0x001A	/* GT851 */
-#define DEVICE_TYPE_GT813_B			0x001B	/* GT813_B */
-#define DEVICE_TYPE_GT862			0x001C	/* GT862 */
-#define DEVICE_TYPE_GT892			0x001D	/* GT892 */
-#define DEVICE_TYPE_GT835			0x001E	/* GT835 */
-#define DEVICE_TYPE_GT831_B_CATV	0x001F	/* GT831_B_CATV */
-#define DEVICE_TYPE_GT815_B			0x0020	/* GT815_B */
-
-#define DEVICE_TYPE_GT863			0x000D	/* GT863 */ //added by wangxiaoyu 2009-05-25
-#define DEVICE_TYPE_GT871B			0x0021	/* GT871 */ //added by dushaobo 2009-07-13
-#define DEVICE_TYPE_GT871R                    0x0022
-#define DEVICE_TYPE_GT872                       0x0025
-#define DEVICE_TYPE_GT873                       0x0028
-#define DEVICE_TYPE_GT870                       0x002C
-#define DEVICE_TYPE_GT813_C 			0x002D
-#define DEVICE_TYPE_GT815_C			0x002e
-#define DEVICE_TYPE_GT812_C			0x002f
-#define DEVICE_TYPE_GT811_C			0x0030
-#define DEVICE_TYPE_GT873_A			0x0031
-#define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT873_A
-#define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
-//#define PRODUCT_TYPE                DEVICE_TYPE_GT813_C
-#define DeviceTypeIsValid( _device_type ) \
-    ((_device_type)>=DEVICE_TYPE_VALID_MIN && (_device_type)<=DEVICE_TYPE_VALID_MAX)
-
 /*----------------------------------------------------------------------*/
 /*
- * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê¶¨ï¿½ï¿½ï¿½Ë¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¡ï¿½ï¿½Ø¡ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê±»ï¿½ï¿½ï¿½ï¿½ï¿½
- * ï¿½ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½ï¿½ï¿½ï¿½ç£º
+ * ÏÂÃæÁ½¸öºê¶¨ÒåÁË¡°¿ª¡±ºÍ¡°¹Ø¡±Á½¸ö×´Ì¬£¬ÕâÁ½¸öºê±»ºóÃæµÄ
+ * ºêÒýÓÃ¡£ÀýÈç£º
  *
  *	#define	RPU_MODULE_RTPRO_OSPF	RPU_NO
  *	#define	RPU_MODULE_RTPRO_RIP	RPU_YES
  *
- * ï¿½ï¿½Ê¾ï¿½ï¿½Ì¬Â·ï¿½ï¿½Ð­ï¿½ï¿½OSPFï¿½ï¿½ï¿½Ø±Õ£ï¿½ï¿½ï¿½Ì¬Â·ï¿½ï¿½Ð­ï¿½ï¿½RIPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
- * ï¿½ï¿½ÏµÍ³ï¿½Ú±ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Í¿ï¿½ï¿½Ô²ï¿½ï¿½OSPFÄ£ï¿½ï¿½ï¿½ï¿½ï¿½RIPÄ£ï¿½é¡£
- * ï¿½ï¿½Òª×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ï¿½ï¿½ï¿½ï¿½Ï»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ôºê£¬ï¿½ï¿½ï¿½Ü±ï¿½Í¬Ê±ï¿½ï¿½Îª
- * ï¿½ï¿½RPU_YESï¿½ï¿½ï¿½ï¿½RPU_NOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ã½«ï¿½ï¿½ï¿½ï¿½ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½
- * ×¢ï¿½â£¬ï¿½ë²»Òªï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½
+ * ±íÊ¾¶¯Ì¬Â·ÓÉÐ­ÒéOSPF±»¹Ø±Õ£¬¶ø¶¯Ì¬Â·ÓÉÐ­ÒéRIP±»¿ªÆô£¬Õâ
+ * Ñù£¬ÏµÍ³ÔÚ±àÒëÊ±£¬¾Í¿ÉÒÔ²ðµôOSPFÄ£¿é¶ø±£ÁôRIPÄ£¿é¡£
+ * ÐèÒª×¢ÒâµÄÊÇÓÐÐ©ÒâÒåÉÏ»¥³âµÄÒ»¶Ôºê£¬²»ÄÜ±»Í¬Ê±ÖÃÎª
+ * ¡°RPU_YES¡±»ò¡°RPU_NO¡±£¬ÕâÒ»µã½«ÌåÏÖÔÚºóÃæµÄÐðÊöÖÐ¡£
+ * ×¢Òâ£¬Çë²»ÒªÐÞ¸ÄÕâÁ½¸öºêµÄÖµ¡£
  */
 #define	RPU_YES		1
 #define	RPU_NO		0
 
-/*
- * RPU MODULEï¿½ï¿½ï¿½ï¿½
- * RPU_MODULE_LOOPBACK_DETECT
- * RPU_MODULE_RCP_SWITCH
- *
- */
+#define	LITTLE_ENDIAN		RPU_NO
+#define	BIG_ENDIAN		    RPU_NO
 
 /***************************************************************************/
-#define RPU_MODULE_PPPOE_RELAY RPU_YES
 
-#if ( PRODUCT_GT813C || PRODUCT_GT815C)
-
-#if(PRODUCT_GT813C)
-#define PRODUCT_TYPE                DEVICE_TYPE_GT813_C
-#endif
-#if(PRODUCT_GT815C)
-#define PRODUCT_TYPE                DEVICE_TYPE_GT815_C
-#endif
-
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
-#define RPU_MODULE_RCP_SWITCH					RPU_YES
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-
-#elif defined (PRODUCT_GT811C)
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
-#define RPU_MODULE_RCP_SWITCH					RPU_YES
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-#define PRODUCT_TYPE                DEVICE_TYPE_GT811_C
-#elif defined  PRODUCT_GT811D
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
-#define RPU_MODULE_RCP_SWITCH					RPU_YES
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-#define PRODUCT_TYPE                DEVICE_TYPE_GT811_D
-#elif defined PRODUCT_GT811G
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
-#define RPU_MODULE_RCP_SWITCH					RPU_YES
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-#define PRODUCT_TYPE                DEVICE_TYPE_GT811_G
-#elif defined PRODUCT_GT810A
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
-#define RPU_MODULE_RCP_SWITCH					RPU_YES
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-#define PRODUCT_TYPE                DEVICE_TYPE_GT810_A
-#elif defined  PRODUCT_GT816A
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
-#define RPU_MODULE_RCP_SWITCH					RPU_YES
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-#define PRODUCT_TYPE                DEVICE_TYPE_GT816_A
-#elif defined  PRODUCT_GT873M
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
-#define RPU_MODULE_RCP_SWITCH					RPU_YES
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-#define PRODUCT_TYPE                DEVICE_TYPE_GT873_M
-#else
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_NO
-#define RPU_MODULE_RCP_SWITCH					RPU_NO
-#define RPU_MODULE_IGMP_TVM						RPU_NO
-#define PRODUCT_TYPE			(DEVICE_TYPE_VALID_MAX+1)
-#endif
+/*functions*/
+#define RPU_MODULE_PPPOE_RELAY 			RPU_NO
+#define RPU_MODULE_RCP_SWITCH			RPU_NO
+#define RPU_MODULE_LOOPBACK_DETECT		RPU_NO
+#define RPU_MODULE_S2E					RPU_NO
+#define RPU_MODULE_POE					RPU_NO
+#define RPU_MODULE_USER_LOCATE			RPU_NO
 
 
-#define USERMAC_EN 0x1 
+/*device info*/
+#define NUMBER_PORTS_PER_SYSTEM			32
+
+
 
 #endif
 
