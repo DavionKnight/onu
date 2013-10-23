@@ -1,5 +1,5 @@
 
-#include "../include/gw_os_api_core.h"
+#include "../include/gw_os_common.h"
 #include "../include/gw_timer.h"
 #include "../cli_lib/cli_common.h"
 #include "gw_log.h"
@@ -557,7 +557,6 @@ extern int gwd_onu_reboot(int a);
 int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int a = 10;
-#if (!OS_CYG_LINUX)
 	int enable;
 	if (CLI_HELP_REQUESTED) {
 	switch (argc) {
@@ -584,10 +583,8 @@ int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 		gw_cli_print(cli, "%% Invalid input.");
         return CLI_OK;
 	}
-	#else
-	gwd_onu_reboot(a);
-	#endif
-	return CLI_OK;
+
+    return CLI_OK;
 }
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 {

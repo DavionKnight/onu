@@ -190,8 +190,8 @@ struct cli_command {
 
 typedef void (*USER_CMD_INIT)(struct cli_command **);
 
-int registerUserCmdInitHandler(const char * desc, USER_CMD_INIT handler);
-void userCmdInitHandlerInit(void);
+int gw_registerUserCmdInitHandler(const char * desc, USER_CMD_INIT handler);
+void gw_userCmdInitHandlerInit(void);
 
 struct cli_command *gw_cli_tree_init();
 struct cli_def *gw_cli_init(struct cli_command *cmd_root, int channel);

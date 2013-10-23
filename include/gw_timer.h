@@ -70,7 +70,7 @@ typedef enum
 
 #define iros_timer_log if(gw_timers_debug) gw_printf
 
-extern gw_uint32 timer_thread_count;
+extern gw_uint32 gw_timer_thread_count;
 
 extern gw_int32 gw_timer_init();
 extern gw_int32 gw_timer_add(gw_uint32 timeout, void (*callback)(void *), void *data);

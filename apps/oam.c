@@ -108,7 +108,7 @@ unsigned char *irosbootver = " boot ";
 #define IROS_FW_VER_MINOR "1"
 #define IROS_FW_VER_BUILD "001"
 
-unsigned char *iros_version = " ONU" \
+unsigned char *gw_iros_version = " ONU" \
         IROS_FW_VER_MAJOR"." \
         IROS_FW_VER_MINOR"."\
         IROS_FW_VER_BUILD" "__DATE__" "__TIME__"\n";
@@ -2585,7 +2585,7 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
-		gw_cli_print(cli,  "    Firmware version : %s", iros_version);
+		gw_cli_print(cli,  "    Firmware version : %s", gw_iros_version);
 		gw_cli_print(cli,  "    Bootload version : %s", irosbootver);
 		gw_cli_print(cli,  "    Manufature date  : %s", gw_onu_system_info_total.hw_manufature_date);
 		gw_cli_print(cli,  "    Serial number    : %s", gw_onu_system_info_total.serial_no);
@@ -2619,7 +2619,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
-		gw_cli_print(cli,  "    Firmware version : %s%s", onu_product_name_get(PRODUCT_TYPE), iros_version);
+		gw_cli_print(cli,  "    Firmware version : %s%s", onu_product_name_get(PRODUCT_TYPE), gw_iros_version);
 		gw_cli_print(cli,  "    Bootload version : %s%s", onu_product_name_get(PRODUCT_TYPE), irosbootver);
 		gw_cli_print(cli,  "    Manufature date  : %s", gw_onu_system_info_total.hw_manufature_date);
 		gw_cli_print(cli,  "    Serial number    : %s", gw_onu_system_info_total.serial_no);
@@ -3211,26 +3211,26 @@ extern void init_oam_send_relay();
 	Rcp_Mgt_init();
 #endif
 
-	userCmdInitHandlerInit();
+	gw_userCmdInitHandlerInit();
 
-	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
+	if(gw_registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
 
 #if (RPU_MODULE_RCP_SWITCH == RPU_YES)
-	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
+	if(gw_registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 
-	if(registerUserCmdInitHandler("rcp-switch-debug", gw_cli_debeg_gwd_cmd) != GW_OK)
+	if(gw_registerUserCmdInitHandler("rcp-switch-debug", gw_cli_debeg_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch debug cmds fail!\r\n");
 
-	if(registerUserCmdInitHandler("rcp-switch-show", cli_reg_rcp_cmd) != GW_OK)
+	if(gw_registerUserCmdInitHandler("rcp-switch-show", cli_reg_rcp_cmd) != GW_OK)
 		gw_printf("regist rcp  switch show cmds fail!\r\n");
 #endif
 
-	if(registerUserCmdInitHandler("oam-mgt", gw_cli_reg_oam_cmd) != GW_OK)
+	if(gw_registerUserCmdInitHandler("oam-mgt", gw_cli_reg_oam_cmd) != GW_OK)
 		gw_printf("regist oam cmds fail!\r\n");
 
-	if(registerUserCmdInitHandler("native_mgt", gw_cli_reg_native_cmd) != GW_OK)
+	if(gw_registerUserCmdInitHandler("native_mgt", gw_cli_reg_native_cmd) != GW_OK)
 		gw_printf("regist native cmds fail!\r\n");
 
 	oam_cli_start();

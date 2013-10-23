@@ -10,6 +10,7 @@
 #include "gw_log.h"
 #include "Pty.h"
 #include "gwdonuif_interval.h"
+#include "../cli_lib/cli_common.h"
 
 typedef enum
 {
@@ -500,7 +501,7 @@ void gw_oam_pty_cli_thread_entry(gw_uint32 * para)
 		gw_thread_delay(20);
 	}
 #else
-	cli_start();
+	cli_console_start(CHANNEL_PTY, g_pty_slave);
 #endif
 }
 

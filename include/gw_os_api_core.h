@@ -38,7 +38,7 @@
 #define GW_OSAL_INVALID_QUEUE  (-1)
 #define GW_OSAL_INVALID_THREAD  (-1)
 
-#define osal_printf if(osal_debug) gw_printf
+#define osal_printf if(gw_osal_debug) gw_printf
 /*  tables for the properties of objects */
 
 /* threads */

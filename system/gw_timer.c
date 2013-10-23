@@ -11,8 +11,8 @@
 #include "../include/gw_os_common.h"
 #include "../apps/gw_log.h"
 
-gw_uint32 timer_thread_count = 0;
-gw_uint32 sys_interval_in_tick = 1;
+gw_uint32 gw_timer_thread_count = 0;
+gw_uint32 gw_interval_in_tick = 1;
 gw_timer_control_t gw_timers;
 gw_uint32 timer_pool_id;
 gw_int32 gw_timers_debug = 0;
@@ -44,9 +44,9 @@ gw_int32 gw_process_timer()
             pTimer->remain_interval -= gw_timers.delta;
 
         if(pTimer->remain_interval > 0)
-            pTimer->remain_interval -= sys_interval_in_tick;
+            pTimer->remain_interval -= gw_interval_in_tick;
 
-        if (pTimer->remain_interval >= sys_interval_in_tick) {
+        if (pTimer->remain_interval >= gw_interval_in_tick) {
             pTimer = (gw_timer_t *)gw_lst_next((gw_node *)pTimer);
             continue;
         }
@@ -327,9 +327,9 @@ gw_int32 gw_retiming_timer(gw_timer_t *pTimer , gw_uint32 timeout)
 void gw_timer_thread()
 {
     while (1) {
-        timer_thread_count++;
+        gw_timer_thread_count++;
         gw_process_timer();
-        gw_thread_delay(sys_interval_in_tick * 10); // delay in mili sec
+        gw_thread_delay(gw_interval_in_tick * 10); // delay in mili sec
     }
     return;
 }
@@ -669,20 +669,5 @@ gw_int32 gw_msg_circle_timer_add(
 #define GW_TIMER_DEBUG
 #ifdef GW_TIMER_DEBUG
 
-void tm_cb(void* data)
-{
-    gw_printf("tm %d %lld\n", *((gw_uint8*)data), gw_current_time());
-}
-
-gw_uint8 tm_data_1 = 1;
-gw_uint8 tm_data_2 = 2;
-
-
-void timer_test()
-{
-    gw_circle_timer_add(2000, tm_cb, &tm_data_1); // 2 sec
-    gw_timer_add(120*1000, tm_cb, &tm_data_2); // 2 min
-    gw_printf("timer created\n");
-}
 
 #endif

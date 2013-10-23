@@ -34,7 +34,7 @@ gw_uint32 gw_creator_find(void);
 
 #if OS_CYG_LINUX
 
-void usleep(unsigned int usecs)
+void gw_usleep(unsigned int usecs)
 {
 	unsigned int msecs = 0;
 	unsigned int ticks = 0;
@@ -204,7 +204,7 @@ cyg_mutex_t osal_queue_table_mutex;
 #else
 pthread_mutex_t gw_os_queue_table_mut;
 #endif
-gw_int32 osal_debug=1;
+gw_int32 gw_osal_debug=1;
 
 
 /****************************************************************************************
@@ -485,7 +485,7 @@ gw_int32 gw_thread_delay(gw_uint32 milli_second)
         sys_ticks = 1;
     cyg_thread_delay(sys_ticks);
 #else
-    usleep(milli_second*1000);
+    gw_usleep(milli_second*1000);
 #endif
 
     return GW_E_OSAL_OK;
@@ -661,7 +661,7 @@ int gw_thread_delay(unsigned int milli_second)
 {
     if (milli_second < 10)
         milli_second = 10;
-	usleep(milli_second * 1000);
+	gw_usleep(milli_second * 1000);
 	return GW_E_OSAL_OK;
 }
 
@@ -744,6 +744,7 @@ void gw_thread_show()
 
 #endif
 
+
 /*---------------------------------------------------------------------------------------
    Name: gw_semaphore_init
 
@@ -761,211 +762,7 @@ void gw_thread_show()
 
    Notes: options is an unused parameter
 ---------------------------------------------------------------------------------------*/
-#if 0
-gw_int32 gw_semaphore_init(gw_uint32 *sem_id, const gw_int8 *sem_name, gw_uint32 sem_initial_value, gw_uint32 options)
-{
-    /* the current candidate for the new sem id */
-    gw_uint32 possible_semid;
 
-    if (sem_id == NULL || sem_name == NULL) {
-        osal_printf("\r\n semaphore create failed cause some NULL parameter");
-        return GW_E_OSAL_INVALID_POINTER;
-    }
-
-    /* we don't want to allow names too long*/
-    /* if truncated, two names might be the same */
-
-    if (strlen(sem_name) >= GW_OSAL_MAX_API_NAME) {
-        osal_printf("\r\n semaphore name is too long");
-        return GW_E_OSAL_ERR_NAME_TOO_LONG;
-    }
-
-    /* Check Parameters */
-    cyg_mutex_lock(&osal_count_sem_table_mutex);
-
-    for (possible_semid = 0; possible_semid < GW_OSAL_MAX_COUNT_SEM; possible_semid++) {
-        if (gw_osal_count_sem_table[possible_semid].free == TRUE)
-            break;
-    }
-
-    if ((possible_semid >= GW_OSAL_MAX_COUNT_SEM) ||
-            (gw_osal_count_sem_table[possible_semid].free != TRUE)) {
-        cyg_mutex_unlock(&osal_count_sem_table_mutex);
-        osal_printf("\r\n no free semaphore slot");
-        return GW_E_OSAL_ERR_NO_FREE_IDS;
-    }
-
-#if 0 /*Remove it for new requirement 2009-12-28*/
-    /* Check to see if the name is already taken */
-    for (i = 0; i < GW_OSAL_MAX_COUNT_SEM; i++) {
-        if ((gw_osal_count_sem_table[i].free == FALSE) &&
-                strcmp((gw_int8*)sem_name, gw_osal_count_sem_table[i].name) == 0) {
-            cyg_mutex_unlock(&osal_count_sem_table_mutex);
-            return GW_E_OSAL_ERR_NAME_TAKEN;
-        }
-    }
-#endif
-
-    gw_osal_count_sem_table[possible_semid].free = FALSE;
-    cyg_mutex_unlock(&osal_count_sem_table_mutex);
-
-    /* Create VxWorks Semaphore */
-    cyg_semaphore_init(&gw_osal_count_sem_table[possible_semid].id,
-                       sem_initial_value);
-
-    /* Set the sem_id to the one that we found available */
-    /* Set the name of the semaphore,creator and free as well */
-
-    *sem_id = possible_semid;
-
-    cyg_mutex_lock(&osal_count_sem_table_mutex);
-    gw_osal_count_sem_table[*sem_id].free = FALSE;
-    strcpy(gw_osal_count_sem_table[*sem_id].name , (gw_int8*) sem_name);
-    gw_osal_count_sem_table[*sem_id].creator = gw_creator_find();
-    cyg_mutex_unlock(&osal_count_sem_table_mutex);
-
-
-    return GW_E_OSAL_OK;
-
-}
-
-
-/*--------------------------------------------------------------------------------------
-     Name: gw_semaphore_destroy
-
-    Purpose: Deletes the specified Counting Semaphore.
-
-    Returns: GW_E_OSAL_ERR_INVALID_ID if the id passed in is not a valid counting semaphore
-             GW_E_OSAL_ERR_SEM_NOT_FULL if the semahore is taken and cannot be deleted
-             GW_E_OSAL_SEM_FAILURE the OS call failed
-             GW_E_OSAL_OK if success
-
-    Notes: Since we can't delete a semaphore which is currently locked by some task
-           (as it may ber crucial to completing the task), the semaphore must be full to
-           allow deletion.
----------------------------------------------------------------------------------------*/
-
-gw_int32 gw_semaphore_destroy(gw_uint32 sem_id)
-{
-    /* Check to see if this sem_id is valid */
-    if (sem_id >= GW_OSAL_MAX_COUNT_SEM || gw_osal_count_sem_table[sem_id].free == TRUE) {
-        osal_printf("\r\n can not destroy an invalid semaphore");
-        return GW_E_OSAL_ERR_INVALID_ID;
-    }
-
-
-    cyg_semaphore_destroy(&gw_osal_count_sem_table[sem_id].id);
-
-    /* Remove the Id from the table, and its name, so that it cannot be found again */
-    cyg_mutex_lock(&osal_count_sem_table_mutex);
-    gw_osal_count_sem_table[sem_id].free = TRUE;
-    strcpy(gw_osal_count_sem_table[sem_id].name , "");
-    gw_osal_count_sem_table[sem_id].creator = GW_OSAL_UNINIT;
-    memset(&gw_osal_count_sem_table[sem_id].id , 0 , sizeof(cyg_sem_t));
-    cyg_mutex_unlock(&osal_count_sem_table_mutex);
-
-    return GW_E_OSAL_OK;
-
-}
-
-
-/*---------------------------------------------------------------------------------------
-    Name: gw_semaphore_post
-
-    Purpose: The function  unlocks the semaphore referenced by sem_id by performing
-             a semaphore unlock operation on that semaphore.If the semaphore value
-             resulting from this operation is positive, then no threads were blocked
-             waiting for the semaphore to become unlocked; the semaphore value is
-             simply incremented for this semaphore.
-
-
-    Returns: GW_E_OSAL_SEM_FAILURE the semaphore was not previously  initialized or is not
-             in the array of semaphores defined by the system
-             GW_E_OSAL_ERR_INVALID_ID if the id passed in is not a counting semaphore
-             GW_E_OSAL_OK if success
-
----------------------------------------------------------------------------------------*/
-gw_int32 gw_semaphore_post(gw_uint32 sem_id)
-{
-    /* Check Parameters */
-
-    if (sem_id >= GW_OSAL_MAX_COUNT_SEM || gw_osal_count_sem_table[sem_id].free == TRUE) {
-        osal_printf("\r\n can not post an invalid semaphore");
-        return GW_E_OSAL_ERR_INVALID_ID;
-    }
-
-    /* Give VxWorks Semaphore */
-    cyg_semaphore_post(&gw_osal_count_sem_table[sem_id].id);
-    return GW_E_OSAL_OK;
-
-}
-
-/*---------------------------------------------------------------------------------------
-    Name:    gw_semaphore_wait
-
-    Purpose: The locks the semaphore referenced by sem_id by performing a
-             semaphore lock operation on that semaphore.If the semaphore value
-             is currently zero, then the calling thread may have 3 chocies:
-             1) shall not return from the call until it either locks the semaphore or the call is
-             interrupted by a signal.
-             2) return GW_E_OSAL_SEM_FAILURE immediately
-             3) wait until timeout
-
-    Return:  GW_E_OSAL_SEM_FAILURE : the semaphore was not previously initialized
-             or is not in the array of semaphores defined by the system
-             GW_E_OSAL_ERR_INVALID_ID the Id passed in is not a valid countar semaphore
-             GW_E_OSAL_SEM_FAILURE if the OS call failed
-             GW_E_OSAL_OK if success
-
-    Notes:   A timeout in ticks should be specified.
-             Timeouts of WAIT_FOREVER (-1) and NO_WAIT (0) indicate to wait indefinitely or not to wait at all.
-
-----------------------------------------------------------------------------------------*/
-
-gw_int32 gw_semaphore_wait(gw_uint32 sem_id, gw_int32 timeout)
-{
-    /* msecs rounded to the closest system tick count */
-    gw_int32 sys_ticks;
-
-    /* Check Parameters */
-    if (sem_id >= GW_OSAL_MAX_COUNT_SEM  || gw_osal_count_sem_table[sem_id].free == TRUE) {
-        osal_printf("\r\n wait an invalid semaphore");
-        return GW_E_OSAL_ERR_INVALID_ID;
-    }
-    /* Give VxWorks Semaphore */
-    if (GW_OSAL_NO_WAIT == timeout) {
-        if (!cyg_semaphore_trywait(&gw_osal_count_sem_table[sem_id].id)) {
-            return GW_E_OSAL_ERR;
-        }
-    } else if (GW_OSAL_WAIT_FOREVER == timeout) {
-        cyg_semaphore_wait(&gw_osal_count_sem_table[sem_id].id);
-    } else {
-        sys_ticks = gw_milli_to_ticks(timeout);
-
-        if (!cyg_semaphore_timed_wait(&gw_osal_count_sem_table[sem_id].id , sys_ticks)) {
-            return GW_E_OSAL_ERR;
-        }
-    }
-
-    return GW_E_OSAL_OK;
-}
-
-gw_uint32 gw_semaphore_number()
-{
-    gw_int32 i;
-    gw_uint32 count=0;
-
-    cyg_mutex_lock(&osal_count_sem_table_mutex);
-    for(i = 0; i < GW_OSAL_MAX_COUNT_SEM; i++)
-    {
-        if(gw_osal_count_sem_table[i].free == FALSE)
-            count++;
-    }
-    cyg_mutex_unlock(&osal_count_sem_table_mutex);
-
-    return count;
-}
-#else
 int gw_semaphore_init
 	(
     unsigned int 	*sem_id,
@@ -1031,6 +828,23 @@ int gw_semaphore_init
     return GW_E_OSAL_OK;
 }
 
+
+
+/*--------------------------------------------------------------------------------------
+     Name: gw_semaphore_destroy
+
+    Purpose: Deletes the specified Counting Semaphore.
+
+    Returns: GW_E_OSAL_ERR_INVALID_ID if the id passed in is not a valid counting semaphore
+             GW_E_OSAL_ERR_SEM_NOT_FULL if the semahore is taken and cannot be deleted
+             GW_E_OSAL_SEM_FAILURE the OS call failed
+             GW_E_OSAL_OK if success
+
+    Notes: Since we can't delete a semaphore which is currently locked by some task
+           (as it may ber crucial to completing the task), the semaphore must be full to
+           allow deletion.
+---------------------------------------------------------------------------------------*/
+
 int gw_semaphore_destroy
 	(
     unsigned int sem_id
@@ -1053,6 +867,23 @@ int gw_semaphore_destroy
 
     return GW_E_OSAL_OK;
 }
+
+/*---------------------------------------------------------------------------------------
+    Name: gw_semaphore_post
+
+    Purpose: The function  unlocks the semaphore referenced by sem_id by performing
+             a semaphore unlock operation on that semaphore.If the semaphore value
+             resulting from this operation is positive, then no threads were blocked
+             waiting for the semaphore to become unlocked; the semaphore value is
+             simply incremented for this semaphore.
+
+
+    Returns: GW_E_OSAL_SEM_FAILURE the semaphore was not previously  initialized or is not
+             in the array of semaphores defined by the system
+             GW_E_OSAL_ERR_INVALID_ID if the id passed in is not a counting semaphore
+             GW_E_OSAL_OK if success
+
+---------------------------------------------------------------------------------------*/
 
 int gw_semaphore_post
 	(
@@ -1077,6 +908,29 @@ int gw_semaphore_post
     return ret_val;
 }
 
+
+/*---------------------------------------------------------------------------------------
+    Name:    gw_semaphore_wait
+
+    Purpose: The locks the semaphore referenced by sem_id by performing a
+             semaphore lock operation on that semaphore.If the semaphore value
+             is currently zero, then the calling thread may have 3 chocies:
+             1) shall not return from the call until it either locks the semaphore or the call is
+             interrupted by a signal.
+             2) return GW_E_OSAL_SEM_FAILURE immediately
+             3) wait until timeout
+
+    Return:  GW_E_OSAL_SEM_FAILURE : the semaphore was not previously initialized
+             or is not in the array of semaphores defined by the system
+             GW_E_OSAL_ERR_INVALID_ID the Id passed in is not a valid countar semaphore
+             GW_E_OSAL_SEM_FAILURE if the OS call failed
+             GW_E_OSAL_OK if success
+
+    Notes:   A timeout in ticks should be specified.
+             Timeouts of WAIT_FOREVER (-1) and NO_WAIT (0) indicate to wait indefinitely or not to wait at all.
+
+----------------------------------------------------------------------------------------*/
+
 int gw_semaphore_wait(unsigned int sem_id, int timeout)
 {
     int ret_val ;
@@ -1096,7 +950,7 @@ int gw_semaphore_wait(unsigned int sem_id, int timeout)
         for (timeloop = timeout; timeloop > 0; timeloop -= 100) {
             if (timeloop >= 100) {
                 if (sem_trywait(&(gw_osal_count_sem_table[sem_id].id)) == -1)
-                    usleep(100*1000);
+                    gw_usleep(100*1000);
                 else
                     return GW_E_OSAL_OK;
             } else {
@@ -1132,9 +986,6 @@ unsigned int gw_semaphore_number()
 
     return count;
 }
-
-#endif
-
 
 /****************************************************************************************
                                   MUTEX API
@@ -2736,78 +2587,6 @@ extern void (*_putc)(char c, void **param);
 extern int _vprintf(void (*putc)(char c, void **param), void **param, const char *fmt, va_list ap);
 extern bool mon_read_char_timeout(char *c);
 
-#endif
-
-void halt_do_help()
-{
-    gw_printf("\r\n%-5s- %-48s","d","display halt string");
-    gw_printf("\r\n%-5s- %-48s","q","go on...");
-    gw_printf("\r\n%-5s- %-48s","r","reset system");
-}
-
-
-#if 0
-
-gw_int32 halt_flag = 0;
-gw_int32 is_halt = 0;
-extern cyg_bool imst_getc_nonblock(cyg_uint8* ch);
-gw_int32 gw_halt(gw_int8 *String,...)
-{
-    va_list ap;
-    //int ret;
-    char c;
-    gw_int8 *halt_prompt = "System-Halt->";
-    char reason[256];
-
-    if(halt_flag)
-        return 1;
-
-    is_halt = 1;
-    gw_printf("\r\n***************************************");
-    gw_printf("\r\n*                                     *");
-    gw_printf("\r\n*         WARNING:System HALT!        *");
-    gw_printf("\r\n*                                     *");
-    gw_printf("\r\n***************************************");
-    gw_printf("\r\n\r\nHalt Reason: ");
-    memset(reason , 0 ,sizeof(reason));
-    va_start(ap, String);
-    vsprintf(reason , String, ap);
-    va_end(ap);
-    gw_printf("%s",reason);
-    gw_printf("\n%s", halt_prompt);
-    while (1)
-    {
-        c = 0;
-        #if 0
-        if(!mon_read_char_timeout(&c))
-            continue;
-        #else
-        if(!imst_getc_nonblock(&c))
-            continue;
-        #endif
-
-        switch(tolower(c))
-        {
-            case 'd':
-                gw_printf("\r\n\r\nHalt Reason: ");
-                gw_printf("%s\n",reason);
-                break;
-            case 'r':
-                HAL_PLATFORM_RESET();
-                break;
-            case 'q':
-                is_halt = 0;
-                return 1;
-            default:
-                halt_do_help();
-                break;
-        }
-
-        gw_printf("\n%s", halt_prompt);
-    }
-
-    return 1;
-}
 #endif
 
 #endif

@@ -12,12 +12,12 @@ typedef struct{
 
 user_init_handler_t g_user_cmd_init_handlers[MAX_USER_CMD_INIT_HANDLER];
 
-void userCmdInitHandlerInit()
+void gw_userCmdInitHandlerInit()
 {
 	memset(g_user_cmd_init_handlers, 0, sizeof(g_user_cmd_init_handlers));
 }
 
-int registerUserCmdInitHandler(const char * desc, USER_CMD_INIT handler)
+int gw_registerUserCmdInitHandler(const char * desc, USER_CMD_INIT handler)
 {
 	int i, ret = GW_ERROR, fblank = -1;
 
@@ -230,6 +230,7 @@ struct cli_command *gw_cli_tree_init()
     return cmd_root;
 }
 
+#if 0
 extern int g_pty_slave;
 void cli_start()
 {
@@ -268,6 +269,7 @@ void cli_start()
 
     return;
 }
+#endif
 
 void cli_console_start(gw_int32 type, gw_int32 fd)
 {

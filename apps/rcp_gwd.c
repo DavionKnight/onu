@@ -6821,84 +6821,12 @@ int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr)
 
 int device_conf_write_switch_conf_to_flash(char * buf, long int length)
 {
-#if OS_CYG_LINUX
-	unsigned char *tempBuff = NULL;
-	unsigned char *pConfig = NULL;
-    int ret=0;
-
-    if(buf == NULL || length > FLASH_GWD_RCG_SWITCH_CFG_MAX_SIZE || length < 0)
-    {
-    	ret = GWD_RETURN_ERR;
-    	goto END;
-    }
-
-    tempBuff = malloc( FLASH_USER_DATA_MAX_SIZE);
-	if(tempBuff == NULL) {
-       gw_printf("Config save failed\n");
-       ret= GWD_RETURN_ERR;
-	   goto END;
-	}
-
-	memset(tempBuff, 0x00, FLASH_USER_DATA_MAX_SIZE);
-	user_data_config_Read(0,tempBuff, FLASH_USER_DATA_MAX_SIZE);
-	pConfig = (unsigned char *)(tempBuff+FLASH_GWD_RCG_SWITCH_CFG_OFFSET);
-	memcpy(pConfig,buf,length);
-
-	user_data_config_Write(tempBuff, FLASH_USER_DATA_MAX_SIZE);
-	if (tempBuff !=NULL ) {
-	    free(tempBuff);
-	}
-
-
-END:
-    return ret;
-#else
     return call_gwdonu_if_api(LIB_IF_SWCONF_SAVE, 2, buf, length);
-#endif
 }
 
 int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
 {
-
-#if OS_CYG_LINUX
-	unsigned char *tempBuff = NULL;
-	unsigned char *pConfig = NULL;
-    int ret=0;
-
-
-    if(buf == NULL || length == NULL ||
-    		(length != NULL && (*length < 0 || *length > (FLASH_GWD_RCG_SWITCH_CFG_MAX_SIZE))))
-    {
-    	ret = GWD_RETURN_ERR;
-    	goto END;
-    }
-
-
-
-    tempBuff = malloc( FLASH_USER_DATA_MAX_SIZE);
-	if(tempBuff == NULL) {
-       gw_printf("Config save failed\n");
-       ret= GWD_RETURN_ERR;
-	   goto END;
-	}
-
-
-	memset(tempBuff, 0x00, FLASH_USER_DATA_MAX_SIZE);
-	user_data_config_Read(0,tempBuff, FLASH_USER_DATA_MAX_SIZE);
-	pConfig = (unsigned char *)(tempBuff+FLASH_GWD_RCG_SWITCH_CFG_OFFSET);
-
-	memcpy(buf, pConfig, *length);
-
-	if (tempBuff !=NULL ) {
-	    free(tempBuff);
-	}
-
-
-END:
-    return ret;
-#else
     return call_gwdonu_if_api(LIB_IF_SWCONF_RESTORE, 2, buf, *length);
-#endif
 }
 
 #define STATE_S 1
