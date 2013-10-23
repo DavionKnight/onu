@@ -155,6 +155,17 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 			}
 			else
 			{
+#if 1
+				{
+					int num = size/sizeof(int);
+					int i = 0;
+					int * p= (int*)ifs;
+					gw_printf("dump im ifs:\r\n");
+					for(i=0; i<num; i++,p++)
+						gw_printf("%d    %08x\r\n", i+1, *p);
+
+				}
+#endif
 				memcpy(g_im_ifs, ifs, sizeof(gwdonu_im_if_t));
 
 				call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);
@@ -562,6 +573,19 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
                 ret = (*g_im_ifs->vertimeget)(va_arg(ap,gw_int8*));
             else
                 printf("gwdionu get version build time is NULL\n");
+            break;
+        case LIB_IF_CPLD_REGISTER_READ:
+            if(g_im_ifs->cpldread)
+                ret = (*g_im_ifs->cpldread)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint8*));
+            else
+                printf("gwdonu read cpld register is NULL\n");
+            break;
+
+        case LIB_IF_CPLD_REGISTER_WRITE:
+            if(g_im_ifs->cpldwrite)
+                ret = (*g_im_ifs->cpldwrite)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint32));
+            else
+                printf("gwdonu write cpld register is NULL\N");
             break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		

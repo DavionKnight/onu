@@ -24,7 +24,13 @@ void plat_init()
 	init_im_interfaces();
 
 	gw_conf_file_init();
-
+#if 0
+#if(RPU_MODULE_POE == RPU_YES)
+gw_printf("poe init start.....\n");
+    gwd_onu_poe_cpld_cheak();
+gw_printf("poe _init ok\n");
+#endif
+#endif
 	gw_qos_init();
 
 	gw_conf_restore();
