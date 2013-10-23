@@ -19,9 +19,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include "fcntl.h"
 #include <sys/time.h>
-#include "stdlib.h"
-#include "string.h"
 
 #include "gw_os_config.h"
 #include "gw_types.h"

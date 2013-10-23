@@ -175,7 +175,7 @@ unsigned char gucRxRcpPktBuf[RCP_PKT_MAX_LENGTH];
 //extern long device_conf_erase_switch_conf_from_flash( void );
 extern int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char *pSentData,const unsigned short SendDataSize, unsigned char  *pSessionIdfield);
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 /* Import functions from FLASH driver */
 extern int user_data_config_Read(unsigned int offset, unsigned char *buffer, unsigned int size);
 extern int user_data_config_Write(unsigned char *buffer, unsigned int size);
@@ -186,7 +186,7 @@ extern int gwd_onu_sw_get_port_pvid(unsigned int port,unsigned short *pvid);
 unsigned long   gulDebugRcp = 0;
 #define RCP_DEBUG(str) if( gulDebugRcp ){ diag_printf str ;}
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 #define DUMPRCPPKT(c, p, b, l)      if(gulDebugRcp) dumpPkt(c, p, b, l)
 #else
 #define DUMPRCPPKT(c, p, b, l)      if(gulDebugRcp) \
@@ -6821,7 +6821,7 @@ int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr)
 
 int device_conf_write_switch_conf_to_flash(char * buf, long int length)
 {
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 	unsigned char *tempBuff = NULL;
 	unsigned char *pConfig = NULL;
     int ret=0;
@@ -6860,7 +6860,7 @@ END:
 int device_conf_read_switch_conf_from_flash(char * buf, long int *length)
 {
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 	unsigned char *tempBuff = NULL;
 	unsigned char *pConfig = NULL;
     int ret=0;

@@ -8,9 +8,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if USING_BSD_SOCK
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#else
+#include <lwip/sockets.h>
+#endif
 
 #include "pthread.h"
 
@@ -64,7 +69,7 @@ void * sfd_recv(void * data)
 
 	while(1)
 	{
-	 len = recvfrom(sfd, &c, size, 1, (__SOCKADDR_ARG)&sb, (socklen_t*)&socklen);
+	 len = recvfrom(sfd, &c, size, 1, /*(__SOCKADDR_ARG)*/&sb, (socklen_t*)&socklen);
 	 if(len > 0)
 		printf(">>%c\r\n", c);
 	}
@@ -82,7 +87,7 @@ int main(int argc, char **argv) {
 		scanf("%c", &c);
 		if(c == 'E')
 			break;
-		sendto(sfd, &c, 1, 0, (__CONST_SOCKADDR_ARG)&sb, (socklen_t)sizeof(sb));
+		sendto(sfd, &c, 1, 0, /*(__CONST_SOCKADDR_ARG)*/&sb, (socklen_t)sizeof(sb));
 	}
 
 

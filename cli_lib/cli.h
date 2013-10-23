@@ -3,7 +3,7 @@
 #ifndef _CLI_H_
 #define _CLI_H_
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 #include <cyg/kernel/kapi.h>
 #include <cyg/hal/hal_diag.h>
 #endif

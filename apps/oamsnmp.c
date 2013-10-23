@@ -5,9 +5,13 @@
  *      Author: tommy
  */
 
+#if USING_BSD_SOCK
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#else
+#include <lwip/sockets.h>
+#endif
 
 #include "../include/gw_timer.h"
 #include "gw_log.h"

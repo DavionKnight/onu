@@ -50,12 +50,13 @@ typedef struct _CLI_PTY_CTRL_
 
 #define PTY_KPL_SENDINT        3
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 #define OAM_VCONPTY_DEBUG(x) gw_log(GW_LOG_LEVEL_DEBUG, x)
 #else
 #define OAM_VCONPTY_DEBUG(x) printf x
 #endif
 
+void OamPtyTimerMsgProcess();
 
 gw_uint8 g_oam_cli_out_buf[OAM_CLI_OUT_BUF_LENGTH];
 gw_uint32 g_oam_cli_out_len = 0;

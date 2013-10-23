@@ -550,14 +550,14 @@ int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int
 	return CLI_OK;
 }
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 extern int gwd_onu_reboot(int a);
 #endif
 
 int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int a = 10;
-#ifndef CYG_LINUX
+#if (!OS_CYG_LINUX)
 	int enable;
 	if (CLI_HELP_REQUESTED) {
 	switch (argc) {

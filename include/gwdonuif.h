@@ -183,7 +183,7 @@ typedef gw_status (*libgwdonu_onu_localtime_get_t)(localtime_tm * tm);
 typedef gw_status (*libgwdonu_onu_static_mac_add_t)(gw_int8* gw_mac,gw_uint32 gw_port,gw_uint32 gw_vlan);
 typedef gw_status (*libgwdonu_onu_static_mac_del_t)(gw_int8* gw_mac,gw_uint32 gw_vlan);
 typedef gw_status (*libgwdonu_onu_register_stat_get)(gw_uint8* onuregister);
-#ifndef CYG_LINUX
+#if (!OS_CYG_LINUX)
 typedef gw_status (*libgwdonu_onu_reset)(gw_int32 a);
 #endif
 
@@ -252,7 +252,7 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_onu_static_mac_add_t staticmacadd;
 	libgwdonu_onu_static_mac_del_t staticmacdel;
 	libgwdonu_onu_register_stat_get registerget;
-#ifndef CYG_LINUX
+#if (!OS_CYG_LINUX)
 	libgwdonu_onu_reset onureset;
 #endif
 

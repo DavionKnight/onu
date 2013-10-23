@@ -42,7 +42,8 @@
 #define DEVICE_TYPE_GT812_C			0x002f
 #define DEVICE_TYPE_GT811_C			0x0030
 #define DEVICE_TYPE_GT873_A			0x0031
-#define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT873_A
+#define DEVICE_TYPE_GT810_A			0x0032
+#define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT810_A
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
 //#define PRODUCT_TYPE                DEVICE_TYPE_GT813_C
 #define DeviceTypeIsValid( _device_type ) \
@@ -75,7 +76,26 @@
 /***************************************************************************/
 #define RPU_MODULE_PPPOE_RELAY RPU_YES
 
+/*
+ * os type enum
+ * using micro _OS_ to select os type
+ */
+#define OS_TYPE_CYG_LINUX 1
+#define OS_TYPE_LINUX 2
+#define OS_TYPE_VXWORKS 3
+#define OS_TYPE_UNKNOWN 4
+
+/*
+ * socket api class select
+ * using micro _SOCKET_CLASS_ to select socket type
+ */
+#define BSD_SOCKET 1
+#define LWIP_SOCKET 2
+
 #if ( PRODUCT_GT813C || PRODUCT_GT815C)
+
+#define _OS_ OS_TYPE_LINUX
+#define _SOCKET_CLASS_	BSD_SOCKET
 
 #if(PRODUCT_GT813C)
 #define PRODUCT_TYPE                DEVICE_TYPE_GT813_C
@@ -123,6 +143,8 @@
 #define __LITTLE_ENDIAN__
 
 #elif defined PRODUCT_GT810A
+#define _OS_ OS_TYPE_CYG_LINUX
+#define _SOCKET_CLASS_	LWIP_SOCKET
 #define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
 #define RPU_MODULE_RCP_SWITCH					RPU_YES
 #define RPU_MODULE_IGMP_TVM						RPU_NO
@@ -161,6 +183,13 @@
 
 #define __BIG_ENDIAN__
 #endif
+
+#define OS_CYG_LINUX (_OS_ == OS_TYPE_CYG_LINUX)
+#define OS_LINUX (_OS_ == OS_TYPE_LINUX)
+#define OS_VXWORKS (_OS_ == OS_TYPE_VXWORKS)
+
+#define USING_BSD_SOCK (_SOCKET_CLASS_ == BSD_SOCKET)
+#define USING_LWIP_SOCK (_SOCKET_CLASS_ == LWIP_SOCKET)
 
 #define USERMAC_EN 0x1 
 

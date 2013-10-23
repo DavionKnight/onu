@@ -1,21 +1,23 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <unistd.h>
+
+#include "../include/gw_os_common.h"
+
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <string.h>
 
+#if USING_BSD_SOCK
 #include <sys/socket.h>
 
 #include <netinet/in.h>
+#else
+#include <lwip/sockets.h>
+#endif
 
 #include "Pty.h"
 
 #include "gw_log.h"
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 #define OAM_VCONPTY_DEBUG(x) gw_log(GW_LOG_LEVEL_DEBUG, (x))
 #else
 #define OAM_VCONPTY_DEBUG(x) printf x

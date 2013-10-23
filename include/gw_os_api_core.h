@@ -20,7 +20,7 @@
 #define GW_OSAL_THREAD_STACK_SIZE_HUGE		(16*1024)
 
 /*define thread priority class*/
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 #define GW_OSAL_THREAD_PRIO_NORMAL		(10)
 #define GW_OSAL_THREAD_PRIO_HIGH		(6)
 #define GW_OSAL_THREAD_PRIO_LOW			(15)

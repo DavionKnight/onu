@@ -1,5 +1,5 @@
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 #include <network.h>
 #include <cyg/kernel/kapi.h>
 #include <cyg/hal/hal_if.h>

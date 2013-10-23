@@ -1,6 +1,8 @@
 
+#include "../include/gw_os_common.h"
+
 #include <ctype.h>
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 #include <network.h>
 #else
 #include <sys/errno.h>
@@ -8,14 +10,13 @@
 #endif
 #include "cli_common.h"
 #include "../apps/gw_log.h"
-#include "../include/gw_os_api_core.h"
 #include "../apps/Pty.h"
 
 #ifdef HAVE_TELNET_CLI
 #define perror(s) gw_printf(s)
 void gw_telnet_diag_print_unregister(void);
 extern gw_uint32 app_ip_changed;
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 extern void (*_putc)(char c, void **param);
 #else
 // _putc func not surppoted
@@ -31,7 +32,7 @@ static void (*_putcFunc)(char c, void **param) = NULL;
 
 struct cli_def *gw_telnet_cli;
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 
 extern void mon_read_char(char *c);
 extern bool mon_read_char_with_timeout(char *c);
@@ -62,7 +63,7 @@ void mon_write_chars(char* s, int n)
 
 #endif
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 
 extern int cmd_exe(int argc, char **argv);
 
@@ -2788,7 +2789,7 @@ void gw_telnet_diag_print_unregister(void)
    _putc  = _putcFunc;
 }
 
-#ifdef CYG_LINUX
+#if OS_CYG_LINUX
 int gw_do_telnet_legacy_cmd(struct cli_def *cli,char * p)
 {
     unsigned char c;
