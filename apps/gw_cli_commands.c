@@ -478,6 +478,9 @@ int cmd_qos_vlan_queue_map_show(struct cli_def *cli, char *command, char *argv[]
     	ret = CLI_OK;
     }
 
+    if(pd)
+    	free(pd);
+
     return ret;
 }
 
