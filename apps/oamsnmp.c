@@ -5,6 +5,8 @@
  *      Author: tommy
  */
 
+#include "../include/gw_config.h"
+
 #if USING_BSD_SOCK
 #include <sys/socket.h>
 

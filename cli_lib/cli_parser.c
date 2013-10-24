@@ -1,5 +1,5 @@
 
-#include "../include/gw_os_common.h"
+#include "../include/gw_config.h"
 
 #include <ctype.h>
 #if OS_CYG_LINUX
