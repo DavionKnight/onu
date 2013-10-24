@@ -4,7 +4,33 @@
 #include "poe_cpld.h"
 #include "../cli_lib/cli_common.h"
 
+
+
 #if(RPU_MODULE_POE == RPU_YES)
+
+extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc);
+
+#define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_FOR_POE(portlist, ifindex,devonuport_num) \
+{\
+    gw_uint32 * _pulIfArray;\
+    gw_uint32 _i = 0;\
+    _pulIfArray = (gw_uint32*)ETH_ParsePortList(portlist,devonuport_num);\
+    if(!_pulIfArray)\
+    	{\
+    		ifindex = 0;\
+    	}\
+    if(_pulIfArray != NULL)\
+    {\
+        for(_i=0;_pulIfArray[_i]!=0;_i++)\
+        {\
+            ifindex = _pulIfArray[_i];\
+
+#define END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_FOR_POE() \
+        }\
+        free(_pulIfArray);\
+    }\
+}
+
 poe_cpld_function_set_t poe_func_set ={
     onu_poe_cpld_init,
     onu_cpld_exist_get,
@@ -12,8 +38,9 @@ poe_cpld_function_set_t poe_func_set ={
     onu_poe_exist_stat_set,
     onu_port_power_detect_get,
     onu_port_poe_control_state_get,
-    onu_port_poe_control_state_set
+    onu_port_poe_control_state_set,
 };
+
 
 epon_return_code_t Gwd_onu_poe_cpld_init()
 {
@@ -84,13 +111,10 @@ void gwd_onu_poe_cpld_cheak()
     unsigned int cpld_stat = 0;
     unsigned int ret = 0;
     unsigned int poe_cpld_enable_error_count = 0;
-    gw_log(GW_LOG_LEVEL_MINOR,"intput gwd_onu_poe_cpld_cheak\n");
    while(true)
     {
-        gw_log(GW_LOG_LEVEL_MINOR,"intput while\n");
         if(Gwd_onu_cpld_exist_get(&cpld_stat) != EPON_RETURN_SUCCESS)
         {
-            gw_log(GW_LOG_LEVEL_MINOR,"get cpld exist fial\n");
             poe_cpld_enable_error_count++;
 
             if(poe_cpld_enable_error_count == 3)
@@ -131,7 +155,10 @@ void gwd_onu_poe_thread_hander()
     if(poeexiststat)
     {
         gw_log(GW_LOG_LEVEL_MINOR,"poe exist\n");
+        
         Gwd_onu_poe_cpld_init();
+
+        
         gw_log(GW_LOG_LEVEL_MINOR,"init cpld ok\n");
     }
     else
@@ -158,15 +185,18 @@ void gwd_onu_poe_thread_hander()
                 gw_log(GW_LOG_LEVEL_MINOR,"port:%d  admin up:\n",ulport);
                 if(Gwd_onu_port_poe_controle_stat_get(ulport,&ctl_state) != EPON_RETURN_SUCCESS)
                 {
+                    gw_log(GW_LOG_LEVEL_MINOR,"get port:%d  admin fail:\n",ulport);
                     continue;
                 }
                 else
                 {
+                    gw_log(GW_LOG_LEVEL_MINOR,"get port:%d  admin up success:\n",ulport);
                     if(ctl_state == POE_PORT_ENABLE)
                     {
                         gw_log(GW_LOG_LEVEL_MINOR,"port:%d ctl enable\n",ulport);
                         if(Gwd_onu_port_power_detect_get(ulport,&Pstate) != EPON_RETURN_SUCCESS)
                         {
+                            gw_log(GW_LOG_LEVEL_MINOR,"get port:%d  power fail:\n",ulport);
                             continue;
                         }
 
@@ -212,16 +242,18 @@ void gwd_onu_poe_thread_hander()
             }
         }
 
-        gw_thread_delay(10000);
+        gw_thread_delay(50000);
     }
 }
 
 
-int cmd_onu_poe_control_set(struct cli_def *cli, char *command, char *argv[], int argc)
+int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     unsigned int poeexiststat = 0;
     unsigned int lport = 0;
     unsigned int poe_ctl_val = 0;
+    unsigned int uni_port_num = 0;
+    unsigned int poe_stat = 0;
     
     if(CLI_HELP_REQUESTED)
     {
@@ -229,11 +261,11 @@ int cmd_onu_poe_control_set(struct cli_def *cli, char *command, char *argv[], in
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "<enable/disable>", "Manufacture serial number(length<16)",
+                "<enable/disable>", "enable poe,disable poe\n",
                  NULL);
         case 2:
             return gw_cli_arg_help(cli,0,
-                "<port_list>","port list 1-3",
+                "<port_list>","Specify interface's port list(e.g.: 1; 1,2; 1-8)\n",
                 NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -244,54 +276,127 @@ int cmd_onu_poe_control_set(struct cli_def *cli, char *command, char *argv[], in
 
     if(!poeexiststat)
     {
+        gw_cli_print(cli,"This dev does not support poe function\r\n");
         return CLI_ERROR;
     }
+
+    if(Gwd_onu_poe_exist_stat_get(&poe_stat) != EPON_RETURN_SUCCESS)
+    {
+         return CLI_ERROR;
+    }
+    if(!poe_stat)
+    {
+         gw_cli_print(cli,"POE function is not enable\r\n");
+         return CLI_ERROR;
+    }
+   
+    uni_port_num = gw_onu_read_port_num();
     
     if(argc == 1)
     {
+
        if(strcmp(argv[0],"enable") == 0)
        {
-            
+            poe_ctl_val = 1;
        }
 
        if(strcmp(argv[0],"disable") == 0)
        {
-
+            poe_ctl_val = 0;
        }
-       
+
+       for(lport = 1; lport < uni_port_num; lport++)
+       {
+            if(Gwd_onu_port_poe_controle_stat_set(lport,poe_ctl_val) != EPON_RETURN_SUCCESS)
+            {
+                gw_cli_print(cli,"poe set port %d control enable fail\r\n",lport);
+                return CLI_ERROR;
+            }
+       }
+
+        Gwd_onu_poe_config_save();    
     }else if(argc == 2)
     {
         if(strcmp(argv[0],"enable") == 0)
         {
-            lport = atoi(argv[1]);
             poe_ctl_val = 1;
-            Gwd_onu_port_poe_controle_stat_set(lport,poe_ctl_val);
+            BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_FOR_POE(argv[1],lport,uni_port_num)
+            {
+                if(Gwd_onu_port_poe_controle_stat_set(lport,poe_ctl_val) != EPON_RETURN_SUCCESS)
+                {
+                    gw_cli_print(cli,"poe set port(%d) control enable fial\r\n",lport);
+                    continue;
+                }
+            }
+            END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_FOR_POE();
         }
             
         if(strcmp(argv[0],"disable") == 0)
         {
-            lport = atoi(argv[1]);
             poe_ctl_val = 0;
-            Gwd_onu_port_poe_controle_stat_set(lport,poe_ctl_val);
+            BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_FOR_POE(argv[1],lport,uni_port_num)
+            {
+                if(Gwd_onu_port_poe_controle_stat_set(lport,poe_ctl_val) != EPON_RETURN_SUCCESS)
+                {
+                    gw_cli_print(cli,"poe set port(%d) control disable fail\r\n",lport);
+                    continue;
+                }
+            }
+            END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_FOR_POE();
         } 
+
+        Gwd_onu_poe_config_save();  
     }
     else
     {
-
+            for(lport = 1; lport < uni_port_num; lport++)
+            {
+                if(Gwd_onu_port_poe_controle_stat_get(lport,&poe_ctl_val) != EPON_RETURN_SUCCESS)
+                {
+                    gw_cli_print(cli,"UNI Port %d : get control stat fail\r\n",lport);
+                    continue;
+                }
+                else
+                {
+                    gw_cli_print(cli,"UNI Port %d : %s\r\n",lport,poe_ctl_val?"POE CONTROL ENABLE":"POE CONTROL DISABLE");
+                }
+            }
     }
     
     return CLI_OK;
 }
 
+int gw_cli_int_debug_terminal(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	
+    if (CLI_HELP_REQUESTED)
+        return CLI_HELP_NO_ARGS;
+
+    if(argc > 0)
+    {
+        gw_cli_print(cli, "%% Invalid input.");
+        return CLI_OK;
+    }
+
+    gw_cli_set_configmode(cli, MODE_DEBUG,"advdebug");
+    gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
+    return CLI_OK;
+}
+
 void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root)
 {
-    struct cli_command *set;
+    struct cli_command *reg;
 
-    set = gw_cli_register_command(cmd_root, NULL, "poe", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "onu poe control");
-          gw_cli_register_command(cmd_root, set, "set",cmd_onu_poe_control_set, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "onu poe control");
+    gw_cli_register_command(cmd_root, NULL, "poe", cmd_onu_poe_cfg_set, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "onu poe control");
+
+    gw_cli_register_command(cmd_root, NULL, "advdebug",gw_cli_int_debug_terminal, PRIVILEGE_PRIVILEGED,   MODE_CONFIG,    "Enter debug mode");
+    reg = gw_cli_register_command(cmd_root, NULL, "cpld",NULL, PRIVILEGE_PRIVILEGED,MODE_DEBUG, "read/write onu cpld register");
+          gw_cli_register_command(cmd_root, reg, "register",cmd_onu_cpld_reg_cfg_set, PRIVILEGE_PRIVILEGED, MODE_DEBUG, "read/write onu cpld register");
 
     return;
 }
+
+
 #endif
 
 

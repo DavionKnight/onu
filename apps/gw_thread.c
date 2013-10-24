@@ -52,7 +52,6 @@ void gwd_thread_init(void)
 	{
 		gw_printf("create thread broad storm succuss\n");
 	}
-#if 0
 #if(RPU_MODULE_POE == RPU_YES)
     if(gw_thread_create(&gw_poe_thread_id,
 				  "gwd_poe_thread",
@@ -69,7 +68,6 @@ void gwd_thread_init(void)
         gw_printf("create poe thread success\n");
     }
 #endif   
-#endif
 }
 
 

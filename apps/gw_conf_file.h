@@ -17,6 +17,7 @@ typedef gw_int32 (*func_conf_restore)(gw_int32 len, gw_uint8 *pv);
  enum{
 	GW_CONF_TYPE_MIN = 1,
 	GW_CONF_TYPE_QOSVLANQUEUE = 1,
+	GW_CONF_TYPE_POE_CONFIG,
 	GW_CONF_TYPE_MAX
 };
 

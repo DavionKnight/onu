@@ -26,5 +26,6 @@ typedef enum{
     reg2,
     reg3
 }cpld_power_reg_t;
+
 #endif
 

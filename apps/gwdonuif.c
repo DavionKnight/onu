@@ -155,17 +155,6 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 			}
 			else
 			{
-#if 1
-				{
-					int num = size/sizeof(int);
-					int i = 0;
-					int * p= (int*)ifs;
-					gw_printf("dump im ifs:\r\n");
-					for(i=0; i<num; i++,p++)
-						gw_printf("%d    %08x\r\n", i+1, *p);
-
-				}
-#endif
 				memcpy(g_im_ifs, ifs, sizeof(gwdonu_im_if_t));
 
 				call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2,  g_sys_mac, &g_uni_port_num);

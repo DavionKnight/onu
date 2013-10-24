@@ -2660,7 +2660,6 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	}
 	else
 	{
-        gwd_onu_poe_cpld_cheak();
 		gw_cli_print(cli,  "\n  Product information as following--");
 		gw_cli_print(cli,  "    ONU type         : %s", onu_product_name_get(PRODUCT_TYPE));
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
@@ -3237,8 +3236,8 @@ extern void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root);
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
 
-	//if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
-	//	gw_printf("regist gwd poe cmds fail!\r\n");
+	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
+		gw_printf("regist gwd poe cmds fail!\r\n");
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 

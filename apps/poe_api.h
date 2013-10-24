@@ -23,6 +23,7 @@ extern epon_return_code_t onu_poe_exist_stat_set(unsigned int poe_stat);
 extern epon_return_code_t onu_port_power_detect_get(unsigned int port,unsigned int* port_power_stat);
 extern epon_return_code_t onu_port_poe_control_state_get(unsigned int port, unsigned int* poe_ctl_state);
 extern epon_return_code_t onu_port_poe_control_state_set(unsigned int port, unsigned int poe_ctl_state);
+
 extern gw_uint8 gw_onu_read_port_num();
 
 typedef struct
