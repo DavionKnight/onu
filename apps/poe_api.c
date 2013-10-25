@@ -313,8 +313,7 @@ int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int ar
                 return CLI_ERROR;
             }
        }
-
-        Gwd_onu_poe_config_save();    
+  
     }else if(argc == 2)
     {
         if(strcmp(argv[0],"enable") == 0)
@@ -345,7 +344,7 @@ int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int ar
             END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_FOR_POE();
         } 
 
-        Gwd_onu_poe_config_save();  
+
     }
     else
     {
