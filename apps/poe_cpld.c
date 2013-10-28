@@ -210,10 +210,10 @@ epon_return_code_t onu_port_power_detect_get(unsigned int port,unsigned int* por
                 default:
                     break;
     }
+    PORT_TO_CPLDPORT(port);
     PORT_POWER_STAT(power_stat,port);
-    
     if(power_stat)
-        *port_power_stat = power_stat;
+        *port_power_stat = 1;
     else
         *port_power_stat = 0;
 
@@ -243,12 +243,27 @@ epon_return_code_t onu_port_poe_control_state_set(unsigned int port, unsigned in
     return EPON_RETURN_SUCCESS;
 }
 
+epon_return_code_t onu_port_poe_operation_state_set(int lport,int state)
+{
+    unsigned long unit = 0;
+    unsigned long pport = 0;
+    
+    boards_logical_to_physical(lport,&unit, &pport);
+    
+    if(call_gwdonu_if_api(LIB_IF_POE_PORT_OPERATION_SET,3,pport,state) != EPON_RETURN_SUCCESS)
+    {
+        gw_log(GW_LOG_LEVEL_MINOR,"set port poe operation fail\n");
+        return EPON_RETURN_FAIL;
+    }
+
+    return EPON_RETURN_SUCCESS;
+}
 gw_int32 gw_poe_config_showrun(gw_int32* len,gw_uint8**pv)
 {
    	gw_int32 ret = GW_ERROR;
 	if(len && pv)
 	{
-		gw_uint32 * p = NULL;
+		gw_uint8 * p = NULL;
 		*len = sizeof(gucPoeDisablePerPort);
 
        
@@ -256,8 +271,9 @@ gw_int32 gw_poe_config_showrun(gw_int32* len,gw_uint8**pv)
 
 		if(p)
 		{
-            if(memcmp(gucPoeDisablePerPort,gucPoedefaultconfig,(NUM_PORTS_PER_SYSTEM - 1)) != 0)
+            if(memcmp(gucPoeDisablePerPort,gucPoedefaultconfig,*len) != 0)
             {
+                 memcpy(p,gucPoeDisablePerPort,*len);
     		    *pv = (gw_uint8*)p;
     			ret = GW_OK;
             }
@@ -269,10 +285,18 @@ gw_int32 gw_poe_config_showrun(gw_int32* len,gw_uint8**pv)
 
 gw_int32 gw_poe_config_restore(gw_int32 len, gw_uint8 * pv)
 {
-	gw_uint32 * p = (gw_uint32*)pv;
-
-    memset(gucPoeDisablePerPort,p,len);
-    
+    int i = 0;
+    memcpy(gucPoeDisablePerPort,pv,len);
+#if 0
+    gw_log(GW_LOG_LEVEL_MINOR,"\r\n-----------------------------------------------------------------\r\n");
+    gw_log(GW_LOG_LEVEL_MINOR,"len %d [1]\n",len);
+    for(i = 0;i < len;i++)
+    {
+        gw_log(GW_LOG_LEVEL_MINOR,"%d ",gucPoeDisablePerPort[i]);
+    }
+    gw_log(GW_LOG_LEVEL_MINOR,"\r\n-----------------------------------------------------------------\r\n");
+    gw_log(GW_LOG_LEVEL_MINOR,"\r\n");
+#endif
 	return GW_OK;
 }
 

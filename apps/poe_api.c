@@ -39,6 +39,7 @@ poe_cpld_function_set_t poe_func_set ={
     onu_port_power_detect_get,
     onu_port_poe_control_state_get,
     onu_port_poe_control_state_set,
+    onu_port_poe_operation_state_set,
 };
 
 
@@ -106,6 +107,15 @@ epon_return_code_t Gwd_onu_port_poe_controle_stat_set(unsigned int port,unsigned
         return EPON_RETURN_FAIL;
 }
 
+
+epon_return_code_t Gwd_onu_port_poe_operation_stat_set(int port,int stat)
+{
+    if(poe_func_set.poe_operation_state_set)
+        return poe_func_set.poe_operation_state_set(port,stat);
+    else
+        return EPON_RETURN_FAIL;
+}
+
 void gwd_onu_poe_cpld_cheak()
 {
     unsigned int cpld_stat = 0;
@@ -148,18 +158,11 @@ void gwd_onu_poe_thread_hander()
     unsigned int port_stat = 0;
     unsigned int Pstate = 0;
     unsigned int ctl_state = 0;
-    
-    gw_log(GW_LOG_LEVEL_MINOR,"intput gwd_onu_poe_thread_hander\n");
-    
+        
     Gwd_onu_poe_exist_stat_get(&poeexiststat);
     if(poeexiststat)
-    {
-        gw_log(GW_LOG_LEVEL_MINOR,"poe exist\n");
-        
+    {        
         Gwd_onu_poe_cpld_init();
-
-        
-        gw_log(GW_LOG_LEVEL_MINOR,"init cpld ok\n");
     }
     else
     {
@@ -168,12 +171,10 @@ void gwd_onu_poe_thread_hander()
     }
 
     uni_port_num = gw_onu_read_port_num();
-    
-    gw_log(GW_LOG_LEVEL_MINOR,"uni_port_num:%d\n",uni_port_num);
-    
+        
     while(true)
     {
-        for(ulport = 1;ulport < uni_port_num; ulport++)
+        for(ulport = 1;ulport <= uni_port_num; ulport++)
         {
             if(call_gwdonu_if_api(LIB_IF_PORT_ADMIN_GET, 2, ulport, &port_stat) != EPON_RETURN_SUCCESS)
             {
@@ -182,7 +183,6 @@ void gwd_onu_poe_thread_hander()
 
             if(port_stat == PORT_ADMIN_UP)
             {
-                gw_log(GW_LOG_LEVEL_MINOR,"port:%d  admin up:\n",ulport);
                 if(Gwd_onu_port_poe_controle_stat_get(ulport,&ctl_state) != EPON_RETURN_SUCCESS)
                 {
                     gw_log(GW_LOG_LEVEL_MINOR,"get port:%d  admin fail:\n",ulport);
@@ -190,10 +190,8 @@ void gwd_onu_poe_thread_hander()
                 }
                 else
                 {
-                    gw_log(GW_LOG_LEVEL_MINOR,"get port:%d  admin up success:\n",ulport);
                     if(ctl_state == POE_PORT_ENABLE)
                     {
-                        gw_log(GW_LOG_LEVEL_MINOR,"port:%d ctl enable\n",ulport);
                         if(Gwd_onu_port_power_detect_get(ulport,&Pstate) != EPON_RETURN_SUCCESS)
                         {
                             gw_log(GW_LOG_LEVEL_MINOR,"get port:%d  power fail:\n",ulport);
@@ -202,8 +200,7 @@ void gwd_onu_poe_thread_hander()
 
                         if(Pstate == POE_POWER_DISABLE)
                         {
-                            gw_log(GW_LOG_LEVEL_MINOR,"port:%d power not found\n",ulport);
-                            call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, ulport,PORT_ADMIN_DOWN);
+                            Gwd_onu_port_poe_operation_stat_set(ulport,PORT_ADMIN_DOWN);
                         }
                     }
                 }
@@ -211,7 +208,6 @@ void gwd_onu_poe_thread_hander()
             }
             else
             {
-                gw_log(GW_LOG_LEVEL_MINOR,"port:%d admin down\n",ulport);
                 if(Gwd_onu_port_poe_controle_stat_get(ulport,&ctl_state) != EPON_RETURN_SUCCESS)
                 {
                     continue;
@@ -220,29 +216,26 @@ void gwd_onu_poe_thread_hander()
                 {
                     if(ctl_state == POE_PORT_ENABLE)
                     {
-                        gw_log(GW_LOG_LEVEL_MINOR,"port:%d ctl enable\n",ulport);
                         if(Gwd_onu_port_power_detect_get(ulport,&Pstate) != EPON_RETURN_SUCCESS)
                         {
+                            gw_log(GW_LOG_LEVEL_MINOR,"get port:%d power fail\n",ulport);
                             continue;
                         }
-
                         if(Pstate == POE_POWER_ENABLE)
                         {
-                            gw_log(GW_LOG_LEVEL_MINOR,"port:%d power found\n",ulport);
-                            call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, ulport,PORT_ADMIN_UP);
+                             Gwd_onu_port_poe_operation_stat_set(ulport,PORT_ADMIN_UP);
                         }
                     }
                     else
                     {
-                        gw_log(GW_LOG_LEVEL_MINOR,"port:%d ctl disable\n",ulport);
-                        call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, ulport,PORT_ADMIN_UP);
+                        Gwd_onu_port_poe_operation_stat_set(ulport,PORT_ADMIN_UP);
                     }
                     
                 }
             }
         }
 
-        gw_thread_delay(50000);
+        gw_thread_delay(100);
     }
 }
 
@@ -305,7 +298,7 @@ int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int ar
             poe_ctl_val = 0;
        }
 
-       for(lport = 1; lport < uni_port_num; lport++)
+       for(lport = 1; lport <= uni_port_num; lport++)
        {
             if(Gwd_onu_port_poe_controle_stat_set(lport,poe_ctl_val) != EPON_RETURN_SUCCESS)
             {
@@ -348,7 +341,7 @@ int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int ar
     }
     else
     {
-            for(lport = 1; lport < uni_port_num; lport++)
+            for(lport = 1; lport <= uni_port_num; lport++)
             {
                 if(Gwd_onu_port_poe_controle_stat_get(lport,&poe_ctl_val) != EPON_RETURN_SUCCESS)
                 {

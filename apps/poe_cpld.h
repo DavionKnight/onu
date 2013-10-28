@@ -8,7 +8,8 @@
 #define cpld_write_disable 0
 #define ALARM_VAL_INIT(val) val |= 1 << 7
 #define PORTECT_REG_NUM(port,reg_num) reg_num = (port - 1)/8 
-#define PORT_POWER_STAT(power_stat,port) power_stat &=1 << (port - 1)
+#define PORT_TO_CPLDPORT(port)  port = ((port-1)%8)
+#define PORT_POWER_STAT(power_stat,port) power_stat &=(1 << port)
 
 typedef enum{
     GWD_CPLD_VERSION_REG,

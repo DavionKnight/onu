@@ -576,6 +576,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             else
                 printf("gwdonu write cpld register is NULL\N");
             break;
+
+        case LIB_IF_POE_PORT_OPERATION_SET:
+            if(g_im_ifs->poeportoperation)
+                ret = (*g_im_ifs->poeportoperation)(va_arg(ap,gw_int32),va_arg(ap,gw_int32));
+            else
+                printf("gwdonu set poe port operation is NULL\n");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
