@@ -563,6 +563,19 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             else
                 printf("gwdionu get version build time is NULL\n");
             break;
+        case LIB_IF_CPLD_REGISTER_READ:
+            if(g_im_ifs->cpldread)
+                ret = (*g_im_ifs->cpldread)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint8*));
+            else
+                printf("gwdonu read cpld register is NULL\n");
+            break;
+
+        case LIB_IF_CPLD_REGISTER_WRITE:
+            if(g_im_ifs->cpldwrite)
+                ret = (*g_im_ifs->cpldwrite)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint32));
+            else
+                printf("gwdonu write cpld register is NULL\N");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

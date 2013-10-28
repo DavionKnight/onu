@@ -21,6 +21,7 @@
 /***************************************************************************/
 #define RPU_MODULE_USER_MAC_RELAY RPU_YES
 #define RPU_MODULE_IGMP_TVM RPU_YES
+#define RPU_MODULE_POE RPU_YES
 
 
 #define USERMAC_EN 0x1 

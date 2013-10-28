@@ -10,7 +10,7 @@
 
 #include "../include/gwdonuif.h"
 
-enum{
+enum{    
 	LIB_IF_ONU_LLID_GET,
 	LIB_IF_SYSINFO_GET,
 	LIB_IF_SYSCONF_SAVE,
@@ -77,6 +77,9 @@ enum{
 	LIB_IF_QOS_VLAN_QUEUE_MAP,
 	LIB_IF_CONF_WR_FLASH,
 	LIB_IF_VER_BUILD_TIME_GET,
+
+    LIB_IF_CPLD_REGISTER_READ,
+    LIB_IF_CPLD_REGISTER_WRITE,
 
 };
 

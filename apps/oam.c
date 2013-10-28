@@ -2577,6 +2577,7 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 	}
 	else
 	{
+        
 		gw_cli_print(cli,  "\n  Product information as following--");
 		gw_cli_print(cli,  "    ONU type         : %s", "GT873_A");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
@@ -2591,6 +2592,7 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 		return CLI_OK;
 	}
 }
+extern void gwd_onu_poe_cpld_cheak();
 int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     long lRet = GWD_RETURN_OK;
@@ -3198,6 +3200,7 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void init_oam_send_relay();
+extern void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root);
 
 	gw_semaphore_init(&g_pkt_send_sem, g_pkt_send_sem_name, 1, 0);
 
@@ -3233,7 +3236,8 @@ extern void init_oam_send_relay();
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
 
-
+	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
+		gw_printf("regist gwd poe cmds fail!\r\n");
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 
