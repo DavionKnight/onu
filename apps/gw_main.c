@@ -30,18 +30,17 @@ void plat_init()
 
 	gw_conf_file_init();
 #if(RPU_MODULE_POE == RPU_YES)
-    gwd_onu_poe_cpld_cheak(); 
+    gwd_onu_poe_cpld_check(); 
     Gwd_onu_poe_exist_stat_get(&stat_val);
     if(stat_val)
     {
-        gw_poe_config_init();
-    }
-    else
-    {
         uni_port_num = gw_onu_read_port_num();
+        
+        gw_poe_config_init();
+          
         for(lport = 1; lport <= uni_port_num; lport++)
         {
-            stat = 1;
+            stat = 0;
             Gwd_onu_port_poe_operation_stat_set(lport,stat);
         }
     }
