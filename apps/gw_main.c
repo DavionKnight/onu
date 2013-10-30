@@ -17,6 +17,11 @@ extern void gwd_thread_init(void);
 
 void plat_init()
 {
+    unsigned int stat_val;
+    unsigned int uni_port_num = 0;
+    unsigned int lport = 0;
+    unsigned int stat = 0;
+    
 	gw_osal_core_init();
 	if(gw_timer_init() == GW_OK)
 		gw_printf("gw timer init ok!\r\n");
@@ -25,8 +30,21 @@ void plat_init()
 
 	gw_conf_file_init();
 #if(RPU_MODULE_POE == RPU_YES)
-    gw_poe_config_init();
-    gwd_onu_poe_cpld_cheak();   
+    gwd_onu_poe_cpld_cheak(); 
+    Gwd_onu_poe_exist_stat_get(&stat_val);
+    if(stat_val)
+    {
+        gw_poe_config_init();
+    }
+    else
+    {
+        uni_port_num = gw_onu_read_port_num();
+        for(lport = 1; lport <= uni_port_num; lport++)
+        {
+            stat = 1;
+            Gwd_onu_port_poe_operation_stat_set(lport,stat);
+        }
+    }
 #endif
     
 	gw_qos_init();

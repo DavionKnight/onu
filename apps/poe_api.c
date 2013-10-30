@@ -3,7 +3,7 @@
 #include "poe_api.h"
 #include "poe_cpld.h"
 #include "../cli_lib/cli_common.h"
-
+#include "../include/gw_os_api_core.h"
 
 
 #if(RPU_MODULE_POE == RPU_YES)

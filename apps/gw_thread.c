@@ -38,6 +38,7 @@ extern void gwd_onu_poe_thread_hander();
 ****************************************************/
 void gwd_thread_init(void)
 {
+    unsigned int stat_val;
 	if(gw_thread_create(&gw_broad_storm_id,
 				  "gwd_broad_storm",
 	              broad_storm_thread,
@@ -53,19 +54,23 @@ void gwd_thread_init(void)
 		gw_printf("create thread broad storm succuss\n");
 	}
 #if(RPU_MODULE_POE == RPU_YES)
-    if(gw_thread_create(&gw_poe_thread_id,
-				  "gwd_poe_thread",
-	              gwd_onu_poe_thread_hander,
-	              NULL,              
-	              POE_THREAD_STACKSIZE,
-	              POE_THREAD_PRIORITY,
-	              0) != GW_OK)
+    Gwd_onu_poe_exist_stat_get(&stat_val);
+    if(stat_val)
     {
-        gw_printf("create poe thread fail\n");
-    }
-    else
-    {
-        gw_printf("create poe thread success\n");
+        if(gw_thread_create(&gw_poe_thread_id,
+    				  "gwd_poe_thread",
+    	              gwd_onu_poe_thread_hander,
+    	              NULL,              
+    	              POE_THREAD_STACKSIZE,
+    	              POE_THREAD_PRIORITY,
+    	              0) != GW_OK)
+        {
+            gw_printf("create poe thread fail\n");
+        }
+        else
+        {
+            gw_printf("create poe thread success\n");
+        }
     }
 #endif   
 }

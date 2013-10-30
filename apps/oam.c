@@ -3200,7 +3200,10 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void init_oam_send_relay();
+#if(RPU_MODULE_POE == RPU_YES)
+unsigned stat_val;
 extern void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root);
+#endif
 
 	gw_semaphore_init(&g_pkt_send_sem, g_pkt_send_sem_name, 1, 0);
 
@@ -3235,9 +3238,14 @@ extern void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root);
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
-
-	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
-		gw_printf("regist gwd poe cmds fail!\r\n");
+#if(RPU_MODULE_POE == RPU_YES)
+    Gwd_onu_poe_exist_stat_get(&stat_val);
+    if(stat_val)
+    {
+	    if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
+		    gw_printf("regist gwd poe cmds fail!\r\n");
+    }
+#endif
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 

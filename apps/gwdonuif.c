@@ -15,7 +15,7 @@
 #include "../include/gwdonuif.h"
 #include "../cli_lib/cli_common.h"
 #include "oam.h"
-
+#include "../include/gw_os_api_core.h"
 static gwdonu_im_if_t * g_im_ifs = NULL;
 
 gw_uint32 g_uni_port_num = 0;
@@ -563,6 +563,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             else
                 printf("gwdionu get version build time is NULL\n");
             break;
+#if(RPU_MODULE_POE == RPU_YES)
         case LIB_IF_CPLD_REGISTER_READ:
             if(g_im_ifs->cpldread)
                 ret = (*g_im_ifs->cpldread)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint8*));
@@ -583,6 +584,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             else
                 printf("gwdonu set poe port operation is NULL\n");
             break;
+#endif
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

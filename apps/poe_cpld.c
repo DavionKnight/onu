@@ -6,6 +6,7 @@
 #include "../cli_lib/cli_common.h"
 #include <stdlib.h>
 #include "gw_conf_file.h"
+#include "../include/gw_os_api_core.h"
 
 #if(RPU_MODULE_POE == RPU_YES)
 
