@@ -13,7 +13,8 @@ unsigned int gulPoeEnable = 0;
 unsigned char gucPoeDisablePerPort[NUM_PORTS_PER_SYSTEM - 1] = {0};
 unsigned char gucPoedefaultconfig[NUM_PORTS_PER_SYSTEM - 1] = {0};
 
-
+extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc);
+extern int gw_cli_interface_debug_terminal(struct cli_def *cli, char *command, char *argv[], int argc);
 
 epon_return_code_t Gwd_onu_poe_exist_stat_set(unsigned int poe_stat)
 {
@@ -188,7 +189,6 @@ gw_int32 gw_poe_config_showrun(gw_int32* len,gw_uint8**pv)
 
 gw_int32 gw_poe_config_restore(gw_int32 len, gw_uint8 * pv)
 {
-    int i = 0;
     memcpy(gucPoeDisablePerPort,pv,len);
 #if 0
     gw_log(GW_LOG_LEVEL_MINOR,"\r\n-----------------------------------------------------------------\r\n");
@@ -217,30 +217,18 @@ void gwd_onu_poe_cpld_check()
     unsigned int cpld_stat = 0;
     unsigned int ret = 0;
     unsigned int i = 0;
-    unsigned int poe_cpld_enable_error_count = 0;
     
     for(i = 0; i < 3; i++)
     {
-        if(Gwd_onu_cpld_exist_get(&cpld_stat) != EPON_RETURN_SUCCESS)
-        {
-            poe_cpld_enable_error_count++;
-
-            if(poe_cpld_enable_error_count == 3)
-            {
-                break;
-                ret = EPON_RETURN_FAIL;
-            }
-        }
-        else
-        {
+        if(Gwd_onu_cpld_exist_get(&cpld_stat) == EPON_RETURN_SUCCESS)
+        { 
             gw_log(GW_LOG_LEVEL_MINOR,"cheak cpld ok\n");
             if(cpld_stat)
             {
                 Gwd_onu_poe_exist_stat_set(cpld_stat);
             }
-            
             ret = EPON_RETURN_SUCCESS;
-                
+            return;        
         }
     }
 }
@@ -339,7 +327,6 @@ void gwd_onu_poe_thread_hander()
 
 int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-    unsigned int poeexiststat = 0;
     unsigned int lport = 0;
     unsigned int poe_ctl_val = 0;
     unsigned int uni_port_num = 0;
@@ -453,7 +440,7 @@ void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root)
     struct cli_command *reg;
 
     gw_cli_register_command(cmd_root, NULL, "poe", cmd_onu_poe_cfg_set, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "onu poe control");
-
+   
     reg = gw_cli_register_command(cmd_root, NULL, "cpld",NULL, PRIVILEGE_PRIVILEGED,MODE_DEBUG, "read/write onu cpld register");
           gw_cli_register_command(cmd_root, reg, "register",cmd_onu_cpld_reg_cfg_set, PRIVILEGE_PRIVILEGED, MODE_DEBUG, "read/write onu cpld register");
 

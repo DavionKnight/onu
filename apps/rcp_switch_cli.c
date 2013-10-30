@@ -6081,22 +6081,7 @@ void start_rcp_device_monitor(void)
  */
 
 
-int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc)
-{
-	
-    if (CLI_HELP_REQUESTED)
-        return CLI_HELP_NO_ARGS;
 
-    if(argc > 0)
-    {
-        gw_cli_print(cli, "%% Invalid input.");
-        return CLI_OK;
-    }
-
-    gw_cli_set_configmode(cli, MODE_CONFIG, NULL);
-    gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
-    return CLI_OK;
-}
 
 void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
 {
@@ -6112,7 +6097,7 @@ void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
         gw_cli_register_command(cmd_root, c, "terminal", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
 #endif
 	//c = gw_cli_register_command(cmd_root, 0, "configure", NULL,                         PRIVILEGE_PRIVILEGED, MODE_EXEC, "Enter configuration mode");
-        gw_cli_register_command(cmd_root, NULL, "enable", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
+        
 inter = gw_cli_register_command(cmd_root, NULL, "interface",    NULL,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Select an interface to configure");
 //		gw_cli_register_command(cmd_root, inter, "IFNAME",   cmd_config_int ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Interface name");
 		gw_cli_register_command(cmd_root, inter, "switch",   cli_int_interface_switch ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Config switch connected to the interface");

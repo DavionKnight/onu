@@ -6,7 +6,7 @@
 #include "../include/gw_os_api_core.h"
 
 #if(RPU_MODULE_POE == RPU_YES)
-
+extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc);
 int onu_cpld_read_register(unsigned int type,unsigned char* val)
 {
     unsigned int reg = 0;
@@ -90,9 +90,6 @@ int onu_cpld_write_register(unsigned int type,unsigned int val)
 
 int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-    unsigned int poeexiststat = 0;
-    unsigned int poe_stat = 0;
-
     unsigned int regaddr = 0;
     unsigned char readval = 0;
     unsigned char writeval = 0;
@@ -133,7 +130,8 @@ int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], i
        {
             gw_cli_print(cli,"input command %s not found\n",argv[0]);
        }
-    }else if(argc = 3)
+    }    
+   else if(argc == 3)
     {
         if(strcmp(argv[0],"write") == 0)
        {

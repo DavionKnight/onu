@@ -16,7 +16,7 @@ typedef struct log_phy_map_s {
     unsigned char physical_port;
 } log_phy_map_t;
 
-
+extern unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num);
 #define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(portlist, ifindex,devonuport_num) \
 {\
     gw_uint32 * _pulIfArray;\
