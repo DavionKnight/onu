@@ -11,7 +11,7 @@
 #include "gwdonuif_interval.h"
 #include "pkt_main.h"
 #include "oamsnmp.h"
-
+#include "gw_version.h"
 
 //#include "sdl_api.h"
 
@@ -2632,7 +2632,7 @@ int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[]
             buildtimebuf = NULL;
             return CLI_ERROR;
         }
-        gw_cli_print(cli,"Version %s %s\r\n",gw_onu_system_info_total.sw_version,buildtimebuf);
+        gw_cli_print(cli,"Product_Version %s Platform_Version%s %s\r\n",gw_onu_system_info_total.sw_version,PT_VERSION,buildtimebuf);
     }
 
     free(buildtimebuf);
@@ -3107,7 +3107,7 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     // display cmds in config mode
     show  = gw_cli_register_command(cmd_root, NULL, "display", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Show information");
     sys  = gw_cli_register_command(cmd_root, show, "product", cmd_show_system_information, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
-           gw_cli_register_command(cmd_root, show, "build_time", cmd_show_version_build_time, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
+           gw_cli_register_command(cmd_root, show, "version", cmd_show_version_build_time, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
 	gw_cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
 
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
