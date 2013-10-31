@@ -238,8 +238,8 @@ struct cli_command *gw_cli_tree_init()
     gw_cli_register_command(&cmd_root, 0, "quit",    gw_cli_int_quit,       PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Disconnect");
     gw_cli_register_command(&cmd_root, 0, "logout",  gw_cli_int_quit,       PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Disconnect");
     gw_cli_register_command(&cmd_root, 0, "exit",    gw_cli_int_exit,       PRIVILEGE_UNPRIVILEGED, MODE_ANY,   "Exit from current mode");
-    gw_cli_register_command(cmd_root, NULL, "enable", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
-     gw_cli_register_command(cmd_root, NULL, "advdebug",gw_cli_interface_debug_terminal, PRIVILEGE_PRIVILEGED,   MODE_CONFIG,    "Enter debug mode");
+    gw_cli_register_command(&cmd_root, 0, "enable", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
+    gw_cli_register_command(&cmd_root, 0, "advdebug",gw_cli_interface_debug_terminal, PRIVILEGE_PRIVILEGED,   MODE_CONFIG,    "Enter debug mode");
 
     // reg demo coammnds
 //    cli_reg_usr_cmd(&cmd_root);

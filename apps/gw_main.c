@@ -35,9 +35,7 @@ void plat_init()
     if(stat_val)
     {
         uni_port_num = gw_onu_read_port_num();
-        gw_printf("[1]\n");
         gw_poe_config_init();
-          gw_printf("[2]\n");
         for(lport = 1; lport <= uni_port_num; lport++)
         {
             stat = 0;
@@ -45,15 +43,10 @@ void plat_init()
         }
     }
 #endif
-    gw_printf("[3]\n");
 	gw_qos_init();
-gw_printf("[4]\n");
 	gw_conf_restore();
-gw_printf("[5]\n");
 	init_pkt_proc();
-gw_printf("[6]\n");
 	gwd_onu_init();
-gw_printf("[7]\n");
 	gwd_thread_init();
 
 }
