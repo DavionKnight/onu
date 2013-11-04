@@ -217,7 +217,13 @@ void gwd_onu_poe_cpld_check()
     unsigned int cpld_stat = 0;
     unsigned int ret = 0;
     unsigned int i = 0;
-    
+
+
+    if((g_im_ifs->cpldread == NULL) || (g_im_ifs->cpldwrite == NULL) || (g_im_ifs->poeportoperation == NULL))
+    {
+        Gwd_onu_poe_exist_stat_set(cpld_stat);
+        return;
+    }
     for(i = 0; i < 3; i++)
     {
         if(Gwd_onu_cpld_exist_get(&cpld_stat) == EPON_RETURN_SUCCESS)

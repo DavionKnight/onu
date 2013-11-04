@@ -8,7 +8,6 @@
 #ifndef GWDONUIF_H_
 #define GWDONUIF_H_
 
-#include "../include/gw_os_api_core.h"
 typedef enum{
     GWD_ETH_PORT_LOOP_ALARM=1,
     GWD_ETH_PORT_LOOP_ALARM_CLEAR,
