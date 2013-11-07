@@ -8,6 +8,8 @@
 #ifndef GWDONUIF_H_
 #define GWDONUIF_H_
 
+
+#define version_len 100
 typedef enum{
     GWD_ETH_PORT_LOOP_ALARM=1,
     GWD_ETH_PORT_LOOP_ALARM_CLEAR,
@@ -208,7 +210,7 @@ typedef gw_int32 (*libgwdonu_port_mirror_stat_set_t)(gw_int32 unit,gw_int32 mode
 typedef gw_int32 (*libgwdonu_port_ingress_mirror_set_t)(gw_int32 unit,gw_int32 port,gw_int32 stat_val);
 typedef gw_int32 (*libgwdonu_port_egress_mirror_set_t)(gw_int32 unit,gw_int32 port,gw_int32 stat_val);
 typedef gw_int32 (*libgwdonu_port_mirror_to_port_set_t)(gw_int32 port,gw_int32 portmap);
-typedef gw_int32 (*libgwdonu_version_build_time_get_t)(gw_int8 *buildtime);
+typedef gw_int32 (*libgwdonu_version_build_time_get_t)(gw_int8 buildtime[version_len]);
 
 typedef gw_int32 (*libgwdonu_cpld_register_write)(gw_uint32 reg,gw_uint32 date);
 typedef gw_int32 (*libgwdonu_cpld_register_read)(gw_uint32 reg,gw_uint8 * date);

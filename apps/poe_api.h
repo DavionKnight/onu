@@ -11,7 +11,7 @@
 extern int onu_cpld_read_register(unsigned int type,unsigned char* val);
 extern int onu_cpld_write_register(unsigned int type,unsigned int val);
 
-
+extern gw_int32 gw_onu_poe_api_register_check();
 extern gw_uint8 gw_onu_read_port_num();
 
 #endif

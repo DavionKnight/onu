@@ -279,11 +279,15 @@ void GwOamMessageListNodeFree(GWTT_OAM_MESSAGE_NODE *pNode)
 	if(NULL == pNode)
 		return;
 	if(GWD_RETURN_OK!=GwOamMessageListNodeRem(pNode))
+	{
 //		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeFree::GwOamMessageListNodeRem failed\n");
+	}
 	if(NULL != pNode->pPayLoad)
+	{
 //		iros_free(pNode->pPayLoad);
 		free(pNode->pPayLoad);
-//	iros_free(pNode);
+	}
+    //	iros_free(pNode);
 	free(pNode);
 
 	return;
@@ -298,7 +302,9 @@ static void GwOamMessageListNodeAdd(GWTT_OAM_MESSAGE_NODE *pNode)
 	if(NULL == pNode)
 		return;
 	if(NULL != GwOamMessageListGetNode(pNode->SendSerNo))
+	{
 //		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeAdd::GwOamMessageListGetNode failed\n");
+	}
 //	cyg_semaphore_wait(&OamListSem);
 	gw_semaphore_wait(OamListSem, GW_OSAL_WAIT_FOREVER);
 	pNode->next = GwOamMessageListHead.next;
@@ -2596,7 +2602,7 @@ extern void gwd_onu_poe_cpld_cheak();
 int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     long lRet = GWD_RETURN_OK;
-    char *buildtimebuf = NULL;
+    char buildtimebuf[BUILDTIMELEN] = {0};
 
     if(CLI_HELP_REQUESTED)
     {
@@ -2606,20 +2612,12 @@ int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[]
                 return gw_cli_arg_help(cli, 1, NULL);
         }
     }
-    
-    buildtimebuf = malloc(BUILDTIMELEN);
-    if(buildtimebuf == NULL)
-    {
-        gw_cli_print(cli,"malloc error\n");
-        return CLI_ERROR;
-    }
-    
+       
     lRet = GW_Onu_Sysinfo_Get();
 	if (lRet != GWD_RETURN_OK)
 	{
 		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
-        free(buildtimebuf);
-        buildtimebuf = NULL;
+
 		return CLI_ERROR;
 	}
     else
@@ -2628,15 +2626,10 @@ int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[]
         if(call_gwdonu_if_api(LIB_IF_VER_BUILD_TIME_GET,1,buildtimebuf) != GW_OK)
         {
             gw_cli_print(cli,"get version build time fail\r\n");
-            free(buildtimebuf);
-            buildtimebuf = NULL;
             return CLI_ERROR;
         }
-        gw_cli_print(cli,"Product_Version %s Platform_Version%s %s\r\n",gw_onu_system_info_total.sw_version,PT_VERSION,buildtimebuf);
+        gw_cli_print(cli,"Product_Version %s  Platform_Version %s  %s\r\n",gw_onu_system_info_total.sw_version,PLATFORM_VERSION,buildtimebuf);
     }
-
-    free(buildtimebuf);
-    buildtimebuf = NULL;
 
     return CLI_OK;
     
@@ -2810,7 +2803,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 	gw_uint32 phyport = 0;
 	
 	
-	unsigned char phyportmember[PHY_PORT_MAX]={0};
+	unsigned char phyportmember[PHY_PORT_MAX + 1]={0};
     if(CLI_HELP_REQUESTED)
     {
         switch(argc)
@@ -2833,7 +2826,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 			continue;
 		}
 		
-		for(phyport = 0; phyport < PHY_PORT_MAX; phyport++)
+		for(phyport = 0; phyport <= PHY_PORT_MAX; phyport++)
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{
@@ -2843,7 +2836,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 				}
 				else
 				{
-					if(logport >= NUM_PORTS_PER_SYSTEM || logport < NUM_PORTS_MINIMUM_SYSYTEM)
+					if(logport > NUM_PORTS_PER_SYSTEM || logport < NUM_PORTS_MINIMUM_SYSYTEM)
 					{
 						continue;
 					}
@@ -2854,6 +2847,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 					}
 				}
 			}
+
 		}
         gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],

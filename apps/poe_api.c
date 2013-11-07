@@ -219,7 +219,7 @@ void gwd_onu_poe_cpld_check()
     unsigned int i = 0;
 
 
-    if((g_im_ifs->cpldread == NULL) || (g_im_ifs->cpldwrite == NULL) || (g_im_ifs->poeportoperation == NULL))
+    if(gw_onu_poe_api_register_check() != EPON_RETURN_SUCCESS)
     {
         Gwd_onu_poe_exist_stat_set(cpld_stat);
         return;
