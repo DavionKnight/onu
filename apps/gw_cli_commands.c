@@ -493,6 +493,53 @@ int gw_time_get(localtime_tm *tm)
 	return 0;
 }
 
+int cmd_multicast_transmission_set(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	unsigned char en;
+
+	if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"{[0|1]}*1", " 1 enable; 0 disable", NULL);
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+		}
+	}
+
+	if(argc >= 1)
+	{
+		if(argc == 1)
+			en = atoi(argv[0]);
+
+
+		if(call_gwdonu_if_api(LIB_IF_MULTICAST_TRANSMISSION_SET, 1,en) != GW_OK)
+			gw_cli_print(cli, "Multicast transmission set  %s fail!\r\n", en?"enabled":"disabled");
+		else
+			{
+				if(en)
+					gw_cli_print(cli,"Multicast transmission set enable success\n");
+				else
+					gw_cli_print(cli,"Multicast transmission set disable success\n");
+			}
+	}
+	else
+	{
+
+		if(call_gwdonu_if_api(LIB_IF_MULTICAST_TRANSMISSION_GET, 1, &en) != GW_OK)
+			gw_cli_print(cli, "get multicast transmission fail!\r\n");
+		else
+			gw_cli_print(cli, "Multicast transmission is %s\r\n", en?"enabled":"disabled");
+
+
+	}
+
+
+	return CLI_OK;
+}
 
 void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 {
@@ -519,3 +566,13 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 
     return;
 }
+
+void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root)
+{
+	struct cli_command * stat = NULL;
+
+	stat = gw_cli_register_command(cmd_root, NULL, "multicast", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "multicast config");
+	gw_cli_register_command(cmd_root, stat, "transmission", cmd_multicast_transmission_set,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set multicast transmission");
+
+}
+

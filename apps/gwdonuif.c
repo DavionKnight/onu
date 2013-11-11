@@ -585,6 +585,18 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
                 printf("gwdonu set poe port operation is NULL\n");
             break;
 #endif
+        case LIB_IF_MULTICAST_TRANSMISSION_SET:
+        	if(g_im_ifs->multicasttransmissionset)
+        		ret = (*g_im_ifs->multicasttransmissionset)(va_arg(ap,gw_int8*));
+        	else
+                printf("gwdonu set multicast transmission is NULL\n");
+            break;
+        case LIB_IF_MULTICAST_TRANSMISSION_GET:
+        	if(g_im_ifs->multicasttransmissionget)
+        		ret = (*g_im_ifs->multicasttransmissionget)(va_arg(ap,gw_int8*));
+        	else
+                printf("gwdonu get multicast transmission is NULL\n");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
