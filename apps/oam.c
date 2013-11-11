@@ -3119,6 +3119,30 @@ int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
     return CLI_OK;
 }
 
+int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int *buf = NULL;
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+            default:
+                return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+    gw_cli_print(cli,"---------------------malloc test-------------------------\r\n");
+
+    buf = malloc(200);
+
+    if(buf == NULL)
+        gw_cli_print(cli,"malloc error\r\n");
+
+
+    return CLI_OK;
+    
+}
+
+
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
@@ -3145,6 +3169,8 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
+        
+        gw_cli_register_command(cmd_root, NULL, "malloc",cmd_malloc_space, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "malloc test");
 
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
@@ -3176,6 +3202,7 @@ void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
 
+    
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
     return;
