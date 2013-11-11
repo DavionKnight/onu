@@ -597,6 +597,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	else
                 printf("gwdonu get multicast transmission is NULL\n");
             break;
+        case LIB_IF_REAL_PRODUCT_TYPE_GET:
+        	if(g_im_ifs->onurealproducttypeget)
+        		ret = (*g_im_ifs->onurealproducttypeget)(va_arg(ap,gw_int8*));
+        	else
+                printf("gwdonu get multicast transmission is NULL\n");
+            break;
+
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

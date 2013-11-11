@@ -217,6 +217,7 @@ typedef gw_int32 (*libgwdonu_poe_port_operation_set)(gw_int32 port,gw_int32 stat
 
 typedef gw_int32 (*libgwdonu_multicast_transmission_set)(gw_uint8 en);
 typedef gw_int32 (*libgwdonu_multicast_transmission_get)(gw_uint8 *en);
+typedef gw_int32 (*libgwdonu_real_product_type_get)(gw_uint8 *st);
 
 typedef struct gwdonu_im_if_s{
 
@@ -296,7 +297,7 @@ typedef struct gwdonu_im_if_s{
 
     libgwdonu_multicast_transmission_set multicasttransmissionset;
     libgwdonu_multicast_transmission_get multicasttransmissionget;
-
+    libgwdonu_real_product_type_get onurealproducttypeget;
 
 }gwdonu_im_if_t;
 

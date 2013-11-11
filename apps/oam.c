@@ -2804,7 +2804,13 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     gw_uint32 vid = 0, egports = 0, idx = 0;
 	gw_uint8 mac[GW_MACADDR_LEN]={0,0,0,0,0,0};
 	gw_uint32 statics=0;
-    // deal with help
+
+    gw_uint32 retv=0;
+    gw_uint32 logport=0;
+	gw_uint32 phyport = 0;
+	
+	
+	unsigned char phyportmember[PHY_PORT_MAX]={0};
     if(CLI_HELP_REQUESTED)
     {
         switch(argc)
@@ -2820,6 +2826,35 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
 
+		retv = onu_bitport_phyport_get(egports,phyportmember);/*bitλת��Ϊ�����ַ*/
+		
+		if(GW_ERROR == retv)/*���Ϸ�������˿�*/
+		{
+			continue;
+		}
+		
+		for(phyport = 0; phyport < PHY_PORT_MAX; phyport++)
+		{
+			if(PHY_OK == phyportmember[phyport])
+			{
+				if(!boards_physical_to_logical(0, phyport, &logport))/*�����ַת��Ϊ�߼���ַ*/
+				{
+					continue;
+				}
+				else
+				{
+					if(logport >= NUM_PORTS_PER_SYSTEM || logport < NUM_PORTS_MINIMUM_SYSYTEM)
+					{
+						continue;
+					}
+					else
+					{
+						egports = logport;
+						break;
+					}
+				}
+			}
+		}
         gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],
             mac[1],
