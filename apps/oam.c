@@ -278,7 +278,9 @@ void GwOamMessageListNodeFree(GWTT_OAM_MESSAGE_NODE *pNode)
 	if(NULL == pNode)
 		return;
 	if(GWD_RETURN_OK!=GwOamMessageListNodeRem(pNode))
+	{
 //		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeFree::GwOamMessageListNodeRem failed\n");
+	}
 	if(NULL != pNode->pPayLoad)
 //		iros_free(pNode->pPayLoad);
 		free(pNode->pPayLoad);
@@ -297,7 +299,9 @@ static void GwOamMessageListNodeAdd(GWTT_OAM_MESSAGE_NODE *pNode)
 	if(NULL == pNode)
 		return;
 	if(NULL != GwOamMessageListGetNode(pNode->SendSerNo))
+	{
 //		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeAdd::GwOamMessageListGetNode failed\n");
+	}
 //	cyg_semaphore_wait(&OamListSem);
 	gw_semaphore_wait(OamListSem, GW_OSAL_WAIT_FOREVER);
 	pNode->next = GwOamMessageListHead.next;
