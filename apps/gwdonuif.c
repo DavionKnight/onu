@@ -27,6 +27,16 @@ extern gw_uint32 g_pkt_send_sem;
 extern int GW_Onu_Sysinfo_Get();
 extern void cli_console_start();
 
+
+gw_int32 gw_onu_poe_api_register_check()
+{
+    if((g_im_ifs->cpldread == NULL) || (g_im_ifs->cpldwrite == NULL) || (g_im_ifs->poeportoperation == NULL))
+    {
+        return GW_ERROR;
+    }
+
+    return GW_OK;
+}
 gw_uint8 gw_onu_read_port_num()
 {
 	gw_log(GW_LOG_LEVEL_DEBUG, "read onu port num: %d\r\n", g_uni_port_num);
