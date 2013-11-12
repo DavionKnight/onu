@@ -65,19 +65,29 @@ gw_int32 gw_qos_vlan_queue_entry_get_by_port(gw_uint8 port, gw_qos_vlan_queue_da
 	qos_vlan_t * p;
 	gw_int32 count = 0, i;
 
+	gw_lst_init(&l, NULL);
+
 	if(port == 0xff)
 		plist = plstqvq;
 	else
 	{
 		plist = &l;
-		gw_lst_init(&l, NULL);
 
 		gw_lst_scan(plstqvq, p, qos_vlan_t * )
 		{
 			if(p->port == port)
-				gw_lst_add(&l, (gw_node*)p);
+			{
+				qos_vlan_t * lv = malloc(sizeof(qos_vlan_t));
+
+				if(lv)
+				{
+					memcpy(lv, p, sizeof(qos_vlan_t));
+					gw_lst_add(&l, (gw_node*)lv);
+				}
+			}
 		}
 	}
+
 	count = gw_lst_count(plist);
 
 	if(count > 0)
@@ -99,6 +109,9 @@ gw_int32 gw_qos_vlan_queue_entry_get_by_port(gw_uint8 port, gw_qos_vlan_queue_da
 			ret = count;
 		}
 	}
+
+	while((p = gw_lst_get(&l)))
+		free(p);
 
 	return ret;
 }
