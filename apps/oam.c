@@ -2602,7 +2602,7 @@ extern void gwd_onu_poe_cpld_cheak();
 int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     long lRet = GWD_RETURN_OK;
-    char buildtimebuf[BUILDTIMELEN] = {0};
+    char buildtimebuf[VERSION_LEN] = {0};
 
     if(CLI_HELP_REQUESTED)
     {
@@ -2803,7 +2803,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 	gw_uint32 phyport = 0;
 	
 	
-	unsigned char phyportmember[PHY_PORT_MAX + 1]={0};
+	unsigned char phyportmember[PHY_PORT_MAX ]={0};
     if(CLI_HELP_REQUESTED)
     {
         switch(argc)
@@ -2818,7 +2818,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 
     while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
-
+        
 		retv = onu_bitport_phyport_get(egports,phyportmember);/*bit位转换为物理地址*/
 		
 		if(GW_ERROR == retv)/*不合法的物理端口*/
@@ -2826,7 +2826,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 			continue;
 		}
 		
-		for(phyport = 0; phyport <= PHY_PORT_MAX; phyport++)
+		for(phyport = 0; phyport < PHY_PORT_MAX; phyport++)
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{
