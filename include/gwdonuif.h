@@ -10,6 +10,12 @@
 
 
 #define version_len 100
+typedef enum {
+    MC_SNOOPING,
+    MC_MANUAL,
+    MC_PROXY,
+    MC_DISABLE
+}mc_mode_t;
 typedef enum{
     GWD_ETH_PORT_LOOP_ALARM=1,
     GWD_ETH_PORT_LOOP_ALARM_CLEAR,
@@ -217,8 +223,8 @@ typedef gw_int32 (*libgwdonu_cpld_register_read)(gw_uint32 reg,gw_uint8 * date);
 
 typedef gw_int32 (*libgwdonu_poe_port_operation_set)(gw_int32 port,gw_int32 stat);
 
-typedef gw_int32 (*libgwdonu_multicast_transmission_set)(gw_uint8 en);
-typedef gw_int32 (*libgwdonu_multicast_transmission_get)(gw_uint8 *en);
+typedef gw_int32 (*libgwdonu_multicast_mode_set)(mc_mode_t mode);
+typedef gw_int32 (*libgwdonu_multicast_mode_get)(mc_mode_t *mode);
 typedef gw_int32 (*libgwdonu_real_product_type_get)(gw_uint8 *st);
 
 typedef struct gwdonu_im_if_s{
@@ -297,8 +303,8 @@ typedef struct gwdonu_im_if_s{
     libgwdonu_cpld_register_write cpldwrite;
     libgwdonu_poe_port_operation_set poeportoperation;
 
-    libgwdonu_multicast_transmission_set multicasttransmissionset;
-    libgwdonu_multicast_transmission_get multicasttransmissionget;
+    libgwdonu_multicast_mode_set multicastmodeset;
+    libgwdonu_multicast_mode_get multicastmodeget;
     libgwdonu_real_product_type_get onurealproducttypeget;
 
 }gwdonu_im_if_t;

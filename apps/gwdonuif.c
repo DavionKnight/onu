@@ -585,7 +585,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             if(g_im_ifs->cpldwrite)
                 ret = (*g_im_ifs->cpldwrite)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint32));
             else
-                printf("gwdonu write cpld register is NULL\N");
+                printf("gwdonu write cpld register is NULL\n");
             break;
 
         case LIB_IF_POE_PORT_OPERATION_SET:
@@ -595,17 +595,17 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
                 printf("gwdonu set poe port operation is NULL\n");
             break;
 #endif
-        case LIB_IF_MULTICAST_TRANSMISSION_SET:
-        	if(g_im_ifs->multicasttransmissionset)
-        		ret = (*g_im_ifs->multicasttransmissionset)(va_arg(ap,gw_int8*));
+        case LIB_IF_MULTICAST_MODE_SET:
+        	if(g_im_ifs->multicastmodeset)
+        		ret = (*g_im_ifs->multicastmodeset)(va_arg(ap,mc_mode_t));
         	else
-                printf("gwdonu set multicast transmission is NULL\n");
+                printf("gwdonu set multicast mode is NULL\n");
             break;
-        case LIB_IF_MULTICAST_TRANSMISSION_GET:
-        	if(g_im_ifs->multicasttransmissionget)
-        		ret = (*g_im_ifs->multicasttransmissionget)(va_arg(ap,gw_int8*));
+        case LIB_IF_MULTICAST_MODE_GET:
+        	if(g_im_ifs->multicastmodeget)
+        		ret = (*g_im_ifs->multicastmodeget)(va_arg(ap,mc_mode_t*));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu get multicast mode is NULL\n");
             break;
         case LIB_IF_REAL_PRODUCT_TYPE_GET:
         	if(g_im_ifs->onurealproducttypeget)
