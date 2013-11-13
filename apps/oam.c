@@ -2602,7 +2602,7 @@ extern void gwd_onu_poe_cpld_cheak();
 int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     long lRet = GWD_RETURN_OK;
-    char buildtimebuf[BUILDTIMELEN] = {0};
+    char buildtimebuf[VERSION_LEN] = {0};
 
     if(CLI_HELP_REQUESTED)
     {
@@ -2622,7 +2622,7 @@ int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[]
 	}
     else
     {
-        memset(buildtimebuf,0,BUILDTIMELEN);
+        memset(buildtimebuf,0,VERSION_LEN);
         if(call_gwdonu_if_api(LIB_IF_VER_BUILD_TIME_GET,1,buildtimebuf) != GW_OK)
         {
             gw_cli_print(cli,"get version build time fail\r\n");
@@ -2803,7 +2803,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 	gw_uint32 phyport = 0;
 	
 	
-	unsigned char phyportmember[PHY_PORT_MAX + 1]={0};
+	unsigned char phyportmember[PHY_PORT_MAX ]={0};
     if(CLI_HELP_REQUESTED)
     {
         switch(argc)
@@ -2818,7 +2818,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 
     while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
-
+        
 		retv = onu_bitport_phyport_get(egports,phyportmember);/*bit位转换为物理地址*/
 		
 		if(GW_ERROR == retv)/*不合法的物理端口*/
@@ -2826,7 +2826,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 			continue;
 		}
 		
-		for(phyport = 0; phyport <= PHY_PORT_MAX; phyport++)
+		for(phyport = 0; phyport < PHY_PORT_MAX; phyport++)
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{
@@ -3118,7 +3118,32 @@ int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
 
     return CLI_OK;
 }
+#if (RPU_MODULE_NOT_USE == RPU_YES)
 
+int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int *buf = NULL;
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+            default:
+                return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+    gw_cli_print(cli,"---------------------malloc test-------------------------\r\n");
+
+    buf = malloc(200);
+
+    if(buf == NULL)
+        gw_cli_print(cli,"malloc error\r\n");
+
+
+    return CLI_OK;
+    
+}
+
+#endif
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
@@ -3145,6 +3170,9 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
+#if (RPU_MODULE_NOT_USE == RPU_YES)
+        gw_cli_register_command(cmd_root, NULL, "malloc",cmd_malloc_space, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "malloc test");
+#endif
 
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
@@ -3176,6 +3204,7 @@ void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
 
+    
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
     return;

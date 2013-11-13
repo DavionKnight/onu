@@ -51,7 +51,7 @@ int user_mac_onu_fdb_get(localMacsave_t macbuf[USR_MAC_MAX_T],unsigned char *las
 	gw_uint32 macnumber = 0;
 	
 	
-	unsigned char phyportmember[PHY_PORT_MAX + 1]={0};
+	unsigned char phyportmember[PHY_PORT_MAX]={0};
 		
 	if(macbuf == NULL || lastmac == NULL || macnumberget == NULL || ifhavemac == NULL)
 	{
@@ -78,7 +78,7 @@ int user_mac_onu_fdb_get(localMacsave_t macbuf[USR_MAC_MAX_T],unsigned char *las
 			continue;
 		}
 		
-		for(phyport = 0; phyport <= PHY_PORT_MAX; phyport++)
+		for(phyport = 0; phyport <  PHY_PORT_MAX; phyport++)
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{

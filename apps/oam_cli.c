@@ -19,6 +19,7 @@
 
 
 extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
+#if (RPU_MODULE_NOT_USE == RPU_YES)
 int cmd_oam_port_kill_thread_test(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     int ret;
@@ -28,6 +29,8 @@ int cmd_oam_port_kill_thread_test(struct cli_def *cli, char *command, char *argv
     
     return ret;
 }
+#endif
+
 int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
