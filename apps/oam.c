@@ -2622,7 +2622,7 @@ int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[]
 	}
     else
     {
-        memset(buildtimebuf,0,BUILDTIMELEN);
+        memset(buildtimebuf,0,VERSION_LEN);
         if(call_gwdonu_if_api(LIB_IF_VER_BUILD_TIME_GET,1,buildtimebuf) != GW_OK)
         {
             gw_cli_print(cli,"get version build time fail\r\n");
@@ -3118,6 +3118,7 @@ int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
 
     return CLI_OK;
 }
+#if (RPU_MODULE_NOT_USE == RPU_YES)
 
 int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -3142,7 +3143,7 @@ int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
     
 }
 
-
+#endif
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
@@ -3169,8 +3170,9 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
-        
+#if (RPU_MODULE_NOT_USE == RPU_YES)
         gw_cli_register_command(cmd_root, NULL, "malloc",cmd_malloc_space, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "malloc test");
+#endif
 
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);

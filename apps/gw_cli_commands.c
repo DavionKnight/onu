@@ -315,6 +315,8 @@ int curr_time_cheak_and_get(localtime_tm olt_time,localtime_tm *onu_time)
 	return 1;
 		
 }
+
+#if (RPU_MODULE_NOT_USE == RPU_YES)
 int cmd_timer_show(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	
@@ -350,6 +352,7 @@ int cmd_timer_show(struct cli_def *cli, char *command, char *argv[], int argc)
     return 1;
 	
 }
+#endif
 
 int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -530,8 +533,10 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, cp, "show-vid-queue-map", cmd_qos_vlan_queue_map_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show vlan queue map cmd");
 	gw_cli_register_command(cmd_root, cp, "apply-vid-queue-map", cmd_qos_vlan_queue_map_apply, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "apply vlan queue map cmd");
 	//	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");
-	//time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
-	//gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+	#if (RPU_MODULE_NOT_USE == RPU_YES)
+	time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+    #endif
 
     return;
 }
