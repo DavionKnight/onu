@@ -280,11 +280,11 @@ void GwOamMessageListNodeFree(GWTT_OAM_MESSAGE_NODE *pNode)
 	if(NULL == pNode)
 		return;
 	if(GWD_RETURN_OK!=GwOamMessageListNodeRem(pNode))
-//		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeFree::GwOamMessageListNodeRem failed\n");
+		gw_log(GW_LOG_LEVEL_CRI, "GwOamMessageListNodeFree::GwOamMessageListNodeRem failed\n");
+
 	if(NULL != pNode->pPayLoad)
-//		iros_free(pNode->pPayLoad);
 		free(pNode->pPayLoad);
-//	iros_free(pNode);
+
 	free(pNode);
 
 	return;
@@ -298,14 +298,15 @@ static void GwOamMessageListNodeAdd(GWTT_OAM_MESSAGE_NODE *pNode)
 {
 	if(NULL == pNode)
 		return;
+
 	if(NULL != GwOamMessageListGetNode(pNode->SendSerNo))
-//		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeAdd::GwOamMessageListGetNode failed\n");
-//	cyg_semaphore_wait(&OamListSem);
+		gw_log(GW_LOG_LEVEL_CRI,  "GwOamMessageListNodeAdd::GwOamMessageListGetNode failed\n");
+
 	gw_semaphore_wait(OamListSem, GW_OSAL_WAIT_FOREVER);
 	pNode->next = GwOamMessageListHead.next;
 	GwOamMessageListHead.next = pNode;
-//	cyg_semaphore_post(&OamListSem);
 	gw_semaphore_post(OamListSem);
+
 }
 
 /*******************************************************************
@@ -675,7 +676,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	}
 	else
 	{
-#if (BIG_ENDIAN == RPU_YES)
+#if (_BIG_ENDIAN_ == RPU_YES)
 		avender->payLoadLength = gwd_htons(SendDataSize);
 		avender->payloadOffset = 0;
 #else
