@@ -8,7 +8,7 @@
 #ifndef SUPERSET_H_
 #define SUPERSET_H_
 
-#include "product_class.h"
+//#include "product_class.h"
 
 #if(FOR_BCM_ONU)
 #if (PRODUCT_CLASS == GT813C)
@@ -41,7 +41,7 @@
 #endif
 #define _SOCKET_CLASS_	BSD_SOCKET
 
-#ifdef LITTLE_ENDIAN
+#ifdef _LITTLE_ENDIAN_
 #undef _LITTLE_ENDIAN_
 #endif
 #define _LITTLE_ENDIAN_ RPU_NO
@@ -120,7 +120,7 @@
 #endif
 #define GW_THREAD_STACK_MIN_SIZE			(4*1024)
 
-#ifdef LITTLE_ENDIAN
+#ifdef _LITTLE_ENDIAN_
 #undef _LITTLE_ENDIAN_
 #endif
 #define _LITTLE_ENDIAN_ RPU_YES
@@ -169,7 +169,7 @@
 #endif
 #define GW_THREAD_STACK_MIN_SIZE			(4*1024)
 
-#ifdef LITTLE_ENDIAN
+#ifdef _LITTLE_ENDIAN_
 #undef _LITTLE_ENDIAN_
 #endif
 #define _LITTLE_ENDIAN_ RPU_YES
