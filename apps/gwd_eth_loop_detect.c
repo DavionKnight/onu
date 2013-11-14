@@ -1,61 +1,13 @@
-#if 0
-#include "iros_config.h"
-#include <network.h>
-#include <cyg/kernel/kapi.h>
-#include <pkgconf/io_fileio.h>
-#include <cyg/hal/hal_if.h>
-#include <cyg/hal/hal_io.h>
-#include <pkgconf/hal.h>
-#include <pkgconf/system.h>
-#include <pkgconf/memalloc.h>
-#include <pkgconf/isoinfra.h>
-#include <sys/socket.h>
-//#include <netinet/tcpip.h>
-//#include <socketvar.h>
-//#include <sys/sockio.h>
-#include <netinet/tcp.h>
-//#include <netinet/tcp_fsm.h>
-//#include <netinet/tcp_seq.h>
-#include <sys/types.h>
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <netinet/tcp.h>
 
-
-
-#include <netinet/tcp_timer.h>
-#include <netinet/tcp_var.h>
-//#include <netinet/tcpip.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <immenstar.h>
-#include "i2c.h"  // UART driver is based on I2C, Hardware is I2C <=> exar UART
-#include "gpio.h" // UART interrupt use GPIO pins 
-#include "uart.h"
-#include "onu_sync_api.h"
-#include "onuAalInt.h"
-
-#include "oam.h"
-
-#include "marvell/onu_marvell_sample_hwcfg.h"
-#include "onu_switch_if.h"
-#include "onu_sw_api.h"
-#include "onu_sync_api.h"
-#include "frame.h"
-#include "if_eth_drv.h"
-
-#include "gwd_eth_loop_detect.h"
-
-#else
-
+#include "product.h"
+#include "gw_config.h"
+#include "superset.h"
 #include "../include/gw_os_api_core.h"
 #include "gwdonuif_interval.h"
 #include "gw_log.h"
 #include "oam.h"
 #include "gwd_eth_loop_detect.h"
 #include "pkt_main.h"
-
-#endif
 
 #if ( RPU_MODULE_LOOPBACK_DETECT == RPU_YES)
 

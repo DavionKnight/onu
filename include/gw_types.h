@@ -143,7 +143,7 @@ typedef union {
 
 #define _GW_INLINE_ __inline__ static
 
-#ifdef __BIG_ENDIAN__
+#if (BIG_ENDIAN == RPU_YES)
 
 #ifndef ntohl
 #define ntohl(x)        (x)
@@ -170,7 +170,7 @@ typedef union {
 #define htonll(x)       (x)
 #endif
 
-#elif defined(__LITTLE_ENDIAN__)
+#elif (LITTLE_ENDIAN == RPU_YES)
 
 #ifndef ntohl
 #define ntohl(x)        ((((x) & 0x000000ff) << 24) | \
@@ -214,6 +214,7 @@ typedef union {
 #error Endianness not defined
 #endif
 
+/*force switch*/
 #ifndef gwd_ntohl
 #define gwd_ntohl(x)        ((((x) & 0x000000ff) << 24) | \
                             (((x) & 0x0000ff00) <<  8) | \

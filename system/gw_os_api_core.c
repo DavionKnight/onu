@@ -7,7 +7,10 @@
 /* Copyright (c) 2002-2010 by Cortina Systems Incorporated.                                            */
 /***********************************************************************/
 
+#include "product.h"
+#include "gw_config.h"
 #include "../include/gw_os_common.h"
+#include "superset.h"
 
 #if OS_CYG_LINUX
 #include <cyg/kernel/kapi.h>
@@ -32,23 +35,22 @@
 gw_uint32 gw_creator_find(void);
 
 
-#if OS_CYG_LINUX
-
 void gw_usleep(unsigned int usecs)
 {
-	unsigned int msecs = 0;
+#if OS_CYG_LINUX
 	unsigned int ticks = 0;
 
-	msecs = usecs/1000;
-	ticks = msecs/10;
+	ticks = usecs/1000/10;
 	if(ticks == 0)
 		ticks = 1;
 
 	cyg_thread_delay(ticks);
+#else
+	usleep(usecs);
+#endif
 	return;
 }
 
-#endif
 
 /*  tables for the properties of objects */
 
@@ -796,7 +798,7 @@ int gw_semaphore_init
         return GW_E_OSAL_ERR_NO_FREE_IDS;
     }
 #if 0
-// ȥ������ж� ���ڴ����ź�����ʱ������жϲ��Ϸ�    2013-03-21
+// 去锟斤拷锟斤拷锟斤拷卸锟�锟斤拷锟节达拷锟斤拷锟脚猴拷锟斤拷锟斤拷时锟斤拷锟斤拷锟斤拷卸喜锟斤拷戏锟�   2013-03-21
     for (i = 0; i < GW_OSAL_MAX_COUNT_SEM; i++) {
         if (gw_osal_count_sem_table[i].free == FALSE) {
             pthread_mutex_unlock(&gw_osal_count_sem_table_mut);

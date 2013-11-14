@@ -1,5 +1,7 @@
 
+#include "product.h"
 #include "../include/gw_config.h"
+#include "superset.h"
 
 #include <ctype.h>
 #if OS_CYG_LINUX

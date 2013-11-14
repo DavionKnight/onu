@@ -1,8 +1,10 @@
 #include <string.h>
 #include <math.h>
 
-//#include "cli_common.h"
+#include "product.h"
+#include "gw_config.h"
 #include "../include/gw_os_api_core.h"
+#include "superset.h"
 #include "../include/gw_timer.h"
 #include "../cli_lib/cli_common.h"
 #include "gw_log.h"
@@ -555,11 +557,11 @@ static int GwCommOamHeadBuild(GWTT_OAM_HEADER *pHead,  unsigned char GwOpcode,un
 	pHead->oui[2] = 0xE9;
 	pHead->opCode = GwOpcode;
 	pHead->senderSerNo = SendSerNo;
-	#ifdef __BIG_ENDIAN__
-	pHead->wholePktLen = gwd_htons(SendDataSize);	
-	#else
+#if (_BIG_ENDIAN_ == RPU_YES)
+	pHead->wholePktLen = gwd_htons(SendDataSize);
+#else
 	pHead->wholePktLen = SendDataSize;
-	#endif
+#endif
 	if(NULL != pSessionIdfield)
 		memcpy(pHead->sessionId,pSessionIdfield,8);
 	return GWD_RETURN_OK;
@@ -622,13 +624,13 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	{
 		while((usOAMPayloadLenGW+DataLenSended) < SendDataSize)
 		{
-			#ifdef 	__BIG_ENDIAN__
+#if (_BIG_ENDIAN_ == RPU_YES)
 			avender->payLoadLength = gwd_htons(usOAMPayloadLenGW);
 			avender->payloadOffset = gwd_htons(DataLenSended);
-			#else
+#else
 			avender->payLoadLength = (usOAMPayloadLenGW);
 			avender->payloadOffset = (DataLenSended);
-			#endif
+#endif
 			memset(OamFrame+sizeof(GWTT_OAM_HEADER), '\0',2048-sizeof(GWTT_OAM_HEADER));
 			memcpy(OamFrame+sizeof(GWTT_OAM_HEADER),pSentData+DataLenSended,usOAMPayloadLenGW);
 //			oam_send(llid, active_pon_port, (unsigned char *)avender,(int)(usOAMPayloadLenGW + sizeof(GWTT_OAM_HEADER)));
@@ -651,7 +653,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 			}
 		}
 
-#ifdef 	__BIG_ENDIAN__
+#if (_BIG_ENDIAN_ == RPU_YES)
 		avender->payLoadLength =gwd_htons ((SendDataSize-DataLenSended));
 		avender->payloadOffset = gwd_htons(DataLenSended);
 #else
@@ -673,7 +675,7 @@ int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char
 	}
 	else
 	{
-#ifdef    __BIG_ENDIAN__
+#if (BIG_ENDIAN == RPU_YES)
 		avender->payLoadLength = gwd_htons(SendDataSize);
 		avender->payloadOffset = 0;
 #else
@@ -1248,9 +1250,9 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
 #if (RPU_YES == RPU_MODULE_TIMING_PKT)
 
-            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*只锟斤拷使锟斤拷时锟斤拷锟斤拷一锟斤拷*/
+            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))
             {
-                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*锟斤拷锟斤拷锟斤拷锟饺硷拷= port monitor*/
+                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);
                 VOS_ASSERT(TimingPkt_TaskID != 0);
             }
 #endif
@@ -1294,7 +1296,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
             
-            if(PPPOE_RELAY_DISABLE == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
+            if(PPPOE_RELAY_DISABLE == *pReq)
             {
                 if (PPPOE_RELAY_DISABLE == g_PPPOE_relay)
                 {
@@ -1429,7 +1431,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
         }
 #endif
 
-        if(RELAY_TYPE_DHCP == *pReq)/*锟斤拷锟斤拷pppoe_relay锟斤拷锟斤拷锟斤拷*/
+        if(RELAY_TYPE_DHCP == *pReq)
         {
             DHCP_RELAY_PACKET_DEBUG(("\r\n received dhcp relay-OAM pkt!\r\n"));
             
@@ -1443,7 +1445,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
             
-            if(0 == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
+            if(0 == *pReq)
             {
                 if (0 == g_DHCP_OPTION82_Relay)
                 {
@@ -1579,7 +1581,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			return sendIpSourcManAck(IP_RESOURCE_FREE, 0, pRequest->SessionID);
 			break;
 #endif
-#if (RPU_MODULE_PPPOE_RELAY == RPU_YES)
+#if (RPU_MODULE_USER_LOCATE == RPU_YES)
 		case ONU_LOCATE_USER:
 			{
 				unsigned char swmac[USR_MAC_LEN] = "", subsw = 0;
@@ -1635,8 +1637,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 #endif
                 
 				while(!ifhavemac)
-				{					
-					/*��ȡfdb���е�ǰ256 ��mac ,���û��ȡȫ�´��ڽ��Ż�ȡ֪��ȫ��ȡ��*/
+				{
 					if(user_mac_onu_fdb_get(macbuf,lastmac,&macnumberget,&ifhavemac))
 					{
 						return GWD_RETURN_ERR;
@@ -1654,7 +1655,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 	                for (requestNum = 0; requestNum < requestPdu->macNum; requestNum++)
 	                {
 	    				/*generating response pdu only for found the mac because of OLT broadcast oam request*/
-						if(!memcmp(info[requestNum].swmac,nullmac,USR_MAC_LEN))/*��ǰһ���Ѿ�ȡ����mac��ξͲ���ȥ�ڲ���*/
+						if(!memcmp(info[requestNum].swmac,nullmac,USR_MAC_LEN))
 						{
 							continue;
 						}
@@ -1668,13 +1669,10 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 	    					responseInfo[responseNum].subsw = subsw;
 	    					memcpy(responseInfo[responseNum].swmac, swmac, USR_MAC_LEN);
 	    					responseInfo[responseNum].swport = swport;
-							memset(info[requestNum].swmac,0,USR_MAC_LEN);/*�ҵ�֮�����mac���´ξͲ���Ҫ�ڲ���*/
+							memset(info[requestNum].swmac,0,USR_MAC_LEN);
 	                        responseNum++;
 	                        ResLen += sizeof(userMacResponse_t);
-							/*****************************************************************************
-							���Ҫ���mac�����Ѿ�����fdb���Ҷ��ҵ��˾Ͳ���Ҫ������
-							����ҵ�mac�����32��
-							*******************************************************************************/
+
 							if((responseNum == requestPdu->macNum) || (responseNum >= USR_MAC_RESPONS_MAC_MAX))
 							{
 								ifhavemac=1;
@@ -1697,9 +1695,9 @@ END:
                 if (0 != responseNum)
                 {
                 	responsePdu->type = ONU_LOCATE_USER;/*cheak type*/
-                    responsePdu->result = 1;/*��ѯ���*/
-					responsePdu->mode	= USR_MAC_ADDRES_CHEAK;/*��ѯģʽ*/				
-                    responsePdu->macNum = responseNum;/*�鵽��MAC��ַ��*/
+                    responsePdu->result = 1;
+					responsePdu->mode	= USR_MAC_ADDRES_CHEAK;
+                    responsePdu->macNum = responseNum;
                     
                     memcpy(tempP, responsePdu, sizeof(userMacResponse_pdu_t));
                     tempP += sizeof(userMacResponse_pdu_t);

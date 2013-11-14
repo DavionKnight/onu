@@ -1,5 +1,6 @@
-
+#include "product.h"
 #include "../include/gw_config.h"
+#include "../include/superset.h"
 
 #include <sys/time.h>
 #include <sys/types.h>

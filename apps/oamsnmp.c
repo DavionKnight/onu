@@ -5,7 +5,9 @@
  *      Author: tommy
  */
 
+#include "product.h"
 #include "../include/gw_config.h"
+#include "superset.h"
 
 #if USING_BSD_SOCK
 #include <sys/socket.h>

@@ -3,40 +3,10 @@ extern  "C"
 {
 #endif 
 
-#if 0  
-#include "iros_config.h"
-#include <network.h>
-#include <cyg/kernel/kapi.h>
-#include <pkgconf/io_fileio.h>
-#include <cyg/hal/hal_if.h>
-#include <cyg/hal/hal_io.h>
-#include <pkgconf/hal.h>
-#include <pkgconf/system.h>
-#include <pkgconf/memalloc.h>
-#include <pkgconf/isoinfra.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <netinet/tcp.h>
-#include <netinet/tcp_timer.h>
-#include <netinet/tcp_var.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <ctype.h> 
-#include <immenstar.h>
+#include "product.h"
+#include "gw_config.h"
+#include "superset.h"
 
-#include "onu_sync_api.h"
-#include "onuAalInt.h"
-#include "marvell/onu_marvell_sample_hwcfg.h"
-#include "onu_switch_if.h"
-#include "onu_sw_api.h"
-#include "onu_sync_api.h"
-#include "frame.h"
-#include "if_eth_drv.h"
-#include "cli_common.h"
-
-#else
 #include "../include/gw_os_api_core.h"
 #include "../cli_lib/cli_common.h"
 #include "pkt_main.h"
@@ -45,15 +15,6 @@ extern  "C"
 #include "gw_log.h"
 
 #include "gwdonuif_interval.h"
-#if 0
-#include "onu_uax.h"
-#include "onu_datetype.h"
-#include "onu_cli.h"
-#include "onu_printf.h"
-#include "onu_command_fun.h"
-#endif
-
-#endif
 
 //struct slot_port *my_onu = NULL;
 //void *my_onu_port;

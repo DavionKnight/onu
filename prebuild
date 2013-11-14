@@ -1,11 +1,11 @@
 #!/bin/sh
 
-	targethfile=$PWD/../include/product.h
+	targethfile=$PWD/../include/product_class.h
 	
 	if [ -n "$2" ]
 	then 
 		echo "force $1 type selected"
-		echo "#define $1 1" > $targethfile
+		echo "#define PRODUCT_CLASS $1" > $targethfile
 		
 		if [ -d $PWD/../Debug ]
 		then
