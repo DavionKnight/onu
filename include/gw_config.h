@@ -19,7 +19,7 @@
 #define	RPU_NO		0
 
 #define	_LITTLE_ENDIAN_		RPU_NO
-#define	_BIG_ENDIAN_		    RPU_YES
+#define	_BIG_ENDIAN_	    RPU_YES
 
 /***************************************************************************/
 

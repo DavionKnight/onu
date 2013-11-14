@@ -8,17 +8,192 @@
 #ifndef SUPERSET_H_
 #define SUPERSET_H_
 
+#include "product_class.h"
+
+#if(FOR_BCM_ONU)
 #if (PRODUCT_CLASS == GT813C)
+
+#define PRODUCT_TYPE                DEVICE_TYPE_GT813_C
+
 #ifdef NUMBER_PORTS_PER_SYSTEM
 #undef NUMBER_PORTS_PER_SYSTEM
-#define NUMBER_PORTS_PER_SYSTEM 24
 #endif
-#elif (PRODUCT_CLASS == GT815C)
-#else
-#define RPU_MODULE_LOOPBACK_DETECT 		RPU_NO
-#define RPU_MODULE_RCP_SWITCH					RPU_NO
+#define NUMBER_PORTS_PER_SYSTEM 24
+
+#endif
+
+#if (PRODUCT_CLASS == GT815C)
+#define PRODUCT_TYPE                DEVICE_TYPE_GT815_C
+
+#ifdef NUMBER_PORTS_PER_SYSTEM
+#undef NUMBER_PORTS_PER_SYSTEM
+#endif
+#define NUMBER_PORTS_PER_SYSTEM 16
+#endif
+
+#ifdef _OS_
+#undef _OS_
+#endif
+#define _OS_ OS_TYPE_LINUX
+
+#ifdef _SOCKET_CLASS_
+#undef _SOCKET_CLASS_
+#endif
+#define _SOCKET_CLASS_	BSD_SOCKET
+
+#ifdef LITTLE_ENDIAN
+#undef _LITTLE_ENDIAN_
+#endif
+#define _LITTLE_ENDIAN_ RPU_NO
+
+#ifdef _BIG_ENDIAN_
+#undef _BIG_ENDIAN_
+#endif
+#define _BIG_ENDIAN_ RPU_YES
+
+#ifdef GW_THREAD_STACK_MIN_SIZE
+#undef GW_THREAD_STACK_MIN_SIZE
+#endif
+#define GW_THREAD_STACK_MIN_SIZE			(40*1024)
+
+#ifdef RPU_MODULE_LOOPBACK_DETECT
+#undef RPU_MODULE_LOOPBACK_DETECT
+#endif
+#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
+
+#ifdef RPU_MODULE_RCP_SWITCH
+#undef RPU_MODULE_RCP_SWITCH
+#endif
+#define RPU_MODULE_RCP_SWITCH					RPU_YES
+
+#ifdef RPU_MODULE_IGMP_TVM
+#undef RPU_MODULE_IGMP_TVM
+#endif
 #define RPU_MODULE_IGMP_TVM						RPU_NO
+
+#elif (FOR_CORTINA_ONU)
+
+#if (PRODUCT_CLASS == GT811C || PRODUCT_CLASS == GT811D || PRODUCT_CLASS == GT873M_4F4S)
+
+#ifdef NUMBER_PORTS_PER_SYSTEM
+#undef NUMBER_PORTS_PER_SYSTEM
+#endif
+#define NUMBER_PORTS_PER_SYSTEM 4
+
+#elif (PRODUCT_CLASS == GT816A)
+
+#ifdef NUMBER_PORTS_PER_SYSTEM
+#undef NUMBER_PORTS_PER_SYSTEM
+#endif
+#define NUMBER_PORTS_PER_SYSTEM 1
+
+#endif
+
+#if (PRODUCT_CLASS == GT811C)
+#define PRODUCT_TYPE                DEVICE_TYPE_GT811_C
+#endif
+
+#if (PRODUCT_CLASS == GT811D)
+#define PRODUCT_TYPE                DEVICE_TYPE_GT811_D
+#endif
+
+#if (PRODUCT_CLASS == GT873M_4F4S)
+#define PRODUCT_TYPE                DEVICE_TYPE_GT873
+#endif
+
+#if (PRODUCT_CLASS == GT816A)
+#define PRODUCT_TYPE                DEVICE_TYPE_GT816
+#endif
+
+#ifdef _OS_
+#undef _OS_
+#endif
+#define _OS_ OS_TYPE_CYG_LINUX
+
+#ifdef _SOCKET_CLASS_
+#undef _SOCKET_CLASS_
+#endif
+#define _SOCKET_CLASS_	LWIP_SOCKET
+
+#ifdef GW_THREAD_STACK_MIN_SIZE
+#undef GW_THREAD_STACK_MIN_SIZE
+#endif
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
+
+#ifdef LITTLE_ENDIAN
+#undef _LITTLE_ENDIAN_
+#endif
+#define _LITTLE_ENDIAN_ RPU_YES
+
+#ifdef _BIG_ENDIAN_
+#undef _BIG_ENDIAN_
+#endif
+#define _BIG_ENDIAN_ RPU_NO
+
+#ifdef RPU_MODULE_LOOPBACK_DETECT
+#undef RPU_MODULE_LOOPBACK_DETECT
+#endif
+#define RPU_MODULE_LOOPBACK_DETECT 		RPU_YES
+
+#ifdef RPU_MODULE_RCP_SWITCH
+#undef RPU_MODULE_RCP_SWITCH
+#endif
+#define RPU_MODULE_RCP_SWITCH					RPU_YES
+
+#ifdef RPU_MODULE_IGMP_TVM
+#undef RPU_MODULE_IGMP_TVM
+#endif
+#define RPU_MODULE_IGMP_TVM						RPU_NO
+
+#else
+
 #define PRODUCT_TYPE			(DEVICE_TYPE_VALID_MAX+1)
+
+#ifdef NUMBER_PORTS_PER_SYSTEM
+#undef NUMBER_PORTS_PER_SYSTEM
+#endif
+#define NUMBER_PORTS_PER_SYSTEM 1
+
+#ifdef _OS_
+#undef _OS_
+#endif
+#define _OS_ OS_TYPE_CYG_LINUX
+
+#ifdef _SOCKET_CLASS_
+#undef _SOCKET_CLASS_
+#endif
+#define _SOCKET_CLASS_	LWIP_SOCKET
+
+#ifdef GW_THREAD_STACK_MIN_SIZE
+#undef GW_THREAD_STACK_MIN_SIZE
+#endif
+#define GW_THREAD_STACK_MIN_SIZE			(4*1024)
+
+#ifdef LITTLE_ENDIAN
+#undef _LITTLE_ENDIAN_
+#endif
+#define _LITTLE_ENDIAN_ RPU_YES
+
+#ifdef _BIG_ENDIAN_
+#undef _BIG_ENDIAN_
+#endif
+#define _BIG_ENDIAN_ RPU_NO
+
+#ifdef RPU_MODULE_LOOPBACK_DETECT
+#undef RPU_MODULE_LOOPBACK_DETECT
+#endif
+#define RPU_MODULE_LOOPBACK_DETECT 		RPU_NO
+
+#ifdef RPU_MODULE_RCP_SWITCH
+#undef RPU_MODULE_RCP_SWITCH
+#endif
+#define RPU_MODULE_RCP_SWITCH					RPU_NO
+
+#ifdef RPU_MODULE_IGMP_TVM
+#undef RPU_MODULE_IGMP_TVM
+#endif
+#define RPU_MODULE_IGMP_TVM						RPU_NO
+
 #endif
 
 
