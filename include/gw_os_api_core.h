@@ -89,6 +89,8 @@ void gw_osal_core_init(
 /**************************************************************************
                                                         Thread API
 **************************************************************************/
+
+//!!! the api gw_thread_exit must be called while exiting from the thread created by this api
 gw_int32 gw_thread_create(
                     gw_uint32        *thread_id,
                     const gw_int8   *thread_name,      /* Thread name's length must be less than 20-bytes*/
@@ -104,6 +106,10 @@ gw_int32 gw_thread_delete(gw_uint32 thread_id);
 gw_int32 gw_thread_delay(
                     gw_uint32 milli_second                 /* in millisecond , For Ecos and Linux , the minimum value should be 10,*/
                     );                                                   /* for Vxworks , the minimum value should be 17    */
+
+
+//this api must be called while exiting thread handler if the thread created by gw_thread_create
+gw_int32 gw_thread_exit();
 
 gw_uint32 gw_thread_number();
 

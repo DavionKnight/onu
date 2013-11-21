@@ -310,6 +310,8 @@ void gw_osal_core_init(void)
 
     NOTES: task_id is passed back to the user as the ID. Flags are unused at this point.
 
+    !!! the api gw_thread_exit must be called while exiting from the thread created by this api
+
 
 ---------------------------------------------------------------------------------------*/
 #if 1
@@ -464,9 +466,13 @@ gw_int32 gw_thread_delete(gw_uint32 thread_id)
     }
 
 #ifdef CYG_LINUX
-    cyg_thread_kill(gw_osal_thread_table[thread_id].id);
+    cyg_thread_delete(gw_osal_thread_table[thread_id].id);
 #else
-    pthread_cancel(gw_osal_thread_table[thread_id].id);
+    {
+    	void * status = NULL;
+    	pthread_cancel(gw_osal_thread_table[thread_id].id);
+    	pthread_join(gw_osal_thread_table[thread_id].id, &status);
+    }
 #endif
 
     memset(gw_osal_thread_table[thread_id].name, 0, GW_OSAL_MAX_API_NAME);
@@ -475,7 +481,12 @@ gw_int32 gw_thread_delete(gw_uint32 thread_id)
     gw_osal_thread_table[thread_id].creator = 0;
     gw_osal_thread_table[thread_id].stack_size = 0;
     gw_osal_thread_table[thread_id].priority = 0;
-    gw_osal_thread_table[thread_id].stack_buf = NULL;
+
+    if(gw_osal_thread_table[thread_id].stack_buf)	//free stack buff allocated by creator
+    {
+    	free(gw_osal_thread_table[thread_id].stack_buf);
+    	gw_osal_thread_table[thread_id].stack_buf = NULL;
+    }
 
 #ifdef CYG_LINUX
     cyg_mutex_unlock(&gw_osal_task_table_mutex);
@@ -502,6 +513,58 @@ gw_int32 gw_thread_delay(gw_uint32 milli_second)
     return GW_E_OSAL_OK;
 
 }
+
+
+gw_int32 gw_thread_exit()
+{
+
+	gw_uint32 thread_id = gw_creator_find();
+
+#if OS_CYG_LINUX
+    cyg_mutex_lock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_lock(&gw_osal_thread_table_mut);
+#endif
+
+
+    if (thread_id >= GW_OSAL_MAX_THREAD || gw_osal_thread_table[thread_id].free != FALSE) {
+#if OS_CYG_LINUX
+    cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
+        return GW_E_OSAL_ERR_INVALID_ID;
+    }
+
+    memset(gw_osal_thread_table[thread_id].name, 0, GW_OSAL_MAX_API_NAME);
+
+    gw_osal_thread_table[thread_id].free = TRUE;
+    gw_osal_thread_table[thread_id].creator = 0;
+    gw_osal_thread_table[thread_id].stack_size = 0;
+    gw_osal_thread_table[thread_id].priority = 0;
+
+    if(gw_osal_thread_table[thread_id].stack_buf)	//free stack buff allocated by creator
+    {
+    	free(gw_osal_thread_table[thread_id].stack_buf);
+    	gw_osal_thread_table[thread_id].stack_buf = NULL;
+    }
+
+#if OS_CYG_LINUX
+    cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
+
+#if OS_CYG_LINUX
+    cyg_thread_exit();
+#else
+    pthread_exit("done");
+#endif
+
+    return GW_E_OSAL_OK;
+}
+
+
 
 #ifdef CYG_LINUX
 
@@ -1038,16 +1101,6 @@ int gw_semaphore_init
         pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
         return GW_E_OSAL_ERR_NO_FREE_IDS;
     }
-#if 0
-// ȥ������ж� ���ڴ����ź�����ʱ������жϲ��Ϸ�    2013-03-21
-    for (i = 0; i < GW_OSAL_MAX_COUNT_SEM; i++) {
-        if (gw_osal_count_sem_table[i].free == FALSE) {
-            pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
-			diag_printf("%s %d sem_name error********\n",__func__,__LINE__);
-            return GW_E_OSAL_ERR_NAME_TAKEN;
-        }
-    }
-#endif
 
     gw_osal_count_sem_table[possible_semid].free = FALSE;
     pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
