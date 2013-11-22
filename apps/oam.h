@@ -26,8 +26,6 @@ typedef gw_uint32 epon_port_id_t;
 #define PHY_OK 1
 
 
-#define BUILDTIMELEN 100
-
 typedef struct userMacRequest_s
 {
     unsigned char swmac[6];		/*sub switch mac address*/
@@ -346,10 +344,11 @@ extern unsigned long   gulDebugOamFileOp;
 #define DEVICE_TYPE_GT815_C			0x002e
 #define DEVICE_TYPE_GT812_C			0x002f
 #define DEVICE_TYPE_GT811_C			0x0030
-#define DEVICE_TYPE_GT873_A			0x0031
-#define DEVICE_TYPE_VALID_MAX		DEVICT_TYPE_GT873_A
+#define DEVICE_TYPE_GT872_A			0x0031
+#define DEVICE_TYPE_GT873_A			0x0032
+#define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT873_A
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
-#define PRODUCT_TYPE                DEVICE_TYPE_GT813_C
+#define PRODUCT_TYPE                DEVICE_TYPE_GT873_A
 
 
 #define DeviceTypeIsValid( _device_type ) \

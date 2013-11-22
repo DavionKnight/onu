@@ -16,7 +16,27 @@ typedef struct log_phy_map_s {
     unsigned char physical_port;
 } log_phy_map_t;
 
+extern unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num);
+#define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(portlist, ifindex,devonuport_num) \
+{\
+    gw_uint32 * _pulIfArray;\
+    gw_uint32 _i = 0;\
+    _pulIfArray = (gw_uint32*)ETH_ParsePortList(portlist,devonuport_num);\
+    if(!_pulIfArray)\
+    	{\
+    		ifindex = 0;\
+    	}\
+    if(_pulIfArray != NULL)\
+    {\
+        for(_i=0;_pulIfArray[_i]!=0;_i++)\
+        {\
+            ifindex = _pulIfArray[_i];\
 
+#define END_PARSE_PORT_LIST_TO_PORT_NO_CHECK() \
+        }\
+        free(_pulIfArray);\
+    }\
+}
 
 extern unsigned char phy_log_map[NUM_UNITS_PER_SYSTEM][PHY_PORT_MAX+1];
 extern log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM];

@@ -397,6 +397,23 @@ int IFM_GET_FIRST_PORTONVLAN(unsigned long *ulport, unsigned short vid)
 
 #endif
 
+char *getRealProductType(unsigned short int productID)
+{
+	unsigned char st;
+
+	if(DEVICE_TYPE_GT873_A == productID)
+	{
+		if(call_gwdonu_if_api(LIB_IF_REAL_PRODUCT_TYPE_GET, 1,&st) != GWD_RETURN_OK)
+		{
+			gw_printf("Get Real Name fail!\r\n");
+		}
+		if(DEVICE_TYPE_GT873_A == st)
+			return "GT873_A";
+		else if(DEVICE_TYPE_GT872_A == st)
+			return "GT872_A";
+	}
+}
+
 char* onu_product_name_get(unsigned short int productID)
 {
 	switch(productID)
@@ -465,8 +482,10 @@ char* onu_product_name_get(unsigned short int productID)
 		case DEVICE_TYPE_GT815_C:
 			return "GT815_C";
 
+		case DEVICE_TYPE_GT872_A:
+			return "GT872_A";
 		case DEVICE_TYPE_GT873_A:
-			return "GT873_A";
+			return getRealProductType(DEVICE_TYPE_GT873_A);
 
 		default:
 			return "UNKNOWN";

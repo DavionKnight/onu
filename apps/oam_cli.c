@@ -5,6 +5,7 @@
 #include "gw_log.h"
 #include "oam.h"
 #include "gwdonuif_interval.h"
+#include "gw_port.h"
 
 
 #define GW_VLAN_MAX 4094
@@ -17,28 +18,8 @@
 #define GW_PORT_PRI_LAS 0
 
 
-#define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(portlist, ifindex,devonuport_num) \
-{\
-    gw_uint32 * _pulIfArray;\
-    gw_uint32 _i = 0;\
-    _pulIfArray = (gw_uint32*)ETH_ParsePortList(portlist,devonuport_num);\
-    if(!_pulIfArray)\
-    	{\
-    		ifindex = 0;\
-    	}\
-    if(_pulIfArray != NULL)\
-    {\
-        for(_i=0;_pulIfArray[_i]!=0;_i++)\
-        {\
-            ifindex = _pulIfArray[_i];\
-
-#define END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI() \
-        }\
-        free(_pulIfArray);\
-    }\
-}
-
 extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
+#if (RPU_MODULE_NOT_USE == RPU_YES)
 int cmd_oam_port_kill_thread_test(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     int ret;
@@ -48,6 +29,8 @@ int cmd_oam_port_kill_thread_test(struct cli_def *cli, char *command, char *argv
     
     return ret;
 }
+#endif
+
 int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
@@ -185,7 +168,7 @@ int cmd_oam_port_mirror_to(struct cli_def *cli, char *command, char *argv[], int
 
     if(argc == 1)
     {
-        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(argv[0], ulPort,maxportnumber)
+        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,maxportnumber)
         {
 			if(ulPort < 0)
 			{
@@ -201,7 +184,7 @@ int cmd_oam_port_mirror_to(struct cli_def *cli, char *command, char *argv[], int
             boards_logical_to_physical(ulPort,&unit,&phyport);
             portmap |= 1<< phyport;
         }
-        END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI();
+        END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
         
         if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,UNIT,&mode) != GW_OK)
         {
@@ -306,7 +289,7 @@ int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], i
             }   
         }
         
-        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI(argv[1], ulPort,maxportnumber)
+        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[1], ulPort,maxportnumber)
         {
 			if(ulPort < 0)
 			{
@@ -361,7 +344,7 @@ int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], i
             }
 
         }
-        END_PARSE_PORT_LIST_TO_PORT_NO_CHECK_CLI();
+        END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
         
 
     }

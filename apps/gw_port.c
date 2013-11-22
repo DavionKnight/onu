@@ -47,7 +47,7 @@ log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM] =
 
 int onu_bitport_phyport_get(unsigned int egports,unsigned char phyportmember[PHY_PORT_MAX])
 {
-	int numOfUniPorts = 0,phyport=0;
+	int phyport=0;
 	int phynum = 0;
 	
 	if(phyportmember == NULL)
@@ -67,6 +67,7 @@ int onu_bitport_phyport_get(unsigned int egports,unsigned char phyportmember[PHY
 			phyportmember[phyport] = PHY_ERROR;
 		}
 	}
+    
 	if(0 == phynum)
 	{
 		return GW_ERROR;
