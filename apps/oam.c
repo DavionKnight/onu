@@ -2270,7 +2270,21 @@ int cmd_onu_mgt_config_product_date(struct cli_def *cli, char *command, char *ar
 		year = atoi(argv[0]);
 		month = atoi(argv[1]);
 		date = atoi(argv[2]);
-
+        if((year < 2007) || (year > 2100))
+        {
+            gw_cli_print(cli,"input year %d error\r\n",year);
+            return CLI_ERROR;
+        }
+        if((month < 1) || (month > 12))
+        {
+            gw_cli_print(cli,"input Month %d error\r\n",year);
+            return CLI_ERROR;
+        }
+        if((date < 1)|| (date > 31))
+        {
+            gw_cli_print(cli,"input Date %d error\r\n",year);
+            return CLI_ERROR;
+        }
 		GW_Onu_Sysinfo_Get();
 		sprintf(gw_onu_system_info_total.hw_manufature_date, 
 			   	"%d-%02d-%02d", year, month, date);
@@ -2358,8 +2372,21 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
 		v_major = atoi(argv[0]);
 		v_rel = atoi(argv[1]);
 		vb = atoi(argv[2]);
-
-
+        if((v_major < 1) || (v_major > 9))
+        {
+            gw_cli_print(cli,"input Major version  %d error\r\n",v_major);
+            return CLI_ERROR;
+        }
+        if((v_rel < 0) || (v_rel > 9))
+        {
+            gw_cli_print(cli,"input Release version %d error\r\n",v_rel);
+            return CLI_ERROR;
+        }
+        if((vb < 1)|| (vb > 9))
+        {
+            gw_cli_print(cli,"input Build version %d error\r\n",vb);
+            return CLI_ERROR;
+        }
 		sprintf(gw_onu_system_info_total.hw_version, "V%d.%dB%d",
 			v_major, v_rel, vb);
         

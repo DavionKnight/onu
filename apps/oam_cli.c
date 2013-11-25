@@ -705,6 +705,12 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 				{
 					gw_cli_print(cli,"pri error\n");
 				}
+
+            if((strcmp(argv[0],"0000.0000.0000")  == 0) || strcmp(argv[0],"ffff.ffff.ffff") == 0)
+            {
+                gw_cli_print(cli,"add static mac addr[%s] error\n",argv[0]);
+                return CLI_ERROR;
+            }
 			if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,argv[0],gw_port,gw_vlan) != GW_OK)
 				gw_cli_print(cli,"add static mac fail\n");
 			else
