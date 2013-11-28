@@ -165,17 +165,17 @@ int cmd_stat_port_clear(struct cli_def *cli, char *command, char *argv[], int ar
 		portid = atoi(argv[0]);
 		if(portid > 0 && portid <= gw_onu_read_port_num())
 		{
-			gw_cli_print(cli,"\nport %d stat clear",portid);
 			clear_port_statistic(cli, portid);
+			gw_cli_print(cli,"\nPort's statistics have been flushed.");
 		}
 		else
 			return CLI_ERROR_ARG;
 	}
 	else
 	{
+		gw_cli_print(cli,"All ports' statistics have been flushed.\r\n");
 		for (i = 1; i <= gw_onu_read_port_num(); i++)
 			{
-				gw_cli_print(cli,"\nport %d stat clear",i);
                 gw_thread_delay(cli_printf_delay);
 				clear_port_statistic(cli, i);
 			}
@@ -698,7 +698,7 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 
 	stat = gw_cli_register_command(cmd_root, NULL, "stat", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "stat command");
 	gw_cli_register_command(cmd_root, stat, "port_show", cmd_stat_port_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port statistic show");
-	gw_cli_register_command(cmd_root, stat, "port_clear", cmd_stat_port_clear, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port statistic clear");
+	gw_cli_register_command(cmd_root, stat, "port_flush", cmd_stat_port_clear, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port statistic clear");
 	 // portdown {[enable|disable]}*1
 	cp = gw_cli_register_command(cmd_root, NULL, "broadcast", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast config");
 	cp = gw_cli_register_command(cmd_root, cp, "storm", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast storm config");

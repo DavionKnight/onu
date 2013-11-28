@@ -203,8 +203,6 @@ void broad_storm_thread(void* data)
         { 0 };
     gw_uint16 startCouter[NUM_PORTS_PER_SYSTEM - 1] =
         { 0 };
-    gw_uint16 BroadcaststormPortDown[NUM_PORTS_PER_SYSTEM - 1] =
-        { 0 };
     call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2, g_sys_mac, &g_uni_port_num);
     while (GW_TRUE)
     {
@@ -286,7 +284,6 @@ void broad_storm_thread(void* data)
                         gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 2, 1, OAMsession);
                         //gw_printf("shutdown gwd onu port %d\n",logical_port);
                         //gw_time_get(&tm);
-                        BroadcaststormPortDown[physical_port] = 1;
                         gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth1/%d detected Broadcast Storm,port shutdown", logical_port);
                     }
                     else
@@ -333,11 +330,6 @@ void broad_storm_thread(void* data)
             }
             else
             {
-                if(BroadcaststormPortDown[physical_port] == 1)
-                {
-                    gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 1, 2, OAMsession);
-                    BroadcaststormPortDown[physical_port] = 0;
-                }
                 gwd_onu_port_bcstorm_date_clear(physical_port);
             }
         }
