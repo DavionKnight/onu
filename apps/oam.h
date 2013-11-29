@@ -351,7 +351,7 @@ extern unsigned long   gulDebugOamFileOp;
 
 #define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT873_A
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
-#define PRODUCT_TYPE                DEVICE_TYPE_GT815_C
+#define PRODUCT_TYPE                DEVICE_TYPE_GT873_A
 
 
 #define DeviceTypeIsValid( _device_type ) \
@@ -1057,9 +1057,7 @@ typedef struct onu_system_information_total
 														/* 356 */
 	unsigned char 	reserved_4[2];					/* 2 */
 	unsigned char 	reboot;							/* 1 */
-#if(RPU_MODULE_POE == RPU_YES)  
-    unsigned char   poectrtable[NUM_PORTS_PER_SYSTEM - 1];
-#endif
+
 	unsigned char	valid_flag;						/* 1 */ /* Total: 360 */
 }ONU_SYS_INFO_TOTAL;
 
