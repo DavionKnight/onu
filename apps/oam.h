@@ -1057,9 +1057,7 @@ typedef struct onu_system_information_total
 														/* 356 */
 	unsigned char 	reserved_4[2];					/* 2 */
 	unsigned char 	reboot;							/* 1 */
-#if(RPU_MODULE_POE == RPU_YES)  
-    unsigned char   poectrtable[NUM_PORTS_PER_SYSTEM - 1];
-#endif
+
 	unsigned char	valid_flag;						/* 1 */ /* Total: 360 */
 }ONU_SYS_INFO_TOTAL;
 
