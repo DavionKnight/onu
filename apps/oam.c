@@ -2613,7 +2613,7 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
         
 		gw_cli_print(cli,  "\n  Product information as following--");
 		gw_cli_print(cli,  "    ONU type         : %s", "GT873_A");
-		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
+		gw_cli_print(cli,  "    DeviceName       : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
 		gw_cli_print(cli,  "    Firmware version : %s", iros_version);
@@ -2682,7 +2682,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
 	{
 		gw_cli_print(cli,  "\n  Product information as following--");
 		gw_cli_print(cli,  "    ONU type         : %s", onu_product_name_get(PRODUCT_TYPE));
-		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
+		gw_cli_print(cli,  "    DeviceName       : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
 		gw_cli_print(cli,  "    Firmware version : %s%s", onu_product_name_get(PRODUCT_TYPE), iros_version);

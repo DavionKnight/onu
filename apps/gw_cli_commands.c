@@ -22,6 +22,11 @@ char   g_cSetTime[20]= {0};
 #define BC_STORM_THRESHOLD_MAX 2000000
 #define BC_STORM_THRESHOLD_LAS 10
 int cli_printf_delay = 100;
+static void clear_port_statistic(struct cli_def * cli, int portid)
+{
+	if (GW_OK!= call_gwdonu_if_api(LIB_IF_PORT_STATISTIC_CLEAR, 1, portid))
+				gw_cli_print(cli, "clear port %d statistic fail!\r\n", portid);
+}
 static void show_port_statistic(struct cli_def * cli, int portid)
 {
 
@@ -131,6 +136,52 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 	}
 
 	
+
+	return CLI_OK;
+}
+
+int cmd_stat_port_clear(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	int portid = 0;
+	int i = 0;
+	if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0,
+					"<1-%d>", gw_onu_read_port_num(), "Input one fe port number", NULL );
+				break;
+
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				break;
+		}
+	}
+
+	if(argc == 1)
+	{
+		portid = atoi(argv[0]);
+		if(portid > 0 && portid <= gw_onu_read_port_num())
+		{
+			clear_port_statistic(cli, portid);
+			gw_cli_print(cli,"\nPort's statistics have been flushed.");
+		}
+		else
+			return CLI_ERROR_ARG;
+	}
+	else
+	{
+		gw_cli_print(cli,"All ports' statistics have been flushed.\r\n");
+		for (i = 1; i <= gw_onu_read_port_num(); i++)
+			{
+                gw_thread_delay(cli_printf_delay);
+				clear_port_statistic(cli, i);
+			}
+	}
+
+
 
 	return CLI_OK;
 }
@@ -647,7 +698,7 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 
 	stat = gw_cli_register_command(cmd_root, NULL, "stat", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "stat command");
 	gw_cli_register_command(cmd_root, stat, "port_show", cmd_stat_port_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port statistic show");
-
+	gw_cli_register_command(cmd_root, stat, "port_flush", cmd_stat_port_clear, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port statistic clear");
 	 // portdown {[enable|disable]}*1
 	cp = gw_cli_register_command(cmd_root, NULL, "broadcast", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast config");
 	cp = gw_cli_register_command(cmd_root, cp, "storm", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Broadcast storm config");
