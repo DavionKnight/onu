@@ -1,12 +1,12 @@
 /*
  * gw_conf_file.c
  *
- *  Created on: 2013Âπ¥9Êúà3Êó•
+ *  Created on: 2013ƒÍ9‘¬3»’
  *      Author: tommy
  */
 
 /*
- * ÈÖçÁΩÆÊñá‰ª∂Ê†ºÂºè
+ * ≈‰÷√Œƒº˛∏Ò Ω
  *
  * 				headlen(4B)
  * 				TLVlen(4B)
@@ -196,6 +196,7 @@ gw_int32 gw_conf_save(gw_int32 mgt_code)
 {
 
 	gw_int32 ret = -1, iv = 0;
+    gw_int32 counter = 0;
 
 	gw_conf_file_t * pf = &g_conf_file;
 
@@ -233,6 +234,16 @@ gw_int32 gw_conf_save(gw_int32 mgt_code)
 			}
 		}
 	}
+    else
+    {
+/***************************************************************************
+«Â≥˝Ωªªªª˙≈‰÷√
+***********************************************************************/ 	
+       do{
+    	    ret = ereaseRcpDevCfgInFlash(NULL, 1);
+    		counter++;
+    	 }while(ret != GW_OK && counter < 3);
+    }
 
 	iv = 8;
 	pf->write(pf, 0, 4, (gw_uint8*)&iv);
@@ -240,8 +251,7 @@ gw_int32 gw_conf_save(gw_int32 mgt_code)
 	pf->write(pf, 4, 4, (gw_uint8*)&iv);
 
 	pf->close(pf);
-
-	ret = call_gwdonu_if_api(LIB_IF_CONF_WR_FLASH, 0);
+    ret = call_gwdonu_if_api(LIB_IF_CONF_WR_FLASH, 0);
 
 	return ret;
 }

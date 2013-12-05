@@ -6470,6 +6470,10 @@ int ereaseRcpDevCfgInFlash(RCP_DEV  *rcpDev, int allDev)
 	{
 	//	device_conf_erase_switch_conf_from_flash();
 		memset(gpusSwitchCfgFileBuf, 0, glSwitchCfgFileSizeMaxInFlash);
+    /***********************************************************************
+    添加下面API:当清除交换机的所有配置(all ports)，没有清空flash空间
+    ************************************************************************/
+        return device_conf_write_switch_conf_to_flash((char *)gpusSwitchCfgFileBuf, fileLen);
 	}
 	else
 	{
