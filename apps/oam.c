@@ -3342,12 +3342,12 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 		gw_printf("regist native cmds fail!\r\n");
 
 #if(RPU_MODULE_POE == RPU_YES)
-  //  Gwd_onu_poe_exist_stat_get(&stat_val);
-  //  if(stat_val)
-  //  {
+    Gwd_onu_poe_exist_stat_get(&stat_val);
+    if(stat_val)
+    {
 	    if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
 		    gw_printf("regist gwd poe cmds fail!\r\n");
-  //  }
+    }
 #endif
 	if(registerUserCmdInitHandler("multicast", gw_cli_multicast_gwd_cmd) != GW_OK)
 		gw_printf("regist multicast cmds fail!\r\n");

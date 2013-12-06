@@ -351,7 +351,7 @@ extern unsigned long   gulDebugOamFileOp;
 
 #define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT873_A
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
-#define PRODUCT_TYPE                DEVICE_TYPE_GT873_A
+#define PRODUCT_TYPE                DEVICE_TYPE_GT815_PB
 
 
 #define DeviceTypeIsValid( _device_type ) \

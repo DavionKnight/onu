@@ -5165,7 +5165,7 @@ int cli_int_mgt_reset(struct cli_def *cli, char *command, char *argv[], int argc
 	}
 	return CLI_OK;
 }
-
+#if(RPU_MODULE_NOT_USE == RPU_YES)
 int cli_int_mgt_config_clear(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int ret,counter;
@@ -5210,7 +5210,7 @@ int cli_int_mgt_config_clear(struct cli_def *cli, char *command, char *argv[], i
 	return CLI_OK;
 }
 
-
+#endif
 int cli_int_mgt_config_save(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int iRet;
@@ -6173,8 +6173,10 @@ port_cable = gw_cli_register_command(cmd_root,cable,  "test",NULL,       PRIVILE
 	  mgt = gw_cli_register_command(cmd_root,NULL,  "mgt",NULL,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Mgt config");
 			gw_cli_register_command(cmd_root,mgt,  "reset",cli_int_mgt_reset,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Reset switch and load configuration from EEPROM");
  mgt_config = gw_cli_register_command(cmd_root,mgt,  "config",NULL,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Manage configuration");
-			gw_cli_register_command(cmd_root,mgt_config,  "clear",cli_int_mgt_config_clear,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Load factory default configuration");
-			gw_cli_register_command(cmd_root,mgt_config,  "save",cli_int_mgt_config_save,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Save current configuration");
+#if(RPU_MODULE_NOT_USE == RPU_YES)
+            gw_cli_register_command(cmd_root,mgt_config,  "clear",cli_int_mgt_config_clear,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Load factory default configuration");
+#endif
+            gw_cli_register_command(cmd_root,mgt_config,  "save",cli_int_mgt_config_save,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Save current configuration");
 
 	mask = gw_cli_register_command(cmd_root,NULL,  "mask",NULL,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Mask information");
 	maks_alarm = gw_cli_register_command(cmd_root,mask,  "alarm",NULL,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Mask alarm");
