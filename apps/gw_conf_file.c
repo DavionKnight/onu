@@ -209,7 +209,6 @@ gw_int32 gw_conf_save(gw_int32 mgt_code)
 
 	if(mgt_code == 1) //save operation
 	{
-
 		gw_lst_scan(&(pf->handle_list), p, gw_conf_handle_t *)
 		{
 			printf("%s    handle type %d\n", __func__, p->type);
@@ -231,8 +230,13 @@ gw_int32 gw_conf_save(gw_int32 mgt_code)
 
 				if(pv)
 					free(pv);
-			}
+			}            
 		}
+/******************************************************************
+保存下挂交换机配置
+******************************************************************/
+       saveAllRcpDevCfgToFlash();
+        
 	}
     else
     {
