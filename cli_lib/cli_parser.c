@@ -10,9 +10,15 @@
 #include "../apps/gw_log.h"
 #include "../include/gw_os_api_core.h"
 #include "../apps/Pty.h"
+#include "../apps/oam.h"
+#include "../apps/gwdonuif_interval.h"
 
+char localhostname[50] = {0};
 #ifdef HAVE_TELNET_CLI
 #define perror(s) gw_printf(s)
+extern int GwGetOltType(unsigned char *mac, GWD_OLT_TYPE *type);
+extern int GwGetPonSlotPort(unsigned char *mac, GWD_OLT_TYPE type, unsigned long *slot, unsigned long *port);
+extern char* onu_product_name_get(unsigned short int productID);
 void gw_telnet_diag_print_unregister(void);
 extern gw_uint32 app_ip_changed;
 #ifdef CYG_LINUX
@@ -260,10 +266,56 @@ void gw_cli_set_banner(struct cli_def *cli, char *banner)
         cli->banner = banner;
 }
 
+int gw_cli_get_onu_hostname(char* hostname)
+{
+    int ret = 0;
+    GWD_OLT_TYPE type;
+    unsigned long ulSlot = 0;
+    unsigned long ulPon = 0;
+    char olt_mac_addr[6]={0};
+    unsigned int OnuLlid = 0;
+    
+    ret = call_gwdonu_if_api(LIB_IF_OLT_MAC_GET, 1, olt_mac_addr);  
+    if(ret != GW_OK)
+    {
+        return GW_ERROR;
+    }
+    ret = GwGetOltType(olt_mac_addr, &type);
+    if(ret != GW_OK)
+    {
+        return GW_ERROR;
+    }
+    ret = GwGetPonSlotPort(olt_mac_addr, type, &ulSlot, &ulPon);
+    if(ret != GW_OK)
+    {
+        return GW_ERROR;
+    }
+    ret = call_gwdonu_if_api(LIB_IF_ONU_LLID_GET, 1, &OnuLlid);
+    if(ret != GW_OK)
+    {
+        return GW_ERROR;
+    }
+    sprintf(hostname,"%s-%d/%d/%d",onu_product_name_get(PRODUCT_TYPE),ulSlot,ulPon,(OnuLlid+1));
+
+    return GW_OK;
+    
+}
+char localhostname[50] = {0};
 void gw_cli_set_hostname(struct cli_def *cli, char *hostname)
 {
-    if (hostname && *hostname)
-        cli->hostname = hostname;
+    int ret = 0;
+    
+    memset(localhostname,0,50);
+    ret = gw_cli_get_onu_hostname(localhostname);
+    if(ret == GW_OK)
+    {
+        cli->hostname = localhostname;
+    }
+    else
+    {
+        if (hostname && *hostname)
+            cli->hostname = hostname;
+    }
 }
 
 void gw_cli_set_promptchar(struct cli_def *cli, char *promptchar)
@@ -1320,8 +1372,9 @@ int gw_cli_loop(struct cli_def *cli)
 
     memset(username,0,64);
     
-    if(CHANNEL_TCP == cli->channel)
+    if((CHANNEL_TCP == cli->channel) || (CHANNEL_SERIAL == cli->channel))
     {
+        printf("--------------------cli->channel:%d\r\n",cli->channel);
         cli->state = STATE_LOGIN;
         write(cli->sockfd, negotiate, strlen(negotiate));
 
@@ -1341,7 +1394,7 @@ int gw_cli_loop(struct cli_def *cli)
     /* start off in unprivileged mode */
     gw_cli_set_configmode(cli, MODE_EXEC, NULL);
 
-    if(CHANNEL_TCP == cli->channel)
+    if((CHANNEL_TCP == cli->channel) ||(CHANNEL_SERIAL == cli->channel))
     {
         gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
         /*#ifdef HAVE_ZTE_OAM 
@@ -1646,7 +1699,11 @@ int gw_cli_loop(struct cli_def *cli)
 
 
             if (c == 0) continue;
-            if (c == '\n') continue;
+
+            if (c == '\n') /*continue;*/ // Liudong modified
+			{
+				c = '\r';
+			}
 
             if (c == '\r')
             {
@@ -2100,8 +2157,8 @@ int gw_cli_loop(struct cli_def *cli)
                 return 0;
             #else
             //username = cmd;
-            memset(username,0x00,sizeof(username));
-            memcpy(username, cmd, 64);
+            memset(username,0,sizeof(username));
+            strcpy(username, cmd);
             #endif
             
             cli->state = STATE_PASSWORD;

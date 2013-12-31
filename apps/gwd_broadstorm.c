@@ -222,26 +222,20 @@ void broad_storm_thread(void* data)
                     continue;
                 //gwd_port_current_pkt_status_save(physical_port,dsts);
 #ifdef __DEBUG__
-                if(logical_port == 1)
-                {
-                    gw_printf("port rate:%d\n",gulOctRateIn[physical_port]);
-                }
+
+                    gw_printf("port %d rate:%d\n",logical_port,gulOctRateIn[physical_port]);
 #else
                 if (gulOctRateIn[physical_port] > broad_storm.gulBcStormThreshold)
 #endif
 #ifdef __DEBUG__
-                if(logical_port == 1)
-                {
-                    gw_printf("port rate:%d\n",gulOctRateIn[physical_port]);
-                }
+
+                    gw_printf("port %d rate:%d\n",logical_port,gulOctRateIn[physical_port]);
                 if(gulOctRateIn[physical_port] > 1000)
 #endif
                 {
 #ifdef __DEBUG__
-                    if(logical_port == 1)
-                    {
-                        gw_printf("event counter:%d\n",ulBcStormEventCnt[physical_port]);
-                    }
+
+                        gw_printf("port %d event counter:%d\n",logical_port,ulBcStormEventCnt[physical_port]);
 #endif
                     ulBcStormEventCnt[physical_port]++;
                     ulBcStormStopCnt[physical_port] = 0;
@@ -249,6 +243,10 @@ void broad_storm_thread(void* data)
                 }
                 else
                 {
+#ifdef __DEBUG__
+
+                        gw_printf("port %d event counter clear\n",logical_port);
+#endif
                     ulBcStormEventCnt[physical_port] = 0;
                     if (startCouter[physical_port] == 0)
                         timeCouter[physical_port] = 0;
@@ -282,6 +280,8 @@ void broad_storm_thread(void* data)
                         return;
 #endif
                         gwd_onu_sw_bcstorm_msg_send(slot, logical_port, 2, 1, OAMsession);
+                        havebroadcaststorm[physical_port] = 1;
+                        havebroadcaststorm_end[physical_port] = 1;
                         //gw_printf("shutdown gwd onu port %d\n",logical_port);
                         //gw_time_get(&tm);
                         gw_log(GW_LOG_LEVEL_MAJOR, "Interface  eth1/%d detected Broadcast Storm,port shutdown", logical_port);
