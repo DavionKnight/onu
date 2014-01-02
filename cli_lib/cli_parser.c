@@ -13,7 +13,7 @@
 #include "../apps/oam.h"
 #include "../apps/gwdonuif_interval.h"
 
-char localhostname[50] = {0};
+//char localhostname[50] = {0};
 #ifdef HAVE_TELNET_CLI
 #define perror(s) gw_printf(s)
 extern int GwGetOltType(unsigned char *mac, GWD_OLT_TYPE *type);
@@ -265,7 +265,7 @@ void gw_cli_set_banner(struct cli_def *cli, char *banner)
     if (banner && *banner)
         cli->banner = banner;
 }
-
+#if 0
 int gw_cli_get_onu_hostname(char* hostname)
 {
     int ret = 0;
@@ -300,8 +300,10 @@ int gw_cli_get_onu_hostname(char* hostname)
     return GW_OK;
     
 }
+#endif
 void gw_cli_set_hostname(struct cli_def *cli, char *hostname)
 {
+#if 0
     int ret = 0;
     
     memset(localhostname,0,50);
@@ -311,7 +313,9 @@ void gw_cli_set_hostname(struct cli_def *cli, char *hostname)
         cli->hostname = localhostname;
     }
     else
+#endif   
     {
+     
         if (hostname && *hostname)
             cli->hostname = hostname;
     }
