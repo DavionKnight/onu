@@ -300,7 +300,6 @@ int gw_cli_get_onu_hostname(char* hostname)
     return GW_OK;
     
 }
-char localhostname[50] = {0};
 void gw_cli_set_hostname(struct cli_def *cli, char *hostname)
 {
     int ret = 0;
@@ -1372,9 +1371,8 @@ int gw_cli_loop(struct cli_def *cli)
 
     memset(username,0,64);
     
-    if((CHANNEL_TCP == cli->channel) || (CHANNEL_SERIAL == cli->channel))
+    if(CHANNEL_TCP == cli->channel)
     {
-        printf("--------------------cli->channel:%d\r\n",cli->channel);
         cli->state = STATE_LOGIN;
         write(cli->sockfd, negotiate, strlen(negotiate));
 
@@ -1394,7 +1392,7 @@ int gw_cli_loop(struct cli_def *cli)
     /* start off in unprivileged mode */
     gw_cli_set_configmode(cli, MODE_EXEC, NULL);
 
-    if((CHANNEL_TCP == cli->channel) ||(CHANNEL_SERIAL == cli->channel))
+    if(CHANNEL_TCP == cli->channel)
     {
         gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
         /*#ifdef HAVE_ZTE_OAM 
@@ -1700,10 +1698,7 @@ int gw_cli_loop(struct cli_def *cli)
 
             if (c == 0) continue;
 
-            if (c == '\n') /*continue;*/ // Liudong modified
-			{
-				c = '\r';
-			}
+			if (c == '\n') continue;
 
             if (c == '\r')
             {
