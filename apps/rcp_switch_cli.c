@@ -5149,11 +5149,8 @@ int cli_int_mgt_reset(struct cli_def *cli, char *command, char *argv[], int argc
         switch(argc)
         {
    
-        case 1:
+        default:
             return gw_cli_arg_help(cli, argc > 0 , NULL);
-		default:
-			printf("  Command incomplete.\n");
-			 return CLI_OK;
         }
 	}
 	GET_AND_CHECK_RCP_DEV_PTR
@@ -6043,7 +6040,7 @@ void start_rcp_device_monitor(void)
 	"Rcp loop",
 	rcp_loopdetect_monitor,
 	NULL,
-	4*1024,
+	8*1024,
 	(GW_OSAL_THREAD_PRIO_NORMAL+10),
 	0
 	))
