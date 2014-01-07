@@ -5259,17 +5259,14 @@ int cli_int_show_loop_port(struct cli_def *cli, char *command, char *argv[], int
 
         switch(argc)
         {
-   
-        case 1:
-            return gw_cli_arg_help(cli, argc > 0 , NULL);
+               
 		default:
-			printf("  Command incomplete.\n");
-			 return CLI_OK;
+            return gw_cli_arg_help(cli, argc > 0 , NULL);
         }
 	}
 	GET_AND_CHECK_RCP_DEV_PTR
 	
-#if 1
+#if 0
 	if(RCP_OK == (ret = RCP_GetLoopPort(pRcpDev, &portlist)))
 	{
 		if(portlist != 0)
@@ -5708,7 +5705,7 @@ void rcp_dev_monitor(void * data)
 		}
 
 		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
-		gw_thread_delay(2000);
+		gw_thread_delay(200);
 
 		if(gulEnableEpswitchMgt)
 		{
@@ -5951,7 +5948,7 @@ void rcp_loopdetect_monitor(void * data)
 	unsigned char rcpPort;
 	unsigned short  portstatus;	
 	//cs_uint16 loopen;
-	//cs_uint8 OAMsession[8]="";
+	unsigned char OAMsession[8]="";
 	int i,ret;
     extern unsigned long gulEnableEpswitchMgt;
 	while(TRUE) 
@@ -5982,8 +5979,8 @@ void rcp_loopdetect_monitor(void * data)
 							else
 							{
 							/*If the loopAndDown ports enabled again, clear the loopAndDown status*/
-								//sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 2, 0, OAMsession);
-								//
+								sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 2, 0, OAMsession);
+								
 								//IFM_config( ethIfIdx, IFM_CONFIG_ETH_ALARM_STATUS_CLEAR, &loopstatus, NULL );
 								//VOS_SysLog(LOG_TYPE_TRAP,LOG_WARNING, "Interface  eth%d/%d RCP port %d loopback cleared.", pRcpDev[i]->paSlot,pRcpDev[i]->paPort,rcpPort);								
 								pRcpDev[i]->loopAndDown &= ~(0x1 << (port-1));
@@ -5992,7 +5989,7 @@ void rcp_loopdetect_monitor(void * data)
 													
 						if(((portlist[i] & (0x1 << phyPort)) >> phyPort) == 1)
 						{
-							//sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 1, 0, OAMsession);
+							sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 1, 0, OAMsession);
 							//IFM_config( ethIfIdx, IFM_CONFIG_ETH_ALARM_STATUS_SET, &loopstatus, NULL );
 							//VOS_SysLog(LOG_TYPE_TRAP,LOG_WARNING, "Interface  eth%d/%d RCP port %d marked loopback.", pRcpDev[i]->paSlot,pRcpDev[i]->paPort,rcpPort);
 							if(port != mgtPort)
