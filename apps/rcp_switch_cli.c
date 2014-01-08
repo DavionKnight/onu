@@ -5411,7 +5411,7 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
             return gw_cli_arg_help(cli, argc > 1, NULL);
     }
 	RCP_Say_Hello(-1, 1);
-//	cyg_thread_delay(IROS_TICK_PER_SECOND / 10);
+	//cyg_thread_delay(IROS_TICK_PER_SECOND / 10);
 	gw_thread_delay(100);
 	for(onuPort = 1; onuPort < gulNumOfPortsPerSystem; onuPort++)
 	{
@@ -5614,8 +5614,8 @@ void rcp_dev_monitor(void * data)
 	RCP_DEV *pRcpDev;
 	unsigned short vlanum;
     unsigned short vid =0;
-#define RCP_DISCOVERY_PERIOD_DEF	    5	
-#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
+#define RCP_DISCOVERY_PERIOD_DEF	    5
+#define RCP_KEEP_ALIVE_TIMEOUT_DEF		1
 
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
@@ -5649,6 +5649,7 @@ void rcp_dev_monitor(void * data)
 				if(RCP_Dev_Is_Valid(i))
 				{
 					RCP_Say_Hello(i,vid);
+                    gw_thread_delay(1000);
 					pRcpDev = RCP_Get_Dev_Ptr(i);	
 					if(pRcpDev->timeoutCounter < iKeepAliveTimeout)
 					{
@@ -5701,8 +5702,8 @@ void rcp_dev_monitor(void * data)
 			}
 		}
 
-		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
 		gw_thread_delay(200);
+
 
 		if(gulEnableEpswitchMgt)
 		{

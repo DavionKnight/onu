@@ -312,6 +312,7 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 	RCP_HELLO_PAYLOAD *payload;
 	unsigned short usAuthenkey;
 //	gw_rcp_sem_give(semAccessRcpChannel); comment by wangxy 2013-04-25
+    gw_rcp_sem_give(semAccessRcpChannel);
 
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
 		return RCP_BAD_PARAM;
@@ -815,7 +816,7 @@ int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 		memcpy(rcpPktBuf + 20, rcpRegAddr, 2);
 	}
 
-	if(gw_rcp_sem_take(semAccessRcpChannel, 1000))
+	if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 //	if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 		{
 			gw_printf("wait error\n");
@@ -903,7 +904,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 			memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 			memcpy(rcpPktBuf + 16, authKey, 2);
 		}
-		if(gw_rcp_sem_take(semAccessRcpChannel, 200))
+		if(gw_rcp_sem_take(semAccessRcpChannel, 1000))
 //		if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 		{
 			RCP_DEBUG(("\r\n  Unicast Hello semAccessRcpChannel timedout! "));
@@ -911,10 +912,11 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 //		if(0 != (eponRet = epon_onu_sw_send_frame(lport, rcpPktBuf, 64)))
 		if(0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, lport, rcpPktBuf, 64) )
 		{
+            gw_rcp_sem_give(semAccessRcpChannel);
 			RCP_DEBUG(("\r\nepon_onu_sw_send_frame return : %d ", eponRet));
 			iRet = RCP_FAIL;
 		}
-		gw_rcp_sem_give(semAccessRcpChannel);
+		
 	}
 	else if(parentPort == 0)	/* GWD Hello for keep alive */
 	{
@@ -957,7 +959,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 				memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 				memcpy(rcpPktBuf + 16, authKey, 2);
 			}
-			if(gw_rcp_sem_take(semAccessRcpChannel,200))
+			if(gw_rcp_sem_take(semAccessRcpChannel,1000))
 //			if(gw_rcp_sem_take(semAccessRcpChannel,GW_OSAL_WAIT_FOREVER))
 			{
 				RCP_DEBUG(("\r\n  Braodcast Hello semAccessRcpChannel timedout!"));
@@ -972,12 +974,12 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 			#else
 			if(0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, lport, rcpPktBuf, 64) )
 			{
-				gw_printf("send fail.............\n");
+                gw_rcp_sem_give(semAccessRcpChannel);
 				RCP_DEBUG(("\r\nepon_onu_sw_send_frame return : %d ", eponRet));
 				iRet = RCP_FAIL;
 			}
 			#endif
-			gw_rcp_sem_give(semAccessRcpChannel);
+			
 		}
 	}
 	return iRet;
@@ -6210,7 +6212,7 @@ int sendOamRcpLpbDetectNotifyMsg(unsigned char onuPort, unsigned char rcpPort, u
 {
 	int ret; 
 	/*modified by wangxiaoyu 2008-06-06
-	�����ջ�����������temp[4]-->temp[16]
+	锟斤拷锟斤拷锟秸伙拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷temp[4]-->temp[16]
 	*/
 	char temp[16]={0};
 
@@ -6471,7 +6473,7 @@ int ereaseRcpDevCfgInFlash(RCP_DEV  *rcpDev, int allDev)
 	//	device_conf_erase_switch_conf_from_flash();
 		memset(gpusSwitchCfgFileBuf, 0, glSwitchCfgFileSizeMaxInFlash);
     /***********************************************************************
-    ��������API:���������������������(all ports)��û�����flash�ռ�
+    添加下面API:当清除交换机的所有配置(all ports)，没有清空flash空间
     ************************************************************************/
         return device_conf_write_switch_conf_to_flash((char *)gpusSwitchCfgFileBuf, fileLen);
 	}
@@ -6962,7 +6964,7 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 else if ( isspace( cToken ) )
                 {}
 	/********************************************************************************************************
-	�жϰ弶�ţ����弶����Ч�ԡ�
+	锟叫断板级锟脚ｏ拷锟斤拷锟藉级锟斤拷锟斤拷效锟皆★拷
 	*********************************************************************************************************/
                 else if ( cToken == '/' )
                 {
@@ -6984,8 +6986,8 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 }
 
 /***************************************************************************************************************
-�жϰ弶�ϵ�PORT �ĺţ������PORT ����Ч�ԣ�ͨ��弶�ĺ����жϰ弶�����ͣ�
-���Ҵ�������
+锟叫断板级锟较碉拷PORT 锟侥号ｏ拷锟斤拷锟斤拷锟絇ORT 锟斤拷锟斤拷效锟皆ｏ拷通锟斤拷寮讹拷暮锟斤拷锟斤拷卸习寮讹拷锟斤拷锟斤拷停锟�
+锟斤拷锟揭达拷锟斤拷锟斤拷锟斤拷
 ****************************************************************************************************************/
                 else if ( cToken == ',' )
                 {
@@ -7196,8 +7198,8 @@ BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_onu, char *ifname,
             }
 
             /***************************************************************************************************************
-             �жϰ弶�ϵ�PORT �ĺţ������PORT ����Ч�ԣ�ͨ��弶�ĺ����жϰ弶�����ͣ�
-             ���Ҵ�������
+             锟叫断板级锟较碉拷PORT 锟侥号ｏ拷锟斤拷锟斤拷锟絇ORT 锟斤拷锟斤拷效锟皆ｏ拷通锟斤拷寮讹拷暮锟斤拷锟斤拷卸习寮讹拷锟斤拷锟斤拷停锟�
+             锟斤拷锟揭达拷锟斤拷锟斤拷锟斤拷
              ****************************************************************************************************************/
             else if (cToken == ',')
             {
@@ -7631,7 +7633,7 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
     char cTmp[ 3 ];
     unsigned long int i = 0, j = 0, k = 0;
 
-    /* ����ַ����Ƿ��� */
+    /* 锟斤拷锟斤拷址锟斤拷锟斤拷欠锟斤拷锟�*/
     if ( 14 != strlen( szStr ) )
     {
         return GW_ERROR;
@@ -7642,7 +7644,7 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
     {
         if ( i != 2 )
         {
-            /* �鿴����'.' */
+            /* 锟介看锟斤拷锟斤拷'.' */
             q = strchr( p, '.' );
             if ( NULL == p )
             {
@@ -7654,12 +7656,12 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
             q = szStr + strlen( szStr );
         }
 
-        /* һ��H����4���ַ� */
+        /* 一锟斤拷H锟斤拷锟斤拷4锟斤拷锟街凤拷 */
         if ( 4 != q - p )
         {
             return GW_ERROR;
         }
-        /* ����Ƿ���16���Ƶ����� */
+        /* 锟斤拷锟斤拷欠锟斤拷锟�6锟斤拷锟狡碉拷锟斤拷锟斤拷 */
         for ( j = 0; j < 4; j++ )
         {
             if ( !( ( *( p + j ) >= '0' && *( p + j ) <= '9' ) || ( *( p + j 
@@ -7685,7 +7687,7 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
         p = q + 1;
     }
 
-    /* �ж��Ƿ�ȫ��Ϊ0 */
+    /* 锟叫讹拷锟角凤拷全锟斤拷为0 */
     if ( 0x0 == pucMacAddr[ 0 ] && 0x0 == pucMacAddr[ 1 ] && 0x0 == pucMacAddr
 [ 2 ]
             && 0x0 == pucMacAddr[ 3 ] && 0x0 == pucMacAddr[ 4 ] && 0x0 == 
@@ -7694,7 +7696,7 @@ pucMacAddr[ 5 ] )
         return GW_ERROR;
     }
 
-    /* �ж��Ƿ�ȫ��Ϊff */
+    /* 锟叫讹拷锟角凤拷全锟斤拷为ff */
     if ( 0xff == pucMacAddr[ 0 ] && 0xff == pucMacAddr[ 1 ] && 0xff == 
 pucMacAddr[ 2 ]
             && 0xff == pucMacAddr[ 3 ] && 0xff == pucMacAddr[ 4 ] && 0xff == 
@@ -7703,7 +7705,7 @@ pucMacAddr[ 5 ] )
         return GW_ERROR;
     }
 
-    /* �ж��Ƿ�Ϊ�ಥ */
+    /* 锟叫讹拷锟角凤拷为锟洁播 */
     if ( 0 != ( pucMacAddr[ 0 ] & 0x01 ) )
     {
         return GW_ERROR;
