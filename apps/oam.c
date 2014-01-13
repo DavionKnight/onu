@@ -1701,7 +1701,7 @@ END:
                 {
                 	responsePdu->type = ONU_LOCATE_USER;/*cheak type*/
                     responsePdu->result = 1;/*ï¿½ï¿½Ñ¯ï¿½ï¿½ï¿½*/
-					responsePdu->mode	= USR_MAC_ADDRES_CHEAK;/*ï¿½ï¿½Ñ¯Ä£Ê½*/				
+					responsePdu->mode	= USR_MAC_ADDRES_CHEAK;
                     responsePdu->macNum = responseNum;/*ï¿½éµ½ï¿½ï¿½MACï¿½ï¿½Ö·ï¿½ï¿½*/
                     
                     memcpy(tempP, responsePdu, sizeof(userMacResponse_pdu_t));
@@ -2846,9 +2846,9 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
         
-		retv = onu_bitport_phyport_get(egports,phyportmember);/*bitÎ»×ª»»ÎªÎïÀíµØÖ·*/
+		retv = onu_bitport_phyport_get(egports,phyportmember);
 		
-		if(GW_ERROR == retv)/*²»ºÏ·¨µÄÎïÀí¶Ë¿Ú*/
+		if(GW_ERROR == retv)
 		{
 			continue;
 		}
@@ -2857,7 +2857,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{
-				if(!boards_physical_to_logical(0, phyport, &logport))/*ÎïÀíµØÖ·×ª»»ÎªÂß¼­µØÖ·*/
+				if(!boards_physical_to_logical(0, phyport, &logport))
 				{
 					continue;
 				}
@@ -3177,12 +3177,12 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     struct cli_command *set;
     struct cli_command *show, *sys, *dbg;
     // set cmds in config mode
-    set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Set system information");
-    	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture date");
-    	gw_cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Manufacture serial number(<16)");
-    	gw_cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Device name(<15)");
-    	gw_cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version,     PRIVILEGE_UNPRIVILEGED, MODE_ANY, "Hardware version");
-	    gw_cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "set mac address");
+    set = gw_cli_register_command(cmd_root, NULL, "set", NULL, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Set system information");
+    	gw_cli_register_command(cmd_root, set, "date",    cmd_onu_mgt_config_product_date,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Manufacture date");
+    	gw_cli_register_command(cmd_root, set, "serial",    cmd_onu_mgt_config_product_sn,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Manufacture serial number(<16)");
+    	gw_cli_register_command(cmd_root, set, "devicename",    cmd_onu_mgt_config_device_name,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Device name(<15)");
+    	gw_cli_register_command(cmd_root, set, "hw-version",    cmd_onu_mgt_config_product_hw_version,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Hardware version");
+	    gw_cli_register_command(cmd_root, set, "mac", cmd_set_onu_mac, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set mac address");
    
 
     // display cmds in config mode
