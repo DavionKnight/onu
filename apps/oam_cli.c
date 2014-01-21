@@ -649,14 +649,18 @@ int cmd_gw_conf(struct cli_def *cli, char *command, char *argv[], int argc)
 	if(argc == 1)
 	{
 		if(strcmp(argv[0], "clear") == 0 )
+		{
 			code = 0;
+		}
+		if(gw_conf_save(code) != GW_OK)
+		{
+			ret = CLI_ERROR;
+		}
 	}
 	else
+	{
 		ret = CLI_ERROR_ARG;
-
-	
-	if(gw_conf_save(code) != GW_OK)
-		ret = CLI_ERROR;
+	}
 
 	return ret;
 }
