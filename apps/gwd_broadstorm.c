@@ -28,15 +28,13 @@
 extern int CommOnuMsgSend(unsigned char GwOpcode, unsigned int SendSerNo, unsigned char *pSentData,const unsigned short SendDataSize, unsigned char  *pSessionIdfield);
 extern gw_macaddr_t g_sys_mac;
 extern gw_uint32 g_uni_port_num;
-
-
-//#define NUM_PORTS_PER_SYSTEM 26
 gw_uint64 gulCurrentpktCntIn[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulCurrentpktCntOut[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulOctRateIn[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint64 gulOctRateOut[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint32 gulLastTick4PortMon[NUM_PORTS_PER_SYSTEM-1] = {0};
 gw_uint32 gulCurrentTick4PortMon[NUM_PORTS_PER_SYSTEM-1] = {0};
+
 #define ENABLE 1
 
 gw_return_code_t gwd_onu_port_bcstorm_date_clear(gw_uint32 port)

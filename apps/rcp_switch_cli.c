@@ -5649,7 +5649,7 @@ void rcp_dev_monitor(void * data)
 				if(RCP_Dev_Is_Valid(i))
 				{
 					RCP_Say_Hello(i,vid);
-                    gw_thread_delay(1000);
+                    gw_thread_delay(2000);
 					pRcpDev = RCP_Get_Dev_Ptr(i);	
 					if(pRcpDev->timeoutCounter < iKeepAliveTimeout)
 					{
