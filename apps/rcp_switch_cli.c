@@ -5207,7 +5207,6 @@ int cli_int_mgt_config_clear(struct cli_def *cli, char *command, char *argv[], i
 	return CLI_OK;
 }
 
-#endif
 int cli_int_mgt_config_save(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	int iRet;
@@ -5243,7 +5242,7 @@ int cli_int_mgt_config_save(struct cli_def *cli, char *command, char *argv[], in
 
 	return CLI_OK;
 }
-
+#endif
 
 int cli_int_show_loop_port(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -6181,10 +6180,9 @@ port_cable = gw_cli_register_command(cmd_root,cable,  "test",NULL,       PRIVILE
 	clear = gw_cli_register_command(cmd_root,NULL,  "clear",NULL,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Delete an off-line switch");
 			gw_cli_register_command(cmd_root,clear,  "switch",cli_int_clear_switch,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Delete an off-line switch");
 
-	rcp_switch = gw_cli_register_command(cmd_root,NULL,  "switch",NULL,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Rcp switch config");
-	manage = gw_cli_register_command(cmd_root,rcp_switch,  "manage",NULL,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Rcp switch auth config");
-			 gw_cli_register_command(cmd_root,manage,  "auth",cli_int_switch_manage_auth,       PRIVILEGE_PRIVILEGED, MODE_SWITCH,    "Rcp switch auth config");
-
+	rcp_switch = gw_cli_register_command(cmd_root,NULL,  "switch",NULL,       PRIVILEGE_PRIVILEGED, MODE_CONFIG,    "Rcp switch config");
+	manage = gw_cli_register_command(cmd_root,rcp_switch,  "manage",NULL,       PRIVILEGE_PRIVILEGED, MODE_CONFIG,    "Rcp switch auth config");
+			 gw_cli_register_command(cmd_root,manage,  "auth",cli_int_switch_manage_auth,       PRIVILEGE_PRIVILEGED, MODE_CONFIG,    "Rcp switch auth config");
 
 }
 
@@ -6237,8 +6235,8 @@ void cli_reg_rcp_cmd(struct cli_command **cmd_root)
 {
     struct cli_command *gwd_switch;
     // switch cmds in config mode
-    gwd_switch = gw_cli_register_command(cmd_root, NULL, "show", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Switch remote management");
-		gw_cli_register_command(cmd_root, gwd_switch, "switch",    cmd_switch_show,     PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Show switch found");
+    gwd_switch = gw_cli_register_command(cmd_root, NULL, "show", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Switch remote management");
+		gw_cli_register_command(cmd_root, gwd_switch, "switch",    cmd_switch_show,     PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "Show switch found");
 
     return;
 }
