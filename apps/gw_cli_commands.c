@@ -409,6 +409,7 @@ int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int
 {
 
     int ret = CLI_ERROR;
+    int onumaxport = 0;
 
     if (CLI_HELP_REQUESTED)
     {
@@ -429,12 +430,16 @@ int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int
 
     if(argc >= 3)
     {
+        onumaxport = gw_onu_read_port_num(); 
+        onumaxport += 2;
+        
     	gw_uint8 port = atoi(argv[0]);
     	gw_uint32 vlan = atoi(argv[1]);
     	gw_uint32 queue = atoi(argv[2]);
-        if((port < 1) || (port > gw_onu_read_port_num()))
+        
+        if((port < 1) || (port > onumaxport))
         {
-            gw_cli_print(cli,"input port error <1-%d>\r\n",gw_onu_read_port_num);
+            gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
             return ret;
         }
         if((vlan < gwd_onu_qos_vlan_least)|| (vlan > gwd_onu_qos_vlan_max))
@@ -461,6 +466,7 @@ int cmd_qos_vlan_queue_map_del(struct cli_def *cli, char *command, char *argv[],
 {
 
     int ret = CLI_ERROR;
+    int onumaxport = 0;
 
     if (CLI_HELP_REQUESTED)
     {
@@ -479,12 +485,14 @@ int cmd_qos_vlan_queue_map_del(struct cli_def *cli, char *command, char *argv[],
 
     if(argc >= 2)
     {
+        onumaxport = gw_onu_read_port_num();
+        onumaxport += 2;
     	gw_uint8 port = atoi(argv[0]);
     	gw_uint32 vlan = atoi(argv[1]);
         
-        if((port < 1) || (port > gw_onu_read_port_num()))
+        if((port < 1) || (port > onumaxport))
         {
-            gw_cli_print(cli,"input port error <1-%d>\r\n",gw_onu_read_port_num);
+            gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
             return ret;
         }
         if((vlan < gwd_onu_qos_vlan_least)|| (vlan > gwd_onu_qos_vlan_max))
@@ -507,6 +515,7 @@ int cmd_qos_vlan_queue_map_apply(struct cli_def *cli, char *command, char *argv[
 
     int ret = CLI_ERROR;
     int reset = 0;
+    
 
     if (CLI_HELP_REQUESTED)
     {
@@ -538,6 +547,7 @@ int cmd_qos_vlan_queue_map_show(struct cli_def *cli, char *command, char *argv[]
     int ret = CLI_ERROR, c = 0;
     gw_uint8 port = 0;
     gw_qos_vlan_queue_data_t *pd = NULL;
+    int onumaxport = 0;
 
     if (CLI_HELP_REQUESTED)
     {
@@ -554,11 +564,13 @@ int cmd_qos_vlan_queue_map_show(struct cli_def *cli, char *command, char *argv[]
 
     if(argc >= 1)
     {
+        onumaxport = gw_onu_read_port_num();
+        onumaxport += 2;
     	port = atoi(argv[0]);
         
-        if((port < 1) || (port > gw_onu_read_port_num()))
+        if((port < 1) || (port > onumaxport))
         {
-            gw_cli_print(cli,"input port error <1-%d>\r\n",gw_onu_read_port_num);
+            gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
             return ret;
         }
     }
