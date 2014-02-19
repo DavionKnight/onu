@@ -640,7 +640,7 @@ int cl_pty_fd_get(void(*closenoti)(long))
 	     return(g_pty_master);
 	else return(-1);
 }
-
+gw_uint8 pty_oam_2_telnet = 0;
 static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen)
 {
     char lCtlCode;
@@ -703,8 +703,22 @@ static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 #endif
 
 				 lPayLen --;
-				 if(*(pPayLoad+1) == 0x0a)
-					 *(pPayLoad+1) = 0x0d;
+//				 char strPty[50] = "\0";
+//				 sprintf(strPty, "pty_oam_2_telnet is %x PayLoad +1 is %x\r\n",pty_oam_2_telnet,*(pPayLoad+1));
+//				 pty_write(g_pty_slave,strPty,strlen(strPty)+1);
+				 if(!pty_oam_2_telnet)
+				 {
+					 if(*(pPayLoad+1) == 0x0a)
+						 *(pPayLoad+1) = 0x0d;
+				 }
+				 else
+				 {
+					 if(*(pPayLoad+1) == 0x0d)
+						 *(pPayLoad+1) = 0x0a;
+				 }
+//				 sprintf(strPty, "pty_oam_2_telnet is %x PayLoad +1 is %x\r\n",pty_oam_2_telnet,*(pPayLoad+1));
+//				 pty_write(g_pty_slave,strPty,strlen(strPty)+1);
+
 
 //				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0)) pty_write(gmCliPtyCtrl.lFd, pPayLoad + 1, lPayLen);
 				 if((lPayLen > 0) && (gmCliPtyCtrl.lFd >= 0) )

@@ -87,7 +87,7 @@ enum{
     LIB_IF_MULTICAST_MODE_SET,
     LIB_IF_MULTICAST_MODE_GET,
     LIB_IF_REAL_PRODUCT_TYPE_GET,
-
+    LIB_IF_ENTRY_SDK_CLI,
 };
 
 gw_status init_im_interfaces();
