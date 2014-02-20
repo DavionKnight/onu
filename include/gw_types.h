@@ -15,6 +15,7 @@
 
 typedef unsigned long long      gw_uint64;
 typedef long long               gw_int64;
+typedef unsigned long           gw_ulong32;
 typedef unsigned int            gw_uint32;
 typedef int                     gw_int32;
 typedef unsigned short          gw_uint16;

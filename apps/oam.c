@@ -832,7 +832,13 @@ void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
 			gwd_oamsnmp_handle(pMessage);
 			GwOamMessageListNodeFree(pMessage);
 			break;
-
+		#if (RPU_MODULE_IGMP_TVM == RPU_YES)
+		case IGMP_TVM_REQ:
+			GwOamTvmRequestRecv(pMessage);
+			GwOamMessageListNodeFree(pMessage);
+			pMessage = NULL;
+			break;
+		#endif
 		case FILE_READ_WRITE_REQ:
 		case FILE_TRANSFER_DATA:
 		case FILE_TRANSFER_ACK:
@@ -3193,7 +3199,8 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
-
+    gw_cli_register_command(cmd_root, NULL, "igmp-snooping-tvm-show", cmd_show_igmp_snooping_tvm, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "igmp snooping tvm");
+	gw_cli_register_command(cmd_root, NULL, "igmp-snooping-tvm", cmd_igmp_snooping_tvm, PRIVILEGE_UNPRIVILEGED, MODE_DEBUG, "igmp-snooping-tvm config");
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
