@@ -5258,17 +5258,14 @@ int cli_int_show_loop_port(struct cli_def *cli, char *command, char *argv[], int
 
         switch(argc)
         {
-   
-        case 1:
-            return gw_cli_arg_help(cli, argc > 0 , NULL);
+               
 		default:
-			printf("  Command incomplete.\n");
-			 return CLI_OK;
+            return gw_cli_arg_help(cli, argc > 0 , NULL);
         }
 	}
 	GET_AND_CHECK_RCP_DEV_PTR
 	
-#if 1
+#if 0
 	if(RCP_OK == (ret = RCP_GetLoopPort(pRcpDev, &portlist)))
 	{
 		if(portlist != 0)
@@ -5416,7 +5413,7 @@ int cmd_switch_show(struct cli_def *cli, char *command, char *argv[], int argc)
             return gw_cli_arg_help(cli, argc > 1, NULL);
     }
 	RCP_Say_Hello(-1, 1);
-//	cyg_thread_delay(IROS_TICK_PER_SECOND / 10);
+	//cyg_thread_delay(IROS_TICK_PER_SECOND / 10);
 	gw_thread_delay(100);
 	for(onuPort = 1; onuPort < gulNumOfPortsPerSystem; onuPort++)
 	{
@@ -5665,7 +5662,7 @@ void rcp_dev_monitor(void * data)
     unsigned short vid =0;
 #define RCP_DISCOVERY_PERIOD_DEF	    5	
 #define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
-	struct  timeval    tv;
+//	struct  timeval    tv;
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 
@@ -5996,7 +5993,7 @@ void rcp_loopdetect_monitor(void * data)
 	unsigned char rcpPort;
 	unsigned short  portstatus;	
 	//cs_uint16 loopen;
-	//cs_uint8 OAMsession[8]="";
+	unsigned char OAMsession[8]="";
 	int i,ret;
     extern unsigned long gulEnableEpswitchMgt;
 	while(TRUE) 
@@ -6027,8 +6024,8 @@ void rcp_loopdetect_monitor(void * data)
 							else
 							{
 							/*If the loopAndDown ports enabled again, clear the loopAndDown status*/
-								//sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 2, 0, OAMsession);
-								//
+								sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 2, 0, OAMsession);
+								
 								//IFM_config( ethIfIdx, IFM_CONFIG_ETH_ALARM_STATUS_CLEAR, &loopstatus, NULL );
 								//VOS_SysLog(LOG_TYPE_TRAP,LOG_WARNING, "Interface  eth%d/%d RCP port %d loopback cleared.", pRcpDev[i]->paSlot,pRcpDev[i]->paPort,rcpPort);								
 								pRcpDev[i]->loopAndDown &= ~(0x1 << (port-1));
@@ -6037,7 +6034,7 @@ void rcp_loopdetect_monitor(void * data)
 													
 						if(((portlist[i] & (0x1 << phyPort)) >> phyPort) == 1)
 						{
-							//sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 1, 0, OAMsession);
+							sendOamRcpLpbDetectNotifyMsg(pRcpDev[i]->paPort, rcpPort, 1, 0, OAMsession);
 							//IFM_config( ethIfIdx, IFM_CONFIG_ETH_ALARM_STATUS_SET, &loopstatus, NULL );
 							//VOS_SysLog(LOG_TYPE_TRAP,LOG_WARNING, "Interface  eth%d/%d RCP port %d marked loopback.", pRcpDev[i]->paSlot,pRcpDev[i]->paPort,rcpPort);
 							if(port != mgtPort)
@@ -6091,7 +6088,7 @@ void start_rcp_device_monitor(void)
 	"Rcp loop",
 	rcp_loopdetect_monitor,
 	NULL,
-	4*1024,
+	8*1024,
 	(GW_OSAL_THREAD_PRIO_NORMAL+10),
 	0
 	))

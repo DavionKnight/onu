@@ -823,7 +823,7 @@ typedef enum {
 #define MAX_RCP_VLAN_NUM                32
 #define MAX_RCP_PORT_NUM                32
 #define RCP_PKT_MAX_LENGTH				80
-#define RCP_RESPONSE_TIMEOUT			5000 //unit : ms
+#define RCP_RESPONSE_TIMEOUT			1000 //unit : ms
 #define RCP_HELLO_PAYLOAD_OFFSET		(RCP_MAC_SIZE + RCP_MAC_SIZE + 4 + 4)
 #define RCP_HELLO_CHIPID_OFFSET			(RCP_HELLO_PAYLOAD_OFFSET + 10)
 

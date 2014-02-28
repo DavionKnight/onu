@@ -409,6 +409,7 @@ int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int
 {
 
     int ret = CLI_ERROR;
+    int onumaxport = 0;
 
     if (CLI_HELP_REQUESTED)
     {
@@ -420,18 +421,37 @@ int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int
         case 2:
         	return gw_cli_arg_help(cli, 0, "<2-%d>", 4092, "Input vlan id", NULL);
         case 3:
-        	return gw_cli_arg_help(cli, 0, "<0-7>", "Input a queue value", NULL);
+        	return gw_cli_arg_help(cli, 0, "<0-7>","Input a queue value", NULL);
         default:
-            return gw_cli_arg_help(cli, argc > 1, NULL );
+            return gw_cli_arg_help(cli, argc > 2, NULL );
         }
 
     }
 
     if(argc >= 3)
     {
+        onumaxport = gw_onu_read_port_num(); 
+        onumaxport += 2;
+        
     	gw_uint8 port = atoi(argv[0]);
     	gw_uint32 vlan = atoi(argv[1]);
     	gw_uint32 queue = atoi(argv[2]);
+        
+        if((port < 1) || (port > onumaxport))
+        {
+            gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
+            return ret;
+        }
+        if((vlan < gwd_onu_qos_vlan_least)|| (vlan > gwd_onu_qos_vlan_max))
+        {
+            gw_cli_print(cli,"input vlan error <%d-%d>\r\n",gwd_onu_qos_vlan_least,gwd_onu_qos_vlan_max);
+            return ret;
+        }
+        if((queue < gwd_onu_qos_queue_least) || queue > gwd_onu_qos_queue_max)
+        {
+            gw_cli_print(cli,"input queue error <%d-%d>\r\n",gwd_onu_qos_queue_least,gwd_onu_qos_queue_max);
+            return ret;
+        }
 
     	if(gw_qos_vlan_queue_add(port, vlan, queue) == GW_OK)
     		ret = CLI_OK;
@@ -446,6 +466,7 @@ int cmd_qos_vlan_queue_map_del(struct cli_def *cli, char *command, char *argv[],
 {
 
     int ret = CLI_ERROR;
+    int onumaxport = 0;
 
     if (CLI_HELP_REQUESTED)
     {
@@ -464,9 +485,22 @@ int cmd_qos_vlan_queue_map_del(struct cli_def *cli, char *command, char *argv[],
 
     if(argc >= 2)
     {
+        onumaxport = gw_onu_read_port_num();
+        onumaxport += 2;
     	gw_uint8 port = atoi(argv[0]);
     	gw_uint32 vlan = atoi(argv[1]);
-
+        
+        if((port < 1) || (port > onumaxport))
+        {
+            gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
+            return ret;
+        }
+        if((vlan < gwd_onu_qos_vlan_least)|| (vlan > gwd_onu_qos_vlan_max))
+        {
+            gw_cli_print(cli,"input vlan error <%d-%d>\r\n",gwd_onu_qos_vlan_least,gwd_onu_qos_vlan_max);
+            return ret;
+        }
+        
     	if(gw_qos_vlan_queue_remove(port, vlan) == GW_OK)
     		ret = CLI_OK;
     	else
@@ -481,6 +515,7 @@ int cmd_qos_vlan_queue_map_apply(struct cli_def *cli, char *command, char *argv[
 
     int ret = CLI_ERROR;
     int reset = 0;
+    
 
     if (CLI_HELP_REQUESTED)
     {
@@ -512,6 +547,7 @@ int cmd_qos_vlan_queue_map_show(struct cli_def *cli, char *command, char *argv[]
     int ret = CLI_ERROR, c = 0;
     gw_uint8 port = 0;
     gw_qos_vlan_queue_data_t *pd = NULL;
+    int onumaxport = 0;
 
     if (CLI_HELP_REQUESTED)
     {
@@ -527,9 +563,21 @@ int cmd_qos_vlan_queue_map_show(struct cli_def *cli, char *command, char *argv[]
     }
 
     if(argc >= 1)
+    {
+        onumaxport = gw_onu_read_port_num();
+        onumaxport += 2;
     	port = atoi(argv[0]);
+        
+        if((port < 1) || (port > onumaxport))
+        {
+            gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
+            return ret;
+        }
+    }
     else
+    {
     	port = 0xff;
+    }
 
     if((c = gw_qos_vlan_queue_entry_get_by_port(port, &pd)))
     {
@@ -578,10 +626,6 @@ int igmp_mode_show(struct cli_def *cli,mc_mode_t mc_mode)
             strncpy(mode, "manual", sizeof("manual"));
             break;
 
-		case MC_PROXY:
-            strncpy(mode, "proxy", sizeof("proxy"));
-            break;
-
 		case MC_DISABLE:
             strncpy(mode, "transparent", sizeof("transparent"));
             break;
@@ -615,10 +659,7 @@ int cmd_igmp_mode(struct cli_def *cli, char *command, char *argv[], int argc)
 				"1", "set igmp auth mode",
 				NULL);
 				gw_cli_arg_help(cli, 0,
-				"2", "set igmp proxy mode",
-				NULL);
-				gw_cli_arg_help(cli, 0,
-				"3", "set igmp disable mode",
+				"2", "set igmp disable mode",
 				NULL);
 				return CLI_OK;
 			case 2:
@@ -663,9 +704,6 @@ int cmd_igmp_mode(struct cli_def *cli, char *command, char *argv[], int argc)
 				mc_mode = MC_MANUAL;
 				break;
 			case 2:
-				mc_mode = MC_PROXY;
-				break;
-			case 3:
 				mc_mode = MC_DISABLE;
 				break;
 			default:

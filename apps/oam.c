@@ -832,7 +832,13 @@ void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
 			gwd_oamsnmp_handle(pMessage);
 			GwOamMessageListNodeFree(pMessage);
 			break;
-
+		#if (RPU_MODULE_IGMP_TVM == RPU_YES)
+		case IGMP_TVM_REQ:
+			GwOamTvmRequestRecv(pMessage);
+			GwOamMessageListNodeFree(pMessage);
+			pMessage = NULL;
+			break;
+		#endif
 		case FILE_READ_WRITE_REQ:
 		case FILE_TRANSFER_DATA:
 		case FILE_TRANSFER_ACK:
@@ -3171,6 +3177,7 @@ int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
 }
 
 #endif
+
 extern gw_int32 g_pty_master, g_pty_slave, g_pty_id;
 extern gw_uint8 pty_oam_2_telnet;
 int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -3190,6 +3197,9 @@ int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int 
 	gw_cli_print(cli,"telnet pty end...\n");
 	return CLI_OK;
 }
+
+extern int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
+extern int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
 
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
@@ -3213,7 +3223,8 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
-
+    gw_cli_register_command(cmd_root, NULL, "igmp-snooping-tvm-show", cmd_show_igmp_snooping_tvm, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "igmp snooping tvm");
+	gw_cli_register_command(cmd_root, NULL, "igmp-snooping-tvm", cmd_igmp_snooping_tvm, PRIVILEGE_UNPRIVILEGED, MODE_DEBUG, "igmp-snooping-tvm config");
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
@@ -3304,6 +3315,7 @@ extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
+extern void gw_cli_debug_cmd(struct cli_command **cmd_root);
 extern void init_oam_send_relay();
 #if(RPU_MODULE_POE == RPU_YES)
 unsigned stat_val;
@@ -3344,6 +3356,9 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 	userCmdInitHandlerInit();
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
+		gw_printf("regist gwd cmds fail!\r\n");
+    
+    if(registerUserCmdInitHandler("gwd",gw_cli_debug_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
 
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
