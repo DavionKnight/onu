@@ -303,11 +303,11 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				gw_log(GW_LOG_LEVEL_DEBUG, "port statistic get if is null!\r\n");
 			break;
 		case LIB_IF_PORT_STATISTIC_CLEAR:
-					if(g_im_ifs->portstatclear)
-						ret = (*g_im_ifs->portstatclear)(va_arg(ap, gw_int32));
-					else
-						gw_log(GW_LOG_LEVEL_DEBUG, "port statistic get if is null!\r\n");
-					break;
+			if(g_im_ifs->portstatclear)
+				ret = (*g_im_ifs->portstatclear)(va_arg(ap, gw_int32));
+			else
+				gw_log(GW_LOG_LEVEL_DEBUG, "port statistic get if is null!\r\n");
+			break;
 		case LIB_IF_VLAN_ENTRY_GETNEXT:
 			if(g_im_ifs->vlanentrygetnext)
 				ret = (*g_im_ifs->vlanentrygetnext)(va_arg(ap, gw_uint32),  va_arg(ap, gw_uint16*),
@@ -648,7 +648,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             break;
         case LIB_IF_TVM_RELATION_TABEL_ITEM_ADD:
         	if(g_im_ifs->tvmitemadd)
-        		ret = (*g_im_ifs->tvmitemadd)(va_arg(ap,gw_ulong32),va_arg(ap,gw_ulong32),va_arg(ap,gw_int16));
+        		ret = (*g_im_ifs->tvmitemadd)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint32),va_arg(ap,gw_uint32));
         	else
                 printf("gwdonu get multicast transmission is NULL\n");
             break;
@@ -672,7 +672,13 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             break;
         case LIB_IF_TVM_RELATION_TABEL_GET:
         	if(g_im_ifs->tvmtabelget)
-        		ret = (*g_im_ifs->tvmtabelget)(va_arg(ap,TVM_Cont_Head_t*));
+        		ret = (*g_im_ifs->tvmtabelget)();
+        	else
+                printf("gwdonu get multicast transmission is NULL\n");
+            break;
+        case LIB_IF_TVM_RELATION_TABEL_COUNT:
+        	if(g_im_ifs->tvmcount)
+        		ret = (*g_im_ifs->tvmcount)(va_arg(ap,gw_uint32*));
         	else
                 printf("gwdonu get multicast transmission is NULL\n");
             break;

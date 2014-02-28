@@ -3177,6 +3177,9 @@ int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
 }
 
 #endif
+extern int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
+extern int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
+
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
@@ -3291,6 +3294,7 @@ extern void gw_cli_debeg_gwd_cmd(struct cli_command **cmd_root);
 extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
+extern void gw_cli_debug_cmd(struct cli_command **cmd_root);
 extern void init_oam_send_relay();
 #if(RPU_MODULE_POE == RPU_YES)
 unsigned stat_val;
@@ -3331,6 +3335,9 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 	userCmdInitHandlerInit();
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
+		gw_printf("regist gwd cmds fail!\r\n");
+    
+    if(registerUserCmdInitHandler("gwd",gw_cli_debug_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
 
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)

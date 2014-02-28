@@ -1,9 +1,8 @@
-#include "oam.h"
 #include "../cli_lib/cli_common.h"
+#include "oam.h"
 
-int gwd_debug_tvm_flag = 0;
 
-#define gwdtvmprint if(gwd_debug_tvm_flag) gw_printf
+extern int gwd_debug_tvm_flag;
 int cmd_gwd_debug(struct cli_def *cli, char *command, char *argv[], int argc)
 {
     
@@ -58,9 +57,7 @@ int cmd_gwd_debug(struct cli_def *cli, char *command, char *argv[], int argc)
 
 void gw_cli_debug_cmd(struct cli_command **cmd_root)
 {
-    struct cli_command *debug;
-
-    gw_cli_register_command(cmd_root, NULL, "cmddebug", cmd_gwd_debug, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "gwd platform debug command line");
+    gw_cli_register_command(cmd_root, NULL, "gwdebug", cmd_gwd_debug, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "gwd platform debug command line");
       
 }
 

@@ -7,7 +7,7 @@
 
 #ifndef GWDONUIF_H_
 #define GWDONUIF_H_
-
+#include "gwdigmptvm.h"
 
 typedef enum {
     MC_SNOOPING,
@@ -232,11 +232,12 @@ typedef gw_int32 (*libgwdonu_tvm_status_set)(gw_int32 tvmstatus);
 typedef gw_int32 (*libgwdonu_tvm_status_get)(gw_int32* tvmstatus);
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_clear)();
 typedef gw_int32 (*libgwdonu_ctc_mcast_tabel_clear)();
-typedef gw_int32 (*libgwdonu_tvm_relation_tabel_item_add)(gw_ulong32 ip_start,gw_ulong32 ip_end,gw_int16 vid);
+typedef gw_int32 (*libgwdonu_tvm_relation_tabel_item_add)(gw_uint32 ip_start,gw_uint32 ip_end,gw_uint32 vid);
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_ip_delete)(gw_ulong32 ip_start,gw_ulong32 ip_end);
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_crc_get)(gw_uint32* ctcvale);
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_vlan_delete)(gw_uint16 vlan);
-typedef gw_int32 (*libgwdonu_tvm_relation_tabel_get)(TVM_Cont_Head_t *tvmtabel);
+typedef gw_int32 (*libgwdonu_tvm_relation_tabel_get)();
+typedef gw_int32 (*libgwdonu_tvm_relation_tabel_count)(gw_uint32* tvmcount);
 
 typedef struct gwdonu_im_if_s{
 
@@ -329,6 +330,7 @@ typedef struct gwdonu_im_if_s{
    libgwdonu_tvm_relation_tabel_crc_get tvmcrcget;
    libgwdonu_tvm_relation_tabel_vlan_delete tvmvlandelete;
    libgwdonu_tvm_relation_tabel_get tvmtabelget;
+   libgwdonu_tvm_relation_tabel_count tvmcount;
 
 }gwdonu_im_if_t;
 

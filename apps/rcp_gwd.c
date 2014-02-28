@@ -909,6 +909,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 		{
 			RCP_DEBUG(("\r\n  Unicast Hello semAccessRcpChannel timedout! "));
 		}
+        
 //		if(0 != (eponRet = epon_onu_sw_send_frame(lport, rcpPktBuf, 64)))
 		if(0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, lport, rcpPktBuf, 64) )
 		{

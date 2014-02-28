@@ -1,6 +1,8 @@
 #ifndef __IGMP_TVM__
 #define __IGMP_TVM__
 
+#include "gw_types.h"
+
 #define TVM_ENABLE		1
 #define TVM_DISABLE		2
 typedef enum{
@@ -9,7 +11,7 @@ typedef enum{
     GwdTvmMcastStatusSync,
     GwdTvmMcastTabelDelete_VlanIdx,
     GwdTvmMcastTabel_OnuRespond
-}
+}gwdoamaction_t;
 
 typedef struct igmp_relation_table
 {

@@ -1,8 +1,12 @@
 #include "../include/gwdigmptvm.h"
+#include "gwdonuif_interval.h"
 #include "oam.h"
+#include "../cli_lib/cli_common.h"
 
 #if (RPU_MODULE_IGMP_TVM == RPU_YES)
+int gwd_debug_tvm_flag = 0;
 
+#define gwdtvmprint if(gwd_debug_tvm_flag) gw_printf
 /**********************************************************************************************************************************************
 *函数名：igmp_relation_tabel_del
 *函数功能描述：组播关系表中删除元素
@@ -16,7 +20,7 @@ extern int igmp_relation_tabel_ip_del(gw_uint32 GroupSt, gw_uint32 GroupEnd)
 
 	ip_start = GroupSt;
 	ip_end = GroupEnd;
-	ret = call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_ITEM_ADD,2,ip_start,ip_end);
+	ret = call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_IP_DELETE,2,ip_start,ip_end);
 	return ret;
 }
 /**********************************************************************************************************************************************
@@ -48,12 +52,10 @@ static int oam_igmp_relation_tabel_ip_del(void *message_input)
 		for(i=0;i<count;i++)
 		{
 			igmp_relation_table_t *igmp_relation_table = NULL;
-			int offset= 0;		/*解决字节对齐的问题*/
-			offset = 2;
 			igmp_relation_table = (igmp_relation_table_t *)(&(message->igmp_relation_table));
-			memcpy(&start_ip, igmp_relation_table->start_ip-offset, 4);
+			memcpy(&start_ip, igmp_relation_table->start_ip, 4);
 			start_ip = ntohl(start_ip);
-			memcpy(&end_ip, igmp_relation_table->end_ip-offset, 4);
+			memcpy(&end_ip, igmp_relation_table->end_ip, 4);
 			end_ip = ntohl(end_ip);
 
 			igmp_relation_tabel_ip_del(start_ip, end_ip);
@@ -68,9 +70,9 @@ static int igmp_relation_tabel_add_elem(Through_Vlan_Group_t *table)
     if(table == NULL)
         return GW_ERROR;
 	gw_int32 ret = GW_OK;
-	gw_ulong32 ip_start;
-	gw_ulong32 ip_end;
-	gw_uint16 vid;
+	gw_uint32 ip_start;
+	gw_uint32 ip_end;
+	gw_uint32 vid;
 
 	ip_start = table->GroupSt;
 	ip_end = table->GroupEnd;
@@ -111,20 +113,18 @@ static int oam_igmp_relation_tabel_add(void *message_input)
 	int i = 0;
 	for(i=0;i<count;i++)
 	{
-		int offset= 0;
-		offset = 2;
-		memcpy(&VID, igmp_relation_table->VID-offset, 2);
+		memcpy(&VID, igmp_relation_table->VID, 2);
 		VID = ntohs(VID);
-		memcpy(&start_ip, igmp_relation_table->start_ip-offset, 4);
+		memcpy(&start_ip, igmp_relation_table->start_ip, 4);
 		start_ip = ntohl(start_ip);
-		memcpy(&end_ip, igmp_relation_table->end_ip-offset, 4);
+		memcpy(&end_ip, igmp_relation_table->end_ip, 4);
 		end_ip = ntohl(end_ip);
 
-		memcpy(&pon_id, igmp_relation_table->pon_id-offset, 2);
+		memcpy(&pon_id, igmp_relation_table->pon_id, 2);
 		pon_id = ntohs(pon_id);
-		memcpy(&ulIfindex, igmp_relation_table->ulIfindex-offset, 4);
+		memcpy(&ulIfindex, igmp_relation_table->ulIfindex, 4);
 		ulIfindex = ntohl(ulIfindex);
-		memcpy(&llid, igmp_relation_table->llid-offset, 4);
+		memcpy(&llid, igmp_relation_table->llid, 4);
 		llid = ntohl(llid);
 		
 		
@@ -278,11 +278,9 @@ static int oam_igmp_relation_tabel_vlan_del(void *message_input)
 		int i = 0;
 		for(i=0;i<count;i++)
 		{
-			int offset = 0;
-			offset = 2;
 			igmp_relation_table_t *igmp_relation_table = NULL;
 			igmp_relation_table = (igmp_relation_table_t *)(&(message->igmp_relation_table));
-			memcpy(&vlan_id, igmp_relation_table->VID-offset, 2);
+			memcpy(&vlan_id, igmp_relation_table->VID, 2);
 			vlan_id = ntohs(vlan_id);
 			call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_VLAN_DELETE,1,vlan_id);
 			igmp_relation_table++;
@@ -320,15 +318,19 @@ static int oam_through_vlan_igmp_proc(void *message_input)
 		switch(type)
 		{
 			case GwdTvmMcastTabelADD:
+                gwdtvmprint("-----------------------into GwdTvmMcastTabelADD\r\n");
 				oam_igmp_relation_tabel_add(message_input);
 				break;
 			case GwdTvmMcastTabelDelete_IpIdx:
+                 gwdtvmprint("-----------------------into GwdTvmMcastTabelDelete_IpIdx\r\n");
 				oam_igmp_relation_tabel_ip_del(message_input);
 				break;
 			case GwdTvmMcastStatusSync:
+                gwdtvmprint("-----------------------into GwdTvmMcastStatusSync\r\n");
 				oam_igmp_relation_tabel_synchronism(message_input);
 				break;
 			case GwdTvmMcastTabelDelete_VlanIdx:
+                gwdtvmprint("-----------------------into GwdTvmMcastTabelDelete_VlanIdx\r\n");
 				oam_igmp_relation_tabel_vlan_del(message_input);
 				break;
 			default:
@@ -354,7 +356,6 @@ extern long GwOamTvmRequestRecv(GWTT_OAM_MESSAGE_NODE *pRequest)
     if(pRequest == NULL)
         return GW_ERROR;
 	gwdtvmprint("\n****in GwOamTvmRequestRecv***\n");
-    
 	if(NULL == pRequest)
 	{
 		return GWD_RETURN_ERR;
@@ -390,7 +391,7 @@ int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[],
 {
     gw_int32 tvm_status = TVM_DISABLE;
     gw_int32 ret = GW_ERROR;
-    gw_int32 ret =0;
+    gw_int32 tvmcount = 0;
 
 	gw_uint16 num = 0;
     TVM_Cont_Head_t *TVM_Cont_Head_Info = NULL;
@@ -405,7 +406,9 @@ int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[],
     
     ret = call_gwdonu_if_api(LIB_IF_TVM_STATUS_GET,1,&tvm_status);
     if(ret != GW_OK)
+    {
         return ret;
+    }
     
     if(TVM_DISABLE == &tvm_status)
 	{
@@ -416,37 +419,53 @@ int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[],
 	{
 		//do nothing
 	}
+    ret = call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_GET,0,NULL);
+    if(ret != GW_OK)
+    {
+        return ret;
+    }
+    #if 0
+    ret = call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_COUNT,1,&tvmcount);
+    if(ret != GW_OK)
+        return GW_ERROR;
     
+    TVM_Cont_Head_Info = (TVM_Cont_Head_t*)malloc(sizeof(TVM_Cont_Head_t)*(tvmcount+1));
+
+    if(TVM_Cont_Head_Info == NULL)
+    {
+        gw_printf("malloc error\r\n");
+        return GW_ERROR;
+    }
     ret = call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_GET,1,TVM_Cont_Head_Info);
     if(ret != GW_OK)
+    {
         return ret;
+    }
     
 	Through_Vlan_Group_t *head = TVM_Cont_Head_Info->Through_Vlan_Group_head;
 
 	num = TVM_Cont_Head_Info->TVMCOUNT;
-	gw_cli_print(cli,"num :%u\n", num);
 
 	if(NULL == head)
 	{
-		gw_cli_print(cli,"igmp_relation_tabel is NULL\n");
+		gw_printf(cli,"igmp_relation_tabel is NULL\n");
 	}
-	else
-	{
+	else{
 		int i = 0;
 		Through_Vlan_Group_t *front = NULL;
 		front = head;
-		gw_cli_print(cli,"NO.	GroupStart	GroupEnd	IVid\n");
-		gw_cli_print(cli,"------------------------------------------------\n");
+		gw_printf("NO.	GroupStart	GroupEnd	IVid\n");
+		gw_printf("------------------------------------------------\n");
 		for(front=head; front!=NULL; front = front ->next)
 		{
 			i++;
-			gw_cli_print(cli,"%-4d 	0x%x 	0x%x 	0x%x\n", i, front->GroupSt, front->GroupEnd, front->IVid);
+			gw_printf("%-4d 	0x%x 	0x%x 	0x%x\n", i, front->GroupSt, front->GroupEnd, front->IVid);
 		}		
 	}
-	
+	#endif
 	return ret;
 }
-static gw_uint32 inet_addr_abl(char *cp)
+gw_uint32 inet_addr_abl(char *cp)
 {
 	gw_uint32 ip = 0;
 	char *p[5] = {NULL};
@@ -457,12 +476,13 @@ static gw_uint32 inet_addr_abl(char *cp)
 		//do nothing
 	}
 	ip = (atoi(p[0])<<24) + (atoi(p[1])<<16) +(atoi(p[2])<<8) +(atoi(p[3])<<0);
+
 	return ip;
 }
 int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	gw_cli_print(cli, "in cmd_igmp_snooping_tvm\n");
-
+#if 1
 	if(CLI_HELP_REQUESTED)
 	{
         switch(argc)
@@ -482,26 +502,25 @@ int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int 
                  NULL);
 		case 2:
 				gw_cli_arg_help(cli, 0,
-                "add", "<h.h.h.h> <h.h.h.h> <1-4094>",
-                 NULL);
-				gw_cli_arg_help(cli, 0,
-                "del", "<h.h.h.h> <h.h.h.h>",
+                "<h.h.h.h>", "startip",
                  NULL);
 			return gw_cli_arg_help(cli, 0,
                 "del", "all",
                  NULL);
 		case 3:
 			return gw_cli_arg_help(cli, 0,
-                "add", "<h.h.h.h> <h.h.h.h> <1-4094>",
+                 "<h.h.h.h>","endip",
+                 NULL);
+        case 4:
+			return gw_cli_arg_help(cli, 0,
+                 "<1-4094>","mcvlan",
                  NULL);
         default:
-            return gw_cli_arg_help(cli, argc > 2, NULL);
+            return gw_cli_arg_help(cli, argc > 4, NULL);
         }		
 	}
-	else
-	{
-		//do nothing
-	}
+#endif
+
 	if(1 == argc)
 	{
 		if(0 == strcmp("enable",argv[0]))
@@ -510,7 +529,7 @@ int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int 
 		}
 		else if(0 == strcmp("disable", argv[0]))
 		{
-			igmp_tvm_status_set(0);
+			igmp_tvm_status_set(2);
 		}
 		else
 		{
@@ -546,12 +565,17 @@ int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int 
 	{
 		if(0 == strcmp("add", argv[0]))
 		{
-			gw_uint32 GroupSt = inet_addr_abl(argv[1]);
-			gw_uint32 GroupEnd = inet_addr_abl(argv[2]);
-			gw_uint16 IVid = atoi(argv[3]);
+			gw_uint32 GroupSt = inet_addr(argv[1]);
+			gw_uint32 GroupEnd = inet_addr(argv[2]);
+
+			gw_uint32 IVid = atoi(argv[3]);
+            
+
             #if __tvm_debug__
 			igmp_relation_tabel_add(GroupSt, GroupEnd, IVid);
+      
             #endif
+
             call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_ITEM_ADD, 3,GroupSt, GroupEnd, IVid);
 		}
 		else
