@@ -176,7 +176,7 @@ unsigned char rcp_thread_stack[RCP_THREAD_STACKSIZE];
 cyg_handle_t  rcp_thread_handle;
 cyg_thread    rcp_thread_obj;
 #else
-gw_uint32 rcp_thread_id, rcp_rcv_handle_thread_id,rcp_loop_id;
+gw_uint32 rcp_thread_id, rcp_rcv_handle_thread_id,rcp_loop_id,rcp_broadcast_say_hello;
 gw_uint32 rcp_rcv_queue_id;
 #endif
 unsigned long gulEnableEpswitchMgt = 1;
@@ -5611,6 +5611,50 @@ void rcp_rcv_handll_thread(void * data)
 /*
  ** Tasks
  */
+void rcp_dev_broadcast_say_hello(void *data)
+{
+	int i, ret, error;
+	unsigned short vlanum;
+
+	for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
+	{
+		if(RCP_Dev_Is_Valid(i))
+		{
+			if(1 == RCP_Dev_Is_Exist(i))
+			{
+				error=0;
+				for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
+				{
+#if 0
+gettimeofday(&tv,NULL);
+
+gw_printf("\nbefore GetVlanVID \ntime is :\ntv_sec :%d\ntv_usec :%d\n\n",tv.tv_sec,tv.tv_usec);
+#endif
+					if(RCP_OK != (ret = RCP_GetVlanVID(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanVid[vlanum]))))
+						error++;
+#if 0
+gettimeofday(&tv,NULL);
+
+gw_printf("\nafter GetVlanVID \ntime is :\ntv_sec :%d\ntv_usec :%d\n\n",tv.tv_sec,tv.tv_usec);
+#endif
+					if(RCP_OK != (ret = RCP_GetVlanPort(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanPort[vlanum]))))
+						error++;
+#if 0
+gettimeofday(&tv,NULL);
+
+gw_printf("\nafter RCP_GetVlanPort \ntime is :\ntv_sec :%d\ntv_usec :%d\n\n",tv.tv_sec,tv.tv_usec);
+#endif
+				}
+				if(error != 0)
+					{
+						//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+					}
+			}
+	    }
+	}
+	RCP_Say_Hello(-1,0);
+
+}
 
 void rcp_dev_monitor(void * data)
 {
@@ -5621,7 +5665,7 @@ void rcp_dev_monitor(void * data)
     unsigned short vid =0;
 #define RCP_DISCOVERY_PERIOD_DEF	    5	
 #define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
-
+	struct  timeval    tv;
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 
@@ -5654,10 +5698,25 @@ void rcp_dev_monitor(void * data)
 				if(RCP_Dev_Is_Valid(i))
 				{
 					RCP_Say_Hello(i,vid);
+#if 0
+
+			static unsigned int num = 0;
+
+			gettimeofday(&tv,NULL);
+
+			gw_printf("\nsend %d\ntime is :\ntv_sec :%d\ntv_usec :%d\n\n", ++num, tv.tv_sec,tv.tv_usec);
+#endif
+		            gw_thread_delay(100);
+#if 0
+			gettimeofday(&tv,NULL);
+
+			gw_printf("\nafter delay %d\ntime is :\ntv_sec :%d\ntv_usec :%d\n\n", num, tv.tv_sec,tv.tv_usec);
+#endif
 					pRcpDev = RCP_Get_Dev_Ptr(i);	
 					if(pRcpDev->timeoutCounter < iKeepAliveTimeout)
 					{
 						pRcpDev->timeoutCounter++;
+
 					}
 					else	
 					{
@@ -5680,34 +5739,21 @@ void rcp_dev_monitor(void * data)
 			iDiscovreyPeriod--;
 			if(iDiscovreyPeriod <= 0)
 			{
-				for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
-				{
-					if(RCP_Dev_Is_Valid(i))
-					{
-						if(1 == RCP_Dev_Is_Exist(i))
-						{
-							error=0;
-							for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
-							{
-								if(RCP_OK != (ret = RCP_GetVlanVID(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanVid[vlanum]))))
-									error++;
-								if(RCP_OK != (ret = RCP_GetVlanPort(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanPort[vlanum]))))
-									error++;
-							}
-							if(error != 0)
-								{
-									//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
-								}
-						}
-				    }
-				}
-				RCP_Say_Hello(-1,vid);
-				iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
+				gw_thread_create( &rcp_broadcast_say_hello,
+				"RCP say hello",
+				rcp_dev_broadcast_say_hello,
+				NULL,
+				8*1024,
+				//	TASK_PRIORITY_LOWEST,
+				(GW_OSAL_THREAD_PRIO_NORMAL+10),
+				0
+				);
+					iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 			}
 		}
 
 		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
-		gw_thread_delay(2000);
+		gw_thread_delay(200);
 
 		if(gulEnableEpswitchMgt)
 		{
