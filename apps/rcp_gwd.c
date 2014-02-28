@@ -904,7 +904,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 			memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 			memcpy(rcpPktBuf + 16, authKey, 2);
 		}
-		if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
+		if(gw_rcp_sem_take(semAccessRcpChannel, 1000))
 //		if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 		{
 			RCP_DEBUG(("\r\n  Unicast Hello semAccessRcpChannel timedout! "));
@@ -960,7 +960,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 				memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 				memcpy(rcpPktBuf + 16, authKey, 2);
 			}
-			if(gw_rcp_sem_take(semAccessRcpChannel,GW_OSAL_WAIT_FOREVER))
+			if(gw_rcp_sem_take(semAccessRcpChannel,1000))
 //			if(gw_rcp_sem_take(semAccessRcpChannel,GW_OSAL_WAIT_FOREVER))
 			{
 				RCP_DEBUG(("\r\n  Braodcast Hello semAccessRcpChannel timedout!"));
