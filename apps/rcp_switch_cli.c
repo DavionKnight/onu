@@ -5608,10 +5608,13 @@ void rcp_rcv_handll_thread(void * data)
 /*
  ** Tasks
  */
+#define RCP_DISCOVERY_PERIOD_DEF	    5
+#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
+unsigned int iDiscovreyPeriod;
 void rcp_dev_broadcast_say_hello(void *data)
 {
-	int i, ret, error;
-	unsigned short vlanum;
+	unsigned int i = 0, ret = 0,error = 0, vid = 0;
+	unsigned short vlanum = 0;
 
 	for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
 	{
@@ -5622,50 +5625,35 @@ void rcp_dev_broadcast_say_hello(void *data)
 				error=0;
 				for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
 				{
-#if 0
-gettimeofday(&tv,NULL);
-
-gw_printf("\nbefore GetVlanVID \ntime is :\ntv_sec :%d\ntv_usec :%d\n\n",tv.tv_sec,tv.tv_usec);
-#endif
 					if(RCP_OK != (ret = RCP_GetVlanVID(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanVid[vlanum]))))
 						error++;
-#if 0
-gettimeofday(&tv,NULL);
 
-gw_printf("\nafter GetVlanVID \ntime is :\ntv_sec :%d\ntv_usec :%d\n\n",tv.tv_sec,tv.tv_usec);
-#endif
 					if(RCP_OK != (ret = RCP_GetVlanPort(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanPort[vlanum]))))
 						error++;
-#if 0
-gettimeofday(&tv,NULL);
-
-gw_printf("\nafter RCP_GetVlanPort \ntime is :\ntv_sec :%d\ntv_usec :%d\n\n",tv.tv_sec,tv.tv_usec);
-#endif
 				}
 				if(error != 0)
-					{
-						//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
-					}
+				{
+					//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+				}
 			}
-	    }
+		}
 	}
-	RCP_Say_Hello(-1,0);
-
+	RCP_Say_Hello(-1,vid);
+	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
+	gw_thread_exit();
 }
 
 void rcp_dev_monitor(void * data)
 {
-	int i, ret, error;
+	int i = 1, ret, error;
 	unsigned int iKeepAliveTimeout, iDiscovreyPeriod;
 	RCP_DEV *pRcpDev;
 	unsigned short vlanum;
     unsigned short vid =0;
-#define RCP_DISCOVERY_PERIOD_DEF	    5	
-#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
-//	struct  timeval    tv;
+
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
-
+//	gw_circle_timer_add(2000, rcp_dev_broadcast_say_hello, &broadcast_enable);
     while(1) 
     {
         //added by wangxy 2013-04-19 for onu tx ctrl policy, default is set, while it is clr, all onu msg
@@ -5692,21 +5680,13 @@ void rcp_dev_monitor(void * data)
 						}
 				}
 			#endif
-				if(RCP_Dev_Is_Valid(i))
-				{
-					RCP_Say_Hello(i,vid);
+			if(RCP_Dev_Is_Valid(i))
+			{
+				RCP_Say_Hello(i,vid);
+				gw_thread_delay(100);
 #if 0
-
-			static unsigned int num = 0;
-
+	      struct  timeval    tv;
 			gettimeofday(&tv,NULL);
-
-			gw_printf("\nsend %d\ntime is :\ntv_sec :%d\ntv_usec :%d\n\n", ++num, tv.tv_sec,tv.tv_usec);
-#endif
-		            gw_thread_delay(100);
-#if 0
-			gettimeofday(&tv,NULL);
-
 			gw_printf("\nafter delay %d\ntime is :\ntv_sec :%d\ntv_usec :%d\n\n", num, tv.tv_sec,tv.tv_usec);
 #endif
 					pRcpDev = RCP_Get_Dev_Ptr(i);	
@@ -5733,20 +5713,21 @@ void rcp_dev_monitor(void * data)
 #if 0/* Say broadcast hello with new authenKey will no replay */
 			RCP_Say_Hello(0,vid);
 #endif
+
 			iDiscovreyPeriod--;
-			if(iDiscovreyPeriod <= 0)
+			if(iDiscovreyPeriod == 0)
 			{
 				gw_thread_create( &rcp_broadcast_say_hello,
-				"RCP say hello",
-				rcp_dev_broadcast_say_hello,
-				NULL,
-				8*1024,
-				//	TASK_PRIORITY_LOWEST,
-				(GW_OSAL_THREAD_PRIO_NORMAL+10),
-				0
-				);
-					iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
+						"RCP say hello",
+						rcp_dev_broadcast_say_hello,
+						NULL,
+						GW_OSAL_THREAD_STACK_SIZE_TINY,
+						//	TASK_PRIORITY_LOWEST,
+						(GW_OSAL_THREAD_PRIO_NORMAL+10),
+						0
+						);
 			}
+
 		}
 
 		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
@@ -6058,6 +6039,7 @@ void rcp_loopdetect_monitor(void * data)
 extern gw_int32 gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
 extern gw_int32 gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
 //extern int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr);
+
 void start_rcp_device_monitor(void)
 {
 	

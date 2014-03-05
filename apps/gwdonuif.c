@@ -156,6 +156,7 @@ gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size)
 					int num = size/sizeof(int);
 					int i = 0;
 					int * p= (int*)ifs;
+					gw_printf("product real interface size is %d gwdonu real interface size is %d\r\n",size,sizeof(gwdonu_im_if_t));
 					gw_printf("dump im ifs:\r\n");
 					for(i=0; i<num; i++,p++)
 						gw_printf("%d    %08x\r\n", i+1, *p);
