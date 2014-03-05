@@ -619,6 +619,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	else
                 printf("gwdonu get multicast transmission is NULL\n");
             break;
+        case LIB_IF_ENTRY_SDK_CLI:
+        	if(g_im_ifs->productclientry)
+        		ret = (*g_im_ifs->productclientry)(va_arg(ap,gw_int32), va_arg(ap,gw_int32));
+        	else
+        			printf("gwdonu product cli entry is NULL\n");
+        	break;
             /*********************************************************
             ***************************************************************/
 
@@ -682,6 +688,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	else
                 printf("gwdonu get multicast transmission is NULL\n");
             break;
+
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

@@ -227,6 +227,7 @@ typedef gw_int32 (*libgwdonu_poe_port_operation_set)(gw_int32 port,gw_int32 stat
 typedef gw_int32 (*libgwdonu_multicast_mode_set)(mc_mode_t mode);
 typedef gw_int32 (*libgwdonu_multicast_mode_get)(mc_mode_t *mode);
 typedef gw_int32 (*libgwdonu_real_product_type_get)(gw_uint8 *st);
+typedef gw_int32 (*libgwdonu_product_cli_entry)(gw_uint32 rfd, gw_uint32 wfd);
 
 typedef gw_int32 (*libgwdonu_tvm_status_set)(gw_int32 tvmstatus);
 typedef gw_int32 (*libgwdonu_tvm_status_get)(gw_int32* tvmstatus);
@@ -319,6 +320,7 @@ typedef struct gwdonu_im_if_s{
     libgwdonu_multicast_mode_set multicastmodeset;
     libgwdonu_multicast_mode_get multicastmodeget;
     libgwdonu_real_product_type_get onurealproducttypeget;
+    libgwdonu_product_cli_entry productclientry;
     /********************************************************
     **************************************************************/
    libgwdonu_tvm_status_set tvmstatusset;

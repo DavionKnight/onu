@@ -37,6 +37,8 @@
 #include "rcp_gwd.h"
 #include "oam.h"
 #include "gw_log.h"
+#include <sys/time.h>
+#include <unistd.h>
 unsigned long gulGwdRcpAuth = 0;
 RCP_DEV *rcpDevList[MAX_RRCP_SWITCH_TO_MANAGE];
 
@@ -311,9 +313,18 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 {
 	RCP_HELLO_PAYLOAD *payload;
 	unsigned short usAuthenkey;
-//	gw_rcp_sem_give(semAccessRcpChannel); comment by wangxy 2013-04-25
-    gw_rcp_sem_give(semAccessRcpChannel);
+//	gw_rcp_sem_give(semAccessRcpChannel); //comment by wangxy 2013-04-25
+#if 0
+			struct  timeval    tv;
+			static unsigned int num2 = 0, i = 0;
 
+			gettimeofday(&tv,NULL);
+//			if(i%20 == 0)
+//			{
+				gw_printf("\nrecv %d\ntime :%ds :%dms\n\n",i,tv.tv_sec,tv.tv_usec);
+//			}
+			i++;
+#endif
 	if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
 		return RCP_BAD_PARAM;
 
@@ -904,7 +915,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 			memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 			memcpy(rcpPktBuf + 16, authKey, 2);
 		}
-		if(gw_rcp_sem_take(semAccessRcpChannel, 1000))
+		if(gw_rcp_sem_take(semAccessRcpChannel, RCP_RESPONSE_TIMEOUT))
 //		if(gw_rcp_sem_take(semAccessRcpChannel, GW_OSAL_WAIT_FOREVER))
 		{
 			RCP_DEBUG(("\r\n  Unicast Hello semAccessRcpChannel timedout! "));
@@ -917,6 +928,8 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 			RCP_DEBUG(("\r\nepon_onu_sw_send_frame return : %d ", eponRet));
 			iRet = RCP_FAIL;
 		}
+		else
+		gw_rcp_sem_give(semAccessRcpChannel);
 		
 	}
 	else if(parentPort == 0)	/* GWD Hello for keep alive */
@@ -960,7 +973,7 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 				memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_HELLO, 1);
 				memcpy(rcpPktBuf + 16, authKey, 2);
 			}
-			if(gw_rcp_sem_take(semAccessRcpChannel,1000))
+			if(gw_rcp_sem_take(semAccessRcpChannel,RCP_RESPONSE_TIMEOUT))
 //			if(gw_rcp_sem_take(semAccessRcpChannel,GW_OSAL_WAIT_FOREVER))
 			{
 				RCP_DEBUG(("\r\n  Braodcast Hello semAccessRcpChannel timedout!"));
@@ -979,10 +992,20 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 				RCP_DEBUG(("\r\nepon_onu_sw_send_frame return : %d ", eponRet));
 				iRet = RCP_FAIL;
 			}
+			else
+				gw_rcp_sem_give(semAccessRcpChannel);
 			#endif
 			
 		}
 	}
+#if 0
+			struct  timeval    tv;
+			static unsigned int num = 0;
+
+			gettimeofday(&tv,NULL);
+
+			gw_printf("\nsend %d\ntime is :\ntv_sec :%d\ntv_usec :%d\n\n", ++num, tv.tv_sec,tv.tv_usec);
+#endif
 	return iRet;
 }
 

@@ -3177,6 +3177,27 @@ int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
 }
 
 #endif
+
+extern gw_int32 g_pty_master, g_pty_slave, g_pty_id;
+extern gw_uint8 pty_oam_2_telnet;
+int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	gw_cli_print(cli,"start telnet pty ...\n");
+#if 1
+	cli->sockfd = 0;
+	pty_oam_2_telnet = 1;
+	call_gwdonu_if_api(LIB_IF_ENTRY_SDK_CLI, 2, g_pty_slave, g_pty_master);
+	pty_oam_2_telnet = 0;
+	cli->sockfd = g_pty_slave;
+#else
+	write(g_pty_slave,"slave write\r\n",14);
+	write(g_pty_master,"master write\r\n",14);
+#endif
+	gw_cli_print(cli,"telnet pty end...\n");
+	return CLI_OK;
+}
+
 extern int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
 extern int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
 
@@ -3210,7 +3231,7 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 #if (RPU_MODULE_NOT_USE == RPU_YES)
         gw_cli_register_command(cmd_root, NULL, "malloc",cmd_malloc_space, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "malloc test");
 #endif
-
+       gw_cli_register_command(cmd_root, NULL, "product-cli", cmd_entry_product_cli, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Entry the product private cli");
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
     return;
