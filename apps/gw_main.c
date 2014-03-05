@@ -44,6 +44,7 @@ void plat_init()
     }
 #endif
 	gw_qos_init();
+    gw_port_ioslation_init();
 	gw_conf_restore();
 	init_pkt_proc();
 	gwd_onu_init();
