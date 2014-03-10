@@ -633,63 +633,69 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	if(g_im_ifs->tvmstatusset)
         		ret = (*g_im_ifs->tvmstatusset)(va_arg(ap,gw_int32));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu set tvm status is NULL\n");
             break;
         case LIB_IF_TVM_STATUS_GET:
         	if(g_im_ifs->tvmstatusget)
         		ret = (*g_im_ifs->tvmstatusget)(va_arg(ap,gw_int32*));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu get tvm status is NULL\n");
             break;
         case LIB_IF_TVM_RELATION_TABEL_CLEAR:
         	if(g_im_ifs->tvmtabelclear)
         		ret = (*g_im_ifs->tvmtabelclear)();
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu clear tvm tabel is NULL\n");
             break;
         case LIB_IF_CTC_Mcast_CTRL_TABEL_CLEAR:
         	if(g_im_ifs->ctcmcasttabelclear)
         		ret = (*g_im_ifs->ctcmcasttabelclear)();
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu clear ctc mcast tabel is NULL\n");
             break;
         case LIB_IF_TVM_RELATION_TABEL_ITEM_ADD:
         	if(g_im_ifs->tvmitemadd)
         		ret = (*g_im_ifs->tvmitemadd)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint32),va_arg(ap,gw_uint32));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu add tvm tabel  is NULL\n");
             break;
         case LIB_IF_TVM_RELATION_TABEL_IP_DELETE:
         	if(g_im_ifs->tvmipdelete)
         		ret = (*g_im_ifs->tvmipdelete)(va_arg(ap,gw_ulong32),va_arg(ap,gw_ulong32));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu del tvm ip is NULL\n");
             break;
         case LIB_IF_TVM_RELATION_TABEL_CRC_GET:
         	if(g_im_ifs->tvmcrcget)
         		ret = (*g_im_ifs->tvmcrcget)(va_arg(ap,gw_uint32*));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu get tvm crc is NULL\n");
             break;
         case LIB_IF_TVM_RELATION_TABEL_VLAN_DELETE:
         	if(g_im_ifs->tvmvlandelete)
         		ret = (*g_im_ifs->tvmvlandelete)(va_arg(ap,gw_uint16));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu del tvm relation tabel is NULL\n");
             break;
         case LIB_IF_TVM_RELATION_TABEL_GET:
         	if(g_im_ifs->tvmtabelget)
         		ret = (*g_im_ifs->tvmtabelget)();
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu get tvm relation tabel is NULL\n");
             break;
         case LIB_IF_TVM_RELATION_TABEL_COUNT:
         	if(g_im_ifs->tvmcount)
         		ret = (*g_im_ifs->tvmcount)(va_arg(ap,gw_uint32*));
         	else
-                printf("gwdonu get multicast transmission is NULL\n");
+                printf("gwdonu get tvm relation tabel count is NULL\n");
             break;
-
+/************************************************/
+        case LIB_IF_MGTIF_INETCONFIG_ADD:
+        	if(g_im_ifs->mgtifadd)
+        		ret = (*g_im_ifs->mgtifadd)(va_arg(ap,CtcUMnGlobalParameter),va_arg(ap,gw_uint32));
+        	else
+                printf("gwdonu mgt inet config add is NULL\n");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;
