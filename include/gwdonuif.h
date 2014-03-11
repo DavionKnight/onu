@@ -16,7 +16,7 @@ typedef struct{
     gw_uint16 mngDataCvlan;
     gw_uint16 mngDataSvlan;
     gw_uint8  mngDataPri;
-}CtcUMnGlobalParameter;
+}GwdUMnGlobalParameter;
 
 typedef enum {
     MC_SNOOPING,
@@ -249,7 +249,9 @@ typedef gw_int32 (*libgwdonu_tvm_relation_tabel_vlan_delete)(gw_uint16 vlan);
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_get)();
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_count)(gw_uint32* tvmcount);
 /*******************************************************/
-typedef gw_int32 (*libgwdonu_mgtif_config_add)(CtcUMnGlobalParameter inet,gw_uint32 port);
+typedef gw_int32 (*libgwdonu_mgtif_config_add)(GwdUMnGlobalParameter inet,gw_uint32 port);
+typedef gw_int32 (*libgwdonu_mgtif_config_get)(GwdUMnGlobalParameter* inet,gw_uint32* port);
+typedef gw_int32 (*libgwdonu_mgtif_config_del)();
 
 typedef struct gwdonu_im_if_s{
 
@@ -346,6 +348,8 @@ typedef struct gwdonu_im_if_s{
    libgwdonu_tvm_relation_tabel_count tvmcount;
    /*******************************************/
    libgwdonu_mgtif_config_add mgtifadd;
+   libgwdonu_mgtif_config_get mgtifget;
+   libgwdonu_mgtif_config_del mgtifdel;
 
 }gwdonu_im_if_t;
 

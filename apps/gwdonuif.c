@@ -692,10 +692,22 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 /************************************************/
         case LIB_IF_MGTIF_INETCONFIG_ADD:
         	if(g_im_ifs->mgtifadd)
-        		ret = (*g_im_ifs->mgtifadd)(va_arg(ap,CtcUMnGlobalParameter),va_arg(ap,gw_uint32));
+        		ret = (*g_im_ifs->mgtifadd)(va_arg(ap,GwdUMnGlobalParameter),va_arg(ap,gw_uint32));
         	else
                 printf("gwdonu mgt inet config add is NULL\n");
             break;
+        case LIB_IF_MGTIF_INETCONFIG_GET:
+        	if(g_im_ifs->mgtifget)
+        		ret = (*g_im_ifs->mgtifget)(va_arg(ap,GwdUMnGlobalParameter*),va_arg(ap,gw_uint32*));
+        	else
+                printf("gwdonu mgt inet config get is NULL\n");
+            break;    
+        case LIB_IF_MGTIF_INETCONFIG_DEL:
+        	if(g_im_ifs->mgtifdel)
+        		ret = (*g_im_ifs->mgtifdel)();
+        	else
+                printf("gwdonu mgt inet config del is NULL\n");
+            break; 
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

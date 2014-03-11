@@ -3316,6 +3316,7 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_debug_cmd(struct cli_command **cmd_root);
+extern void cli_reg_mgtif_cmd(struct cli_command **cmd_root);
 extern void init_oam_send_relay();
 #if(RPU_MODULE_POE == RPU_YES)
 unsigned stat_val;
@@ -3386,6 +3387,8 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 #endif
 	if(registerUserCmdInitHandler("multicast", gw_cli_multicast_gwd_cmd) != GW_OK)
 		gw_printf("regist multicast cmds fail!\r\n");
+	if(registerUserCmdInitHandler("mgtifconfig", cli_reg_mgtif_cmd) != GW_OK)
+		gw_printf("regist multicast cmds fail!\r\n");    
 	oam_cli_start();
 
 //	ctc_onu_stats_monitor_init();
