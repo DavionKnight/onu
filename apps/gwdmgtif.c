@@ -117,7 +117,7 @@ int cmd_onu_ifconfig_show(struct cli_def *cli, char *command, char *argv[], int 
 	sprintf(str, "%d.%d.%d.%d", (inetconfig.mngIpMask>>24)&0xff, (inetconfig.mngIpMask>>16)&0xff,
 					(inetconfig.mngIpMask>>8)&0xff, (inetconfig.mngIpMask)&0xff);
 	gw_cli_print(cli,"%-10s:%-20s","netmask", str);
-    gw_cli_print(cli,"%-s:%-20s","gateway","000.000.000.000");
+    gw_cli_print(cli,"%-10s:%-20s","gateway","000.000.000.000");
 	gw_cli_print(cli,"%-10s:%-8d","cvlan", inetconfig.mngDataCvlan);
     gw_cli_print(cli,"%-10s:0","svlan");
     #if 0
@@ -157,7 +157,7 @@ int cmd_onu_ifconfig_add(struct cli_def *cli, char *command, char *argv[], int a
 {
     gw_uint32 defaultflag = 0;
     gw_uint32 ret = GW_ERROR;
-    gw_int8 gwport = 0x7ffffff;
+    gw_int8* gwport = "0x7ffffff";
     GwdUMnGlobalParameter inetconfig;
     if(CLI_HELP_REQUESTED)
     {
@@ -198,7 +198,7 @@ int cmd_onu_ifconfig_add(struct cli_def *cli, char *command, char *argv[], int a
             gw_cli_print(cli,"ipaddr and netmask is NULL\r\n");
             return ret;
         }
-        if(call_gwdonu_if_api(LIB_IF_MGTIF_INETCONFIG_ADD,2,inetconfig,&gwport)!= GW_OK)
+        if(call_gwdonu_if_api(LIB_IF_MGTIF_INETCONFIG_ADD,2,inetconfig,gwport)!= GW_OK)
         {
             gw_cli_print(cli,"set inet config fail\r\n");
             return ret;
