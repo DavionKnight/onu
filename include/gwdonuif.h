@@ -249,7 +249,7 @@ typedef gw_int32 (*libgwdonu_tvm_relation_tabel_vlan_delete)(gw_uint16 vlan);
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_get)();
 typedef gw_int32 (*libgwdonu_tvm_relation_tabel_count)(gw_uint32* tvmcount);
 /*******************************************************/
-typedef gw_int32 (*libgwdonu_mgtif_config_add)(GwdUMnGlobalParameter inet,gw_uint32 port);
+typedef gw_int32 (*libgwdonu_mgtif_config_add)(GwdUMnGlobalParameter inet,gw_int8* portlist);
 typedef gw_int32 (*libgwdonu_mgtif_config_get)(GwdUMnGlobalParameter* inet,gw_uint32* port);
 typedef gw_int32 (*libgwdonu_mgtif_config_del)();
 

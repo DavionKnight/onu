@@ -692,7 +692,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 /************************************************/
         case LIB_IF_MGTIF_INETCONFIG_ADD:
         	if(g_im_ifs->mgtifadd)
-        		ret = (*g_im_ifs->mgtifadd)(va_arg(ap,GwdUMnGlobalParameter),va_arg(ap,gw_uint32));
+        		ret = (*g_im_ifs->mgtifadd)(va_arg(ap,GwdUMnGlobalParameter),va_arg(ap,gw_int8*));
         	else
                 printf("gwdonu mgt inet config add is NULL\n");
             break;
