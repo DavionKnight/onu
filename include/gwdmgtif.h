@@ -9,7 +9,6 @@
 
 typedef struct inetconfig_tlv_s{
     gw_uint32 Defaultflag;
-    gw_uint32 port;
     GwdUMnGlobalParameter inetconfig;
 }inetconfig_tlv_t;
 

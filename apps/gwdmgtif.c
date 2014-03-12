@@ -32,7 +32,7 @@ gw_int32 gw_onu_ifconfig_restore(gw_int32 len, gw_uint8 *pv)
 {
     gw_uint32 ret = GW_ERROR;
     inetconfig_tlv_t* p = 0;
-    gw_int32 port = 0;
+    gw_int8 gwport = 0x7fffff;
     p = (inetconfig_tlv_t*)pv;
     GwdUMnGlobalParameter inetconfig;
 
@@ -41,8 +41,7 @@ gw_int32 gw_onu_ifconfig_restore(gw_int32 len, gw_uint8 *pv)
     if(p->Defaultflag == DEFAULT_IFCONFIG_ENABLE)
     {
         memcpy(&inetconfig,&p->inetconfig,sizeof(GwdUMnGlobalParameter));
-        port = p->port;
-        if(call_gwdonu_if_api(LIB_IF_MGTIF_INETCONFIG_ADD,2,inetconfig,port)!= GW_OK)
+        if(call_gwdonu_if_api(LIB_IF_MGTIF_INETCONFIG_ADD,2,inetconfig,&gwport)!= GW_OK)
         {
             gw_printf("set inet config fail\r\n");
             return ret;
@@ -56,21 +55,19 @@ int gw_onu_ifconfig_init()
     gw_register_conf_handlers(GW_CONF_TYPE_MGTIF_CONFIG, gw_onu_ifconfig_showrun, gw_onu_ifconfig_restore);
     return GW_OK;
 }
-int gwd_onu_tlv_ifconfig_info_get(GwdUMnGlobalParameter* mgtifconfig,gw_uint32* port,gw_uint32* defaultflag)
+int gwd_onu_tlv_ifconfig_info_get(GwdUMnGlobalParameter* mgtifconfig,gw_uint32* defaultflag)
 {
     gw_uint32 ret = GW_ERROR;
-    if((mgtifconfig == NULL) || (port == NULL)||(defaultflag == NULL))
+    if((mgtifconfig == NULL) ||(defaultflag == NULL))
         return ret;
     memcpy(mgtifconfig,&ifconfigtlvsave.inetconfig,sizeof(GwdUMnGlobalParameter));
-    *port = ifconfigtlvsave.port;
     *defaultflag = ifconfigtlvsave.Defaultflag;
     return GW_OK;
 }
 
-int gwd_onu_tlv_ifconfig_info_set(GwdUMnGlobalParameter mgtifconfig,gw_uint32 port,gw_uint32 defaultflag)
+int gwd_onu_tlv_ifconfig_info_set(GwdUMnGlobalParameter mgtifconfig,gw_uint32 defaultflag)
 {
     memcpy(&ifconfigtlvsave.inetconfig,&mgtifconfig,sizeof(GwdUMnGlobalParameter));
-    ifconfigtlvsave.port = port;
     ifconfigtlvsave.Defaultflag = defaultflag;
     return GW_OK;
 }
@@ -78,10 +75,13 @@ int cmd_onu_ifconfig_show(struct cli_def *cli, char *command, char *argv[], int 
 {
     char str[80]="";
     gw_uint32 ret=GW_ERROR;
-    gw_uint32 port = 0;
+    #if 0
     gw_uint8 phyportmember[PHY_PORT_MAX] = {0};
     gw_uint32 phyport = 0;
     unsigned long logport = 0;
+    
+    #endif
+    gw_uint32 port = 0;
     gw_uint32 defaultflag = 0;
     GwdUMnGlobalParameter inetconfig;
     
@@ -95,7 +95,7 @@ int cmd_onu_ifconfig_show(struct cli_def *cli, char *command, char *argv[], int 
         }
     }
 
-    ret = gwd_onu_tlv_ifconfig_info_get(&inetconfig,&port,&defaultflag);
+    ret = gwd_onu_tlv_ifconfig_info_get(&inetconfig,&defaultflag);
     if(ret != GW_OK)
     {
         return ret;
@@ -110,16 +110,16 @@ int cmd_onu_ifconfig_show(struct cli_def *cli, char *command, char *argv[], int 
         }
     }
 
-	gw_cli_print(cli,"========================================================================\r\n");
+	gw_cli_print(cli,"========================================================================");
 	sprintf(str, "%d.%d.%d.%d", (inetconfig.mngIpAddr>>24)&0xff, (inetconfig.mngIpAddr>>16)&0xff,
 					(inetconfig.mngIpAddr>>8)&0xff, (inetconfig.mngIpAddr)&0xff);
-	gw_cli_print(cli,"%-20s:%-20s","ipaddress", str);
+	gw_cli_print(cli,"%-10s:%-20s","ipaddress", str);
 	sprintf(str, "%d.%d.%d.%d", (inetconfig.mngIpMask>>24)&0xff, (inetconfig.mngIpMask>>16)&0xff,
 					(inetconfig.mngIpMask>>8)&0xff, (inetconfig.mngIpMask)&0xff);
-	gw_cli_print(cli,"%-20s:%-20s","netmask", str);
-    gw_cli_print(cli,"%-20s:%-20s","gateway","000.000.000.000");
-	gw_cli_print(cli,"%-20s:%-8d","cvlan", inetconfig.mngDataCvlan);
-    gw_cli_print(cli,"%-20s:    0","svlan");
+	gw_cli_print(cli,"%-10s:%-20s","netmask", str);
+    gw_cli_print(cli,"%-s:%-20s","gateway","000.000.000.000");
+	gw_cli_print(cli,"%-10s:%-8d","cvlan", inetconfig.mngDataCvlan);
+    gw_cli_print(cli,"%-10s:0","svlan");
     #if 0
     ret = onu_bitport_phyport_get(port,phyportmember);/*bit位转换为物理地址*/
 	if(GW_ERROR == ret)/*不合法的物理端口*/
@@ -155,9 +155,9 @@ int cmd_onu_ifconfig_show(struct cli_def *cli, char *command, char *argv[], int 
 }
 int cmd_onu_ifconfig_add(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-    gw_uint32 port = 0;
     gw_uint32 defaultflag = 0;
     gw_uint32 ret = GW_ERROR;
+    gw_int8 gwport = 0x7ffffff;
     GwdUMnGlobalParameter inetconfig;
     if(CLI_HELP_REQUESTED)
     {
@@ -169,34 +169,24 @@ int cmd_onu_ifconfig_add(struct cli_def *cli, char *command, char *argv[], int a
                  NULL);
         case 2:
         	return gw_cli_arg_help(cli, 0,
-        		"<portlist>","1-26",
-        		NULL);
-        case 3:
-        	return gw_cli_arg_help(cli, 0,
         		"<xxx.xxx.xxx.xxx>","ip address",
         		NULL);
-        case 4:
+        case 3:
         	return gw_cli_arg_help(cli, 0,
         		"<xxx.xxx.xxx.xxx>","ip netmask",
         		NULL);            
         default:
-            return gw_cli_arg_help(cli, argc > 3, NULL);
+            return gw_cli_arg_help(cli, argc > 2, NULL);
         }
     }
     
     
-   if(4==argc)
+   if(3==argc)
     {
         inetconfig.mngDataCvlan = atoi(argv[0]);
-        port = atoi(argv[1]);
-        inetconfig.mngIpAddr = inet_addr(argv[2]);
-        inetconfig.mngIpMask= inet_addr(argv[3]);
+        inetconfig.mngIpAddr = inet_addr(argv[1]);
+        inetconfig.mngIpMask= inet_addr(argv[2]);
 
-        if((port < NUM_PORTS_MINIMUM_SYSYTEM) || (port > NUM_PORTS_PER_SYSTEM))
-        {
-            gw_cli_print(cli,"input portnumber error\r\n");
-            return ret;
-        }
         if((inetconfig.mngDataCvlan < 1) || (inetconfig.mngDataCvlan > 4092))
         {
            gw_cli_print(cli,"input vlannumber error\r\n");
@@ -208,7 +198,7 @@ int cmd_onu_ifconfig_add(struct cli_def *cli, char *command, char *argv[], int a
             gw_cli_print(cli,"ipaddr and netmask is NULL\r\n");
             return ret;
         }
-        if(call_gwdonu_if_api(LIB_IF_MGTIF_INETCONFIG_ADD,2,inetconfig,argv[1])!= GW_OK)
+        if(call_gwdonu_if_api(LIB_IF_MGTIF_INETCONFIG_ADD,2,inetconfig,&gwport)!= GW_OK)
         {
             gw_cli_print(cli,"set inet config fail\r\n");
             return ret;
@@ -216,7 +206,7 @@ int cmd_onu_ifconfig_add(struct cli_def *cli, char *command, char *argv[], int a
         else
         {
             defaultflag = DEFAULT_IFCONFIG_ENABLE;
-            gwd_onu_tlv_ifconfig_info_set(inetconfig,port,defaultflag);
+            gwd_onu_tlv_ifconfig_info_set(inetconfig,defaultflag);
             gw_cli_print(cli,"set inet config success\r\n");
         }
     }
@@ -252,8 +242,7 @@ int cmd_onu_ifconfig_del(struct cli_def *cli, char *command, char *argv[], int a
     else
     {
         memset(&inetconfig,0,sizeof(GwdUMnGlobalParameter));
-        port = 0;
-        gwd_onu_tlv_ifconfig_info_set(inetconfig,port,defaultflag);
+        gwd_onu_tlv_ifconfig_info_set(inetconfig,defaultflag);
         gw_cli_print(cli,"set inet config success\r\n");
     }
     return CLI_OK;
