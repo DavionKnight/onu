@@ -1116,8 +1116,9 @@ void lpbDetectWakeupPorts(unsigned short usVid)
                 LOOPBACK_DETECT_DEBUG(("\r\nVlan %d's lpbportwakeupcounter[%d] : %d, slpcounter[%d] : %d",usVid, portnum, pCtrl->lpbportwakeupcounter[portnum], portnum, pCtrl->slpcounter[portnum]));
                 if(((!local_onu_lpb_detect_frame.enable)&&( pCtrl->lpbportwakeupcounter[portnum] < oam_onu_lpb_detect_frame.maxwakeup ) && 
                     ((++(pCtrl->slpcounter[portnum])) >= oam_onu_lpb_detect_frame.waitforwakeup))
-                ||((local_onu_lpb_detect_frame.enable)&&(pCtrl->lpbportwakeupcounter[portnum] < local_onu_lpb_detect_frame.maxwakeup)&&
-                    ((++(pCtrl->slpcounter[portnum])) >= local_onu_lpb_detect_frame.waitforwakeup)))
+                    ||((local_onu_lpb_detect_frame.enable)&&(pCtrl->lpbportwakeupcounter[portnum] < local_onu_lpb_detect_frame.maxwakeup)&&
+                        ((++(pCtrl->slpcounter[portnum])) >= local_onu_lpb_detect_frame.waitforwakeup))
+                    || (-1 == oam_onu_lpb_detect_frame.maxwakeup))
                 {
 					//IFM_admin_up(ethIfIndex, NULL, NULL);
 					call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, portnum, PORT_ADMIN_UP);

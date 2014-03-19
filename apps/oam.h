@@ -889,12 +889,12 @@ typedef struct alarm_loop
 #define LOOP_DETECT_CHECK 0x0080
 
 typedef struct Oam_Onu_Lpb_Detect_Ctrl{
-unsigned short	vid;				//��һ�λ��ؼ��vlan
-unsigned char	lpbnum;			//��һ�β鵽�Ļ��ض˿���
-unsigned char	lpbmask[NUM_PORTS_PER_SYSTEM+1];			//��һ�εĻ��ض˿�״̬��¼(1~15bit�����15���˿ڵĻ���״̬
-unsigned char   lpbportdown[NUM_PORTS_PER_SYSTEM+1];	//�Ƿ�ر� 0:û�йر� 1:�Ѿ��ر�
-unsigned char	lpbStateChg[NUM_PORTS_PER_SYSTEM+1];	//�澯״̬�仯λ added by wangxiaoyu 2009-03-17
-unsigned char	lpbportwakeupcounter[NUM_PORTS_PER_SYSTEM+1];			//��һ�ε�OAM����ʹ��״̬
+unsigned short	vid;			
+unsigned char	lpbnum;			
+unsigned char	lpbmask[NUM_PORTS_PER_SYSTEM+1];			
+unsigned char   lpbportdown[NUM_PORTS_PER_SYSTEM+1];	
+unsigned char	lpbStateChg[NUM_PORTS_PER_SYSTEM+1];
+unsigned char	lpbportwakeupcounter[NUM_PORTS_PER_SYSTEM+1];
 unsigned char   lpbClearCnt[NUM_PORTS_PER_SYSTEM+1];
 int				slpcounter[NUM_PORTS_PER_SYSTEM+1];
 ALARM_LOOP		alarmInfo[NUM_PORTS_PER_SYSTEM+1];

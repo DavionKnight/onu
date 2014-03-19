@@ -1643,7 +1643,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 
 				while(!ifhavemac)
 				{					
-					/*��ȡfdb���е�ǰ256 ��mac ,���û��ȡȫ�´��ڽ��Ż�ȡ֪��ȫ��ȡ��*/
 					if(user_mac_onu_fdb_get(macbuf,lastmac,&macnumberget,&ifhavemac))
 					{
                         free(responsePdu);
@@ -1663,7 +1662,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 	                for (requestNum = 0; requestNum < requestPdu->macNum; requestNum++)
 	                {
 	    				/*generating response pdu only for found the mac because of OLT broadcast oam request*/
-						if(!memcmp(info[requestNum].swmac,nullmac,USR_MAC_LEN))/*��ǰһ���Ѿ�ȡ����mac��ξͲ���ȥ�ڲ���*/
+						if(!memcmp(info[requestNum].swmac,nullmac,USR_MAC_LEN))
 						{
 							continue;
 						}
@@ -1706,9 +1705,9 @@ END:
                 if (0 != responseNum)
                 {
                 	responsePdu->type = ONU_LOCATE_USER;/*cheak type*/
-                    responsePdu->result = 1;/*��ѯ���*/
+                    responsePdu->result = 1;
 					responsePdu->mode	= USR_MAC_ADDRES_CHEAK;
-                    responsePdu->macNum = responseNum;/*�鵽��MAC��ַ��*/
+                    responsePdu->macNum = responseNum;
                     
                     memcpy(tempP, responsePdu, sizeof(userMacResponse_pdu_t));
                     tempP += sizeof(userMacResponse_pdu_t);
@@ -1722,7 +1721,7 @@ END:
                     ResLen = 0;
 					free(responsePdu);
 					responsePdu = NULL;
-					return GWD_RETURN_ERR;/*����ѯ��MAC ��û���ҵ����ظ���ֱ�Ӷ���*/
+					return GWD_RETURN_ERR;
                 }
 				
 			}
