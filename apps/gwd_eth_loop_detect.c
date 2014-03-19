@@ -1118,7 +1118,7 @@ void lpbDetectWakeupPorts(unsigned short usVid)
                     ((++(pCtrl->slpcounter[portnum])) >= oam_onu_lpb_detect_frame.waitforwakeup))
                     ||((local_onu_lpb_detect_frame.enable)&&(pCtrl->lpbportwakeupcounter[portnum] < local_onu_lpb_detect_frame.maxwakeup)&&
                         ((++(pCtrl->slpcounter[portnum])) >= local_onu_lpb_detect_frame.waitforwakeup))
-                    || (-1 == oam_onu_lpb_detect_frame.maxwakeup))
+                    || ((-1 == oam_onu_lpb_detect_frame.maxwakeup)&&(local_onu_lpb_detect_frame.enable)&&((++(pCtrl->slpcounter[portnum])) >= local_onu_lpb_detect_frame.waitforwakeup)))
                 {
 					//IFM_admin_up(ethIfIndex, NULL, NULL);
 					call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, portnum, PORT_ADMIN_UP);
