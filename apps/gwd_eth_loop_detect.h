@@ -8,6 +8,10 @@
 #ifndef GWD_ETH_LOOP_DETECT_H_
 #define GWD_ETH_LOOP_DETECT_H_
 
+typedef enum{
+    WAKEUP_ENABLE,
+    WAKEUP_DISABLE
+}Wakeup_flag_t;
 #if 0
 #include "immenstar.h"
 #endif
