@@ -419,7 +419,7 @@ int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[],
 	{
 		//do nothing
 	}
-    ret = call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_GET,0,NULL);
+    ret = call_gwdonu_if_api(LIB_IF_TVM_RELATION_TABEL_DEBUG_SHOW,0,NULL);
     if(ret != GW_OK)
     {
         return ret;

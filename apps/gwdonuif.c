@@ -677,9 +677,9 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	else
                 printf("gwdonu del tvm relation tabel is NULL\n");
             break;
-        case LIB_IF_TVM_RELATION_TABEL_GET:
-        	if(g_im_ifs->tvmtabelget)
-        		ret = (*g_im_ifs->tvmtabelget)();
+        case LIB_IF_TVM_RELATION_TABEL_DEBUG_SHOW:
+        	if(g_im_ifs->tvmtabelshow)
+        		ret = (*g_im_ifs->tvmtabelshow)();
         	else
                 printf("gwdonu get tvm relation tabel is NULL\n");
             break;
