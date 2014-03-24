@@ -2617,7 +2617,7 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 	{
         
 		gw_cli_print(cli,  "\n  Product information as following--");
-		gw_cli_print(cli,  "    ONU type         : %s", "GT873_A");
+		gw_cli_print(cli,  "    ONU type         : %s", "GT815_C");
 		gw_cli_print(cli,  "    DeviceName       : %s", gw_onu_system_info_total.device_name);
 		gw_cli_print(cli,  "    Hardware version : %s", gw_onu_system_info_total.hw_version);
 		gw_cli_print(cli,  "    Software version : %s", gw_onu_system_info_total.sw_version);
@@ -3222,9 +3222,11 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
+#if (RPU_MODULE_NOT_USE == RPU_YES)
     gw_cli_register_command(cmd_root, NULL, "igmp-snooping-tvm-show", cmd_show_igmp_snooping_tvm, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "igmp snooping tvm");
 	gw_cli_register_command(cmd_root, NULL, "igmp-snooping-tvm", cmd_igmp_snooping_tvm, PRIVILEGE_UNPRIVILEGED, MODE_DEBUG, "igmp-snooping-tvm config");
-	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
+#endif
+    dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
 #if (RPU_MODULE_NOT_USE == RPU_YES)
