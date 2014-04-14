@@ -3391,7 +3391,6 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 	if(registerUserCmdInitHandler("mgtifconfig", cli_reg_mgtif_cmd) != GW_OK)
 		gw_printf("regist multicast cmds fail!\r\n");    
 	oam_cli_start();
-
 //	ctc_onu_stats_monitor_init();
 }
 

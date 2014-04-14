@@ -708,6 +708,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	else
                 printf("gwdonu mgt inet config del is NULL\n");
             break; 
+        case LIB_IF_VLAN_FIELD_CFG_GET:
+            if(g_im_ifs->vlanfieldcfgget)
+                ret = (*g_im_ifs->vlanfieldcfgget)(va_arg(ap,gw_uint32),va_arg(ap,gw_vlan_field_cfg_t*));
+            else
+                printf("gwdonu vlan field cfg get is NULL");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

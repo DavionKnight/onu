@@ -104,6 +104,8 @@ enum{
     LIB_IF_MGTIF_INETCONFIG_GET,
     LIB_IF_MGTIF_INETCONFIG_DEL,
 
+    LIB_IF_VLAN_FIELD_CFG_GET,
+
 };
 
 gw_status init_im_interfaces();

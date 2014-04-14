@@ -38,7 +38,7 @@ epon_return_code_t Gwd_onu_cpld_exist_get(unsigned int *stat)
         return EPON_RETURN_FAIL;
     }
 
-    if(val != CPLD_VERSION_1)
+    if(val < CPLD_VERSION_1)
     {
         ret =EPON_RETURN_EXIST_ERROR;
     }

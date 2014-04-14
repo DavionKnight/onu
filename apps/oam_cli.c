@@ -484,7 +484,61 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 
 	return CLI_OK;
 }
+int cmd_vlan_field_cfg_show(struct cli_def *cli, char *command, char *argv[], int argc)
+{
 
+    unsigned long ulPort;
+    int i = 0;
+    unsigned long numofPorts;
+    gw_vlan_field_cfg_t vlanfieldcfg;
+    if(CLI_HELP_REQUESTED)
+	{
+		switch (argc)
+		{
+			case 1:
+				return gw_cli_arg_help(cli, 0, 
+					"<portlist>", "Input one fe port number", NULL );
+				break;
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL  );
+				break;
+		}
+	}
+    
+    numofPorts = gw_onu_read_port_num();
+    
+    memset(&vlanfieldcfg,0,sizeof(gw_vlan_field_cfg_t));
+    if(1 == argc)
+    {
+        gw_cli_print(cli,"%-10s %-30s %-15s %s ","port","vlan","state","vlannum");
+        gw_cli_print(cli,"-----------------------------------------------------------------------");
+        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,numofPorts)
+        {
+			if(ulPort > numofPorts)
+			{
+				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+				return CLI_OK;
+			}
+            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 2,ulPort,&vlanfieldcfg))
+				gw_cli_print(cli, "get port %s vlan field cfg fail!\r\n",ulPort);
+
+            gw_cli_print(cli,"%-10d %d %d %d %d %d %d %d %d %-8d  %-15s   %d",ulPort,vlanfieldcfg.defaultvlan,
+                vlanfieldcfg.trunkvlan[0],vlanfieldcfg.trunkvlan[1],vlanfieldcfg.trunkvlan[2],
+                vlanfieldcfg.trunkvlan[3],vlanfieldcfg.trunkvlan[4],vlanfieldcfg.trunkvlan[5],
+                vlanfieldcfg.trunkvlan[6],vlanfieldcfg.trunkvlan[7],vlanfieldcfg.updatesuccess?"SUCCESS":"FAILE",
+                vlanfieldcfg.vlancount);
+		}
+		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+        gw_cli_print(cli,"-----------------------------------------------------------------------\r\n");
+    }
+    else
+    {
+        gw_cli_print(cli, GW_CLI_INCOMPLETE_MSG);
+		return CLI_ERROR;
+    }
+    return CLI_OK;
+    
+}
 int cmd_oam_atu_learn(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
@@ -818,6 +872,7 @@ int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 {
 	struct cli_command * portcmd = NULL, *atu = NULL , *c = NULL,*reboot= NULL;
+    struct cli_command * vlanfieldshow = NULL;
 
 	portcmd = gw_cli_register_command(cmd_root, NULL, "port", NULL,  PRIVILEGE_UNPRIVILEGED, MODE_ANY, "port config or get");
 	gw_cli_register_command(cmd_root, portcmd, "mode", cmd_oam_port_mode, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "mode config");
@@ -834,7 +889,9 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, atu, "static_del", cmd_static_mac_del_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "static fdb mac del");
 
 	c = gw_cli_register_command(cmd_root, NULL, "vlan", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "vlan command");
-	gw_cli_register_command(cmd_root, c, "port_isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
+       gw_cli_register_command(cmd_root, c, "port_isolate", cmd_oam_port_isolate, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
+    vlanfieldshow = gw_cli_register_command(cmd_root, c, "fieldconfig", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
+    gw_cli_register_command(cmd_root, vlanfieldshow, "show", cmd_vlan_field_cfg_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "isolate command");
 	
 	c = gw_cli_register_command(cmd_root, NULL, "mgt", NULL, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "ONU device management");
 	gw_cli_register_command(cmd_root, c, "laser", cmd_gw_laser, PRIVILEGE_UNPRIVILEGED, MODE_EXEC, "Laser status");
