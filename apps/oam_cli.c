@@ -491,6 +491,7 @@ int cmd_vlan_field_cfg_show(struct cli_def *cli, char *command, char *argv[], in
     int i = 0;
     unsigned long numofPorts;
     gw_vlan_field_cfg_t vlanfieldcfg;
+    gw_vlan_field_update_t fieldupdatecfg;
     if(CLI_HELP_REQUESTED)
 	{
 		switch (argc)
@@ -507,7 +508,6 @@ int cmd_vlan_field_cfg_show(struct cli_def *cli, char *command, char *argv[], in
     
     numofPorts = gw_onu_read_port_num();
     
-    memset(&vlanfieldcfg,0,sizeof(gw_vlan_field_cfg_t));
     if(1 == argc)
     {
         gw_cli_print(cli,"%-10s %-30s %-15s %s ","port","vlan","state","vlannum");
@@ -519,7 +519,8 @@ int cmd_vlan_field_cfg_show(struct cli_def *cli, char *command, char *argv[], in
 				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
 				return CLI_OK;
 			}
-            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 2,ulPort,&vlanfieldcfg))
+            memset(&vlanfieldcfg,0,sizeof(gw_vlan_field_cfg_t));
+            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 2,ulPort,&vlanfieldcfg,&fieldupdatecfg))
 				gw_cli_print(cli, "get port %s vlan field cfg fail!\r\n",ulPort);
 
             gw_cli_print(cli,"%-10d %d %d %d %d %d %d %d %d %-8d  %-15s   %d",ulPort,vlanfieldcfg.defaultvlan,
@@ -527,6 +528,27 @@ int cmd_vlan_field_cfg_show(struct cli_def *cli, char *command, char *argv[], in
                 vlanfieldcfg.trunkvlan[3],vlanfieldcfg.trunkvlan[4],vlanfieldcfg.trunkvlan[5],
                 vlanfieldcfg.trunkvlan[6],vlanfieldcfg.trunkvlan[7],vlanfieldcfg.updatesuccess?"SUCCESS":"FAILE",
                 vlanfieldcfg.vlancount);
+		}
+		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
+        gw_cli_print(cli,"-----------------------------------------------------------------------\r\n");
+        
+        gw_cli_print(cli,"%-10s %-30s  %s ","port","updatevlan","vlannum");
+        gw_cli_print(cli,"-----------------------------------------------------------------------");
+        BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[0], ulPort,numofPorts)
+        {
+			if(ulPort > numofPorts)
+			{
+				gw_cli_print(cli,   "  Input port number %ld error!\r\n", ulPort);
+				return CLI_OK;
+			}
+            memset(&fieldupdatecfg,0,sizeof(gw_vlan_field_update_t));
+            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 2,ulPort,&vlanfieldcfg,&fieldupdatecfg))
+				gw_cli_print(cli, "get port %s vlan field cfg fail!\r\n",ulPort);
+
+            gw_cli_print(cli,"%-10d %d %d %d %d %d %d %d %d %-8d  %d",ulPort,fieldupdatecfg.defaultvlan,
+                fieldupdatecfg.vlan[0],fieldupdatecfg.vlan[1],fieldupdatecfg.vlan[2],
+                fieldupdatecfg.vlan[3],fieldupdatecfg.vlan[4],fieldupdatecfg.vlan[5],
+                fieldupdatecfg.vlan[6],fieldupdatecfg.vlan[7],fieldupdatecfg.fieldentrynum);
 		}
 		END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
         gw_cli_print(cli,"-----------------------------------------------------------------------\r\n");

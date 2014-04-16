@@ -710,7 +710,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             break; 
         case LIB_IF_VLAN_FIELD_CFG_GET:
             if(g_im_ifs->vlanfieldcfgget)
-                ret = (*g_im_ifs->vlanfieldcfgget)(va_arg(ap,gw_uint32),va_arg(ap,gw_vlan_field_cfg_t*));
+                ret = (*g_im_ifs->vlanfieldcfgget)(va_arg(ap,gw_uint32),va_arg(ap,gw_vlan_field_cfg_t*),va_arg(ap,gw_vlan_field_update_t*));
             else
                 printf("gwdonu vlan field cfg get is NULL");
             break;

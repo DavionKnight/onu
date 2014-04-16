@@ -10,6 +10,11 @@
 #include "gwdigmptvm.h"
 
 #define PortVlanMaxNum 8
+typedef struct gw_vlan_field_update_s{
+	unsigned int fieldentrynum;
+    unsigned short defaultvlan;
+	unsigned short vlan[PortVlanMaxNum];
+}gw_vlan_field_update_t;
 typedef struct gw_vlan_cfg_show_s{
 	unsigned char updatesuccess;
     unsigned char vlancount;
@@ -260,7 +265,7 @@ typedef gw_int32 (*libgwdonu_mgtif_config_add)(GwdUMnGlobalParameter inet,gw_int
 typedef gw_int32 (*libgwdonu_mgtif_config_get)(GwdUMnGlobalParameter* inet,gw_uint32* port);
 typedef gw_int32 (*libgwdonu_mgtif_config_del)();
 /*******************************************************/
-typedef gw_int32 (*libgwdonu_vlan_field_cfg_get)(gw_uint32 port,gw_vlan_field_cfg_t* vlanfieldcfg);
+typedef gw_int32 (*libgwdonu_vlan_field_cfg_get)(gw_uint32 port,gw_vlan_field_cfg_t* vlanfieldcfg,gw_vlan_field_update_t* fieldupdatecfg);
 
 typedef struct gwdonu_im_if_s{
 
