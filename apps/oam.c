@@ -3196,6 +3196,29 @@ int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int 
 	gw_cli_print(cli,"telnet pty end...\n");
 	return CLI_OK;
 }
+int cmd_display_onu_loop_config_cli(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        default:
+            return gw_cli_arg_help(cli, argc > 0, NULL);
+        }
+    }
+    unsigned char loopmac[6]={0};
+    memcpy(&loopmac[0],&oam_onu_lpb_detect_frame.smac[0],6);
+    gw_cli_print(cli,"  ONU_LPB_DETECT - enable : %d", oam_onu_lpb_detect_frame.enable);
+    gw_cli_print(cli,"  ONU_LPB_DETECT - vid : %d", oam_onu_lpb_detect_frame.vid);
+    gw_cli_print(cli,"  ONU_LPB_DETECT - interval : %d", oam_onu_lpb_detect_frame.interval);
+    gw_cli_print(cli,"  ONU_LPB_DETECT - policy : %d", oam_onu_lpb_detect_frame.policy);
+	gw_cli_print(cli,"  ONU_LPB_DETECT - waitforwakeup : %d", oam_onu_lpb_detect_frame.waitforwakeup); 
+	gw_cli_print(cli,"  ONU_LPB_DETECT - maxwakeup : %d", oam_onu_lpb_detect_frame.maxwakeup); 
+    gw_cli_print(cli,"  ONU_LPB_DETECT - smac : %02x-%02x-%02x-%02x-%02x-%02x", loopmac[0],loopmac[1],loopmac[2],
+                                                                loopmac[3],loopmac[4],loopmac[5]);
+	 
+    return CLI_OK;
+}
 
 extern int cmd_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
 extern int cmd_show_igmp_snooping_tvm(struct cli_def *cli, char *command, char *argv[], int argc);
@@ -3219,6 +3242,7 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
     sys  = gw_cli_register_command(cmd_root, show, "product", cmd_show_system_information, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
            gw_cli_register_command(cmd_root, show, "version", cmd_show_version_build_time, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
 	gw_cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
+    gw_cli_register_command(cmd_root, show, "loopcfg", cmd_display_onu_loop_config_cli, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "local loop config information");
 
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/

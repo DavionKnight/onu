@@ -126,18 +126,6 @@ extern int GwGetOltType(unsigned char *mac, GWD_OLT_TYPE *type);
 extern int GwGetPonSlotPort(unsigned char *mac, GWD_OLT_TYPE type, unsigned long *slot, unsigned long *port);
 //extern epon_port_id_t ifm_port_id_make(epon_physical_port_id_t phy_id, epon_logical_link_id_t llid, epon_port_type_t port_type);
 
-static int FoundWakeupPortFlag = WAKEUP_DISABLE;
-int Gwd_loop_port_wakeup_set(unsigned int wakestat)
-{
-    FoundWakeupPortFlag = wakestat;
-    return GW_OK;
-}
-
-int Gwd_loop_port_wakeup_get(unsigned int* wakestat)
-{
-    *wakestat = FoundWakeupPortFlag;
-    return GW_OK;
-}
 int gw_lpb_detect_init(void)
 {
 	return gw_semaphore_init(&gw_lpb_sem, "lpb_sem", 1, 0);
@@ -1080,11 +1068,14 @@ int sendOamLpbDetectNotifyMsg(unsigned char port, unsigned char state, unsigned 
 	
 	return ret;	
 }
-void lpbDetectWakeupPorts(unsigned short usVid)
+void lpbDetectWakeupPorts(unsigned short usVid,unsigned int *wakestat)
 {
     int portnum, ret;
 	OAM_ONU_LPB_DETECT_CTRL *pCtrl = NULL;
-
+    if(wakestat == NULL)
+        return;
+    *wakestat=WAKEUP_DISABLE;
+    
 	gw_lpb_sem_take();
 
 	pCtrl = getVlanLpbStasNode(usVid);
@@ -1122,7 +1113,7 @@ void lpbDetectWakeupPorts(unsigned short usVid)
                 {
 					//IFM_admin_up(ethIfIndex, NULL, NULL);
 					call_gwdonu_if_api(LIB_IF_PORT_ADMIN_SET, 2, portnum, PORT_ADMIN_UP);
-                    Gwd_loop_port_wakeup_set(WAKEUP_ENABLE);
+                    *wakestat = WAKEUP_ENABLE;
 					if(GWD_RETURN_OK != (ret = sendOamLpbDetectNotifyMsg(portnum, 2, usVid, port_loop_back_session, &(pCtrl->alarmInfo[portnum]))))
 					{
 						LOOPBACK_DETECT_DEBUG(("sendOamLpbDetectNotifyMsg failed!"));		
@@ -1665,7 +1656,7 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 	unsigned long i;
        gwd_port_oper_status_t status;
 	unsigned short vid =0;
-    unsigned int wakestat= 0;
+    unsigned int wakestat= WAKEUP_DISABLE;
     
 	if(enable)
 	{
@@ -1675,7 +1666,7 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 		if((!local_onu_lpb_detect_frame.enable)&&(oam_onu_lpb_detect_frame.vid != 0))
 		{ 	/*detect loopback in the specific vlan, wakeup the shutdown ports which have not reached wakeup threshold in the specfic vlan*/
 			LOOPBACK_DETECT_DEBUG(("\r\nOLT config detect in unique vlan(%d)",oam_onu_lpb_detect_frame.vid));
-			lpbDetectWakeupPorts(oam_onu_lpb_detect_frame.vid);
+			lpbDetectWakeupPorts(oam_onu_lpb_detect_frame.vid,&wakestat);
 			/*Send detect packet in specific vlan*/
 			if(GWD_RETURN_OK != (ret = lpbDetectTransFrames(oam_onu_lpb_detect_frame.vid)))
 			LOOPBACK_DETECT_DEBUG(("\r\nlpbDetectTransFrames failed(%d).", ret));
@@ -1686,7 +1677,7 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 		else if((local_onu_lpb_detect_frame.enable)&&(local_onu_lpb_detect_frame.vid != 0))
 		{
 			LOOPBACK_DETECT_DEBUG(("\r\nONU config detect in unique vlan(%d)", local_onu_lpb_detect_frame.vid));
-			lpbDetectWakeupPorts(local_onu_lpb_detect_frame.vid);
+			lpbDetectWakeupPorts(local_onu_lpb_detect_frame.vid,&wakestat);
 			/*Send detect packet in specific vlan*/
 			if(GWD_RETURN_OK != (ret = lpbDetectTransFrames(local_onu_lpb_detect_frame.vid)))
 			LOOPBACK_DETECT_DEBUG(("\r\nlpbDetectTransFrames failed(%d).", ret));
@@ -1712,16 +1703,13 @@ long ethLoopBackDetectActionCall( int enable, char * oamSession)
 //	        		vid = vlan_entry.vlan;
 	        		if(vid != 0)
 	        		{
-	        	  	  	lpbDetectWakeupPorts(vid);
+	        	  	  	lpbDetectWakeupPorts(vid,&wakestat);
                         /**************************************************************
                                         *发现有环路端口唤醒，需要做延时2S，等待端口状态UP
                                         **************************************************************/
-                        Gwd_loop_port_wakeup_get(&wakestat);
                         if(wakestat == WAKEUP_ENABLE)
                         {   
-                            wakestat = WAKEUP_DISABLE;
                             gw_thread_delay(2000);
-                            Gwd_loop_port_wakeup_set(wakestat);
                         }
 					need_to_send = 0;
 					/* VLAN without linkup ports, no need check, but need update loopback status */
