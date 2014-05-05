@@ -3376,8 +3376,9 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 
 	oam_vendor_handler_register(GwOUI, gwd_oam_handlers);
 #endif
-
+#if (RPU_MODULE_RCP == RPU_YES)
 	Rcp_Mgt_init();
+#endif
 
 	userCmdInitHandlerInit();
 
