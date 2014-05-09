@@ -3341,7 +3341,9 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_debug_cmd(struct cli_command **cmd_root);
+#ifdef __IPCONFIG__
 extern void cli_reg_mgtif_cmd(struct cli_command **cmd_root);
+#endif
 extern void init_oam_send_relay();
 #if(RPU_MODULE_POE == RPU_YES)
 unsigned stat_val;
@@ -3387,10 +3389,10 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
     
     if(registerUserCmdInitHandler("gwd",gw_cli_debug_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
-
+#if (RPU_MODULE_RCP == RPU_YES)
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
-
+#endif
 	if(registerUserCmdInitHandler("rcp-switch-debug", gw_cli_debeg_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch debug cmds fail!\r\n");
 
@@ -3413,8 +3415,10 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 #endif
 	if(registerUserCmdInitHandler("multicast", gw_cli_multicast_gwd_cmd) != GW_OK)
 		gw_printf("regist multicast cmds fail!\r\n");
+#ifdef __IPCONFIG__
 	if(registerUserCmdInitHandler("mgtifconfig", cli_reg_mgtif_cmd) != GW_OK)
 		gw_printf("regist multicast cmds fail!\r\n");    
+#endif
 	oam_cli_start();
 //	ctc_onu_stats_monitor_init();
 }

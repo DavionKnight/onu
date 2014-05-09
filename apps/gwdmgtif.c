@@ -4,9 +4,8 @@
 #include "../include/gwdmgtif.h"
 #include "../include/gwdonuif.h"
 #include "gw_conf_file.h"
-
+#ifdef __IPCONFIG__
 inetconfig_tlv_t ifconfigtlvsave;
-
 
 gw_int32 gw_onu_ifconfig_showrun(gw_int32* len,gw_uint8**pv)
 {
@@ -49,12 +48,14 @@ gw_int32 gw_onu_ifconfig_restore(gw_int32 len, gw_uint8 *pv)
     }
     return GW_OK;
 }
+
 int gw_onu_ifconfig_init()
 {
     memset(&ifconfigtlvsave,0,sizeof(inetconfig_tlv_t));
     gw_register_conf_handlers(GW_CONF_TYPE_MGTIF_CONFIG, gw_onu_ifconfig_showrun, gw_onu_ifconfig_restore);
     return GW_OK;
 }
+
 int gwd_onu_tlv_ifconfig_info_get(GwdUMnGlobalParameter* mgtifconfig,gw_uint32* defaultflag)
 {
     gw_uint32 ret = GW_ERROR;
@@ -255,4 +256,4 @@ void cli_reg_mgtif_cmd(struct cli_command **cmd_root)
               gw_cli_register_command(cmd_root, ifconfig, "add",cmd_onu_ifconfig_add, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set onu mgt ip add");
               gw_cli_register_command(cmd_root, ifconfig, "del",cmd_onu_ifconfig_del, PRIVILEGE_PRIVILEGED, MODE_CONFIG, "set onu mgt ip default");
 }
-
+#endif

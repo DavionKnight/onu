@@ -45,7 +45,9 @@ void plat_init()
 #endif
 	gw_qos_init();
     gw_port_ioslation_init();
+#ifdef __IPCONFIG__
     gw_onu_ifconfig_init();
+#endif
 	gw_conf_restore();
 	init_pkt_proc();
 	gwd_onu_init();

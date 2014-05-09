@@ -3,7 +3,7 @@
 
 #include "gw_types.h"
 #include "gwdonuif.h"
-
+#ifdef __IPCONFIG__
 #define DEFAULT_IFCONFIG_ENABLE 1
 #define DEFAULT_IFCONFIG_DISABLE 0
 
@@ -11,6 +11,6 @@ typedef struct inetconfig_tlv_s{
     gw_uint32 Defaultflag;
     GwdUMnGlobalParameter inetconfig;
 }inetconfig_tlv_t;
-
+#endif
 #endif
 

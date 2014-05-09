@@ -166,7 +166,6 @@ unsigned short gusSwitchDataValidFlag = 0x5A5A;
 long glSwitchCfgFileSizeMaxInFlash;
 
 
-
 unsigned char gucTxRcpPktBuf[RCP_PKT_MAX_LENGTH];
 unsigned char gucRxRcpPktBuf[RCP_PKT_MAX_LENGTH];
 //extern long device_conf_write_switch_conf_to_flash( char * conf_file, long * conf_len );
@@ -6496,6 +6495,8 @@ int ereaseRcpDevCfgInFlash(RCP_DEV  *rcpDev, int allDev)
 	{
 	//	device_conf_erase_switch_conf_from_flash();
 		memset(gpusSwitchCfgFileBuf, 0, glSwitchCfgFileSizeMaxInFlash);
+
+        fileLen = glSwitchCfgFileSizeMaxInFlash;
     /***********************************************************************
     添加下面API:当清除交换机的所有配置(all ports)，没有清空flash空间
     ************************************************************************/
