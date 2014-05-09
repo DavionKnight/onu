@@ -166,6 +166,8 @@ long glSwitchCfgFileSizeMaxInFlash;
 
 
 unsigned char gucTxRcpPktBuf[RCP_PKT_MAX_LENGTH];
+unsigned char gucTxWrRcpPktBuf[RCP_PKT_MAX_LENGTH];
+unsigned char gucTx32bRcpPktBuf[RCP_PKT_MAX_LENGTH];
 unsigned char gucRxRcpPktBuf[RCP_PKT_MAX_LENGTH];
 //extern long device_conf_write_switch_conf_to_flash( char * conf_file, long * conf_len );
 //extern long device_conf_read_switch_conf_from_flash( char * conf_file, long * conf_len );
@@ -193,24 +195,28 @@ unsigned long   gulDebugRcp = 0;
 	}
 #endif
 
-void gw_rcp_sem_create(unsigned int * semid, unsigned char *name,unsigned int initval)
+int gw_rcp_sem_create(unsigned int * semid, unsigned char *name,unsigned int initval)
 {
 	int ret;
 	if(semid)
 		ret = gw_semaphore_init(semid, name, initval, 0);
 	if(ret)
 		gw_printf("%s create fail (line: %d)(sem_id:%d)\n",__func__,__LINE__,semid);
+
+	return ret;
 }
 
-void gw_rcp_sem_delete(unsigned int semid)
+int gw_rcp_sem_delete(unsigned int semid)
 {
 	int ret;
 	ret = gw_semaphore_destroy(semid);
 	if(ret)
 		gw_printf("%s faile (line:%d)(semid:%d)\n",__func__,__LINE__,semid);
+
+	return ret;
 }
 
-int gw_rcp_sem_take(unsigned int semid, unsigned int timeout)
+int gw_rcp_sem_take(unsigned int semid,  int timeout)
 {
 	return gw_semaphore_wait(semid, timeout);
 }
@@ -777,7 +783,7 @@ int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 	{
 		return RCP_NO_MEM;
 	}*/
-	rcpPktBuf = gucTxRcpPktBuf;
+	rcpPktBuf = gucTxWrRcpPktBuf;
 	memset(rcpPktBuf, 0, RCP_PKT_MAX_LENGTH);
 	memcpy(rcpPktBuf, dev->switchMac, 6);
 	memcpy(rcpPktBuf + 6, dev->parentMac, 6);
@@ -6959,7 +6965,6 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 else if ( isspace( cToken ) )
                 {}
 	/********************************************************************************************************
-	�жϰ弶�ţ����弶����Ч�ԡ�
 	*********************************************************************************************************/
                 else if ( cToken == '/' )
                 {
@@ -6981,8 +6986,6 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 }
 
 /***************************************************************************************************************
-�жϰ弶�ϵ�PORT �ĺţ������PORT ����Ч�ԣ�ͨ��弶�ĺ����жϰ弶�����ͣ�
-���Ҵ�������
 ****************************************************************************************************************/
                 else if ( cToken == ',' )
                 {
@@ -7193,8 +7196,6 @@ BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_onu, char *ifname,
             }
 
             /***************************************************************************************************************
-             �жϰ弶�ϵ�PORT �ĺţ������PORT ����Ч�ԣ�ͨ��弶�ĺ����жϰ弶�����ͣ�
-             ���Ҵ�������
              ****************************************************************************************************************/
             else if (cToken == ',')
             {
@@ -7628,7 +7629,6 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
     char cTmp[ 3 ];
     unsigned long int i = 0, j = 0, k = 0;
 
-    /* ����ַ����Ƿ��� */
     if ( 14 != strlen( szStr ) )
     {
         return GW_ERROR;
@@ -7651,12 +7651,10 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
             q = szStr + strlen( szStr );
         }
 
-        /* һ��H����4���ַ� */
         if ( 4 != q - p )
         {
             return GW_ERROR;
         }
-        /* ����Ƿ���16���Ƶ����� */
         for ( j = 0; j < 4; j++ )
         {
             if ( !( ( *( p + j ) >= '0' && *( p + j ) <= '9' ) || ( *( p + j 
