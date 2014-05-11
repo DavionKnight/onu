@@ -501,6 +501,8 @@ int RCP_RegList_Delete(RCP_REG *reg)
 	return RCP_NO_SUCH;
 }
 
+#if 0
+
 int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data) 
 {
 	int iRet;
@@ -763,6 +765,268 @@ ERROR_RETURN:
 
 	return iRet;
 }
+#else
+
+static int buildRcpAccessRegNode(RCP_DEV *dev,  unsigned short addr, RCP_REG ** reg)
+{
+	int ret = RCP_ERROR;
+
+	if(dev && reg)
+	{
+
+		RCP_REG * preg = malloc(sizeof(RCP_REG));
+
+		if(preg)
+		{
+			memset(preg, 0, sizeof(RCP_REG));
+			preg->address = addr;
+			preg->dev = dev;
+			if(dev->semCreate(&preg->semAccess, "readreg", 0) != GW_OK)
+			{
+				free(preg);
+			}
+			else
+			{
+				*reg = preg;
+				ret = RCP_OK;
+			}
+		}
+	}
+
+	return ret;
+}
+
+static void destroyRcpAccessRegNode(RCP_REG *reg)
+{
+	if(reg)
+	{
+		if(reg->dev && reg->dev->semDelete)
+			reg->dev->semDelete(reg->semAccess);
+
+		free(reg);
+	}
+}
+
+static int RCP_retrieveRegWithTimeout(RCP_REG *pReg, unsigned long *data)
+{
+	int iRet = RCP_ERROR;
+
+	if(gw_rcp_sem_take(pReg->semAccess, RCP_RESPONSE_TIMEOUT))
+	{
+		iRet = RCP_TIMEOUT;
+	}
+	else
+	{
+
+		if(1 == pReg->validFlag)
+		{
+			*data = pReg->value;
+		}
+		else
+		{
+			*data = 0xFFFF;
+			iRet = RCP_UNKOWN;
+		}
+
+		RCP_DEBUG(("\r\n %s give semaccess\r\n", __func__));
+		gw_rcp_sem_give(pReg->semAccess);
+
+		iRet = RCP_OK;
+
+	}
+
+	return iRet;
+}
+
+int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
+{
+	int iRet;
+	RCP_REG *pReg;
+	unsigned long rval = 0;
+    unsigned char   *rcpPktBuf;
+    unsigned char   rcpRegAddr[2];
+    unsigned char   RcpVid[2];
+
+	if((NULL == dev) || (NULL == data))
+		{
+			return RCP_BAD_PARAM;
+		}
+
+	/* New Reg Access Node */
+	if(buildRcpAccessRegNode(dev, regAddr, &pReg) != RCP_OK)
+	{
+		return RCP_ERROR;
+	}
+
+	/* Insert the node to the list */
+	gw_semaphore_wait(semAccessRcpRegList, GW_OSAL_WAIT_FOREVER);
+	iRet = RCP_RegList_Insert(pReg);
+	gw_semaphore_post(semAccessRcpRegList);
+
+	if(iRet != RCP_OK)
+		{
+		destroyRcpAccessRegNode(pReg);
+		return iRet;
+		}
+
+
+	/* Send GET packet */
+
+	rcpPktBuf = gucTxRcpPktBuf;
+	memset(rcpPktBuf, 0, RCP_PKT_MAX_LENGTH);
+	memcpy(rcpPktBuf, dev->switchMac, 6);
+	memcpy(rcpPktBuf + 6, dev->parentMac, 6);
+
+#ifdef _CPU_CHANNEL_USE_HMII_
+	RCP_GET_MGTPORT_VLAN_TAG(dev, ulTagged);
+
+	if(vlan_dot_1q_enable == 1 && ulTagged == IFM_VLAN_PORT_TAGGED)
+#else
+	if(vlan_dot_1q_enable == 1)
+#endif
+	{
+		RcpVid[0] = (((0xff00 & dev->mgtVid) >> 8) | 0xf0);
+		RcpVid[1] = (0xff & dev->mgtVid);
+		memcpy(rcpPktBuf + 12, RcpVlanTag, 2);
+		memcpy(rcpPktBuf + 14, RcpVid, 2);
+		memcpy(rcpPktBuf + 16, RcpEtherType, 2);
+		memset(rcpPktBuf + 18, REALTEK_PROTOCOL_RRCP, 1);
+		memset(rcpPktBuf + 19, REALTEK_RRCP_OPCODE_GET, 1);
+		memcpy(rcpPktBuf + 20, dev->authenKey, 2);
+		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
+		memcpy(rcpPktBuf + 22, rcpRegAddr, 2);
+	}
+	else
+	{
+		memcpy(rcpPktBuf + 12, RcpEtherType, 2);
+		memset(rcpPktBuf + 14, REALTEK_PROTOCOL_RRCP, 1);
+		memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_GET, 1);
+		memcpy(rcpPktBuf + 16, dev->authenKey, 2);
+		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
+		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
+	}
+
+	if(0 != call_gwdonu_if_api ( LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64))
+	{
+		iRet = RCP_FAIL;
+	}
+
+	/* Wait until reply received */
+	if(iRet == RCP_OK)
+	{
+		iRet = RCP_retrieveRegWithTimeout(pReg, &rval);
+		if( iRet == RCP_OK)
+		{
+			*data = (unsigned short)rval;
+		}
+	}
+
+	/*delete node from access list*/
+	gw_semaphore_wait(semAccessRcpRegList, GW_OSAL_WAIT_FOREVER);
+	RCP_RegList_Delete(pReg);
+	gw_semaphore_post(semAccessRcpRegList);
+
+	/*destroy access node*/
+	destroyRcpAccessRegNode(pReg);
+
+	return iRet;
+}
+
+/*For the Loop Detect 32-bit register*/
+int RCP_Read_32bit_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned long *data)
+{
+	int iRet;
+	RCP_REG *pReg;
+	unsigned long rval = 0;
+    unsigned char   *rcpPktBuf;
+    unsigned char   rcpRegAddr[2];
+    unsigned char   RcpVid[2];
+
+	if((NULL == dev) || (NULL == data))
+		return RCP_BAD_PARAM;
+
+	/* New Reg Access Node */
+	if(buildRcpAccessRegNode(dev, regAddr, &pReg) != RCP_OK)
+	{
+		return RCP_ERROR;
+	}
+
+	/* Insert the node to the list */
+	gw_semaphore_wait(semAccessRcpRegList, GW_OSAL_WAIT_FOREVER);
+	iRet = RCP_RegList_Insert(pReg);
+	gw_semaphore_post(semAccessRcpRegList);
+
+	if(iRet != RCP_OK)
+		{
+		destroyRcpAccessRegNode(pReg);
+		return iRet;
+		}
+
+	/* Send GET packet */
+
+	rcpPktBuf = gucTx32bRcpPktBuf;
+	memset(rcpPktBuf, 0, RCP_PKT_MAX_LENGTH);
+	memcpy(rcpPktBuf, dev->switchMac, 6);
+	memcpy(rcpPktBuf + 6, dev->parentMac, 6);
+
+#ifdef _CPU_CHANNEL_USE_HMII_
+	RCP_GET_MGTPORT_VLAN_TAG(dev, ulTagged);
+
+	if(vlan_dot_1q_enable == 1 && ulTagged == IFM_VLAN_PORT_TAGGED)
+#else
+	if(vlan_dot_1q_enable == 1)
+#endif
+	{
+		RcpVid[0] = (((0xff00 & dev->mgtVid) >> 8) | 0xf0);
+		RcpVid[1] = (0xff & dev->mgtVid);
+		memcpy(rcpPktBuf + 12, RcpVlanTag, 2);
+		memcpy(rcpPktBuf + 14, RcpVid, 2);
+		memcpy(rcpPktBuf + 16, RcpEtherType, 2);
+		memset(rcpPktBuf + 18, REALTEK_PROTOCOL_RRCP, 1);
+		memset(rcpPktBuf + 19, REALTEK_RRCP_OPCODE_GET, 1);
+		memcpy(rcpPktBuf + 20, dev->authenKey, 2);
+		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
+		memcpy(rcpPktBuf + 22, rcpRegAddr, 2);
+	}
+	else
+	{
+		memcpy(rcpPktBuf + 12, RcpEtherType, 2);
+		memset(rcpPktBuf + 14, REALTEK_PROTOCOL_RRCP, 1);
+		memset(rcpPktBuf + 15, REALTEK_RRCP_OPCODE_GET, 1);
+		memcpy(rcpPktBuf + 16, dev->authenKey, 2);
+		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
+		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
+	}
+
+	if( 0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64) )
+	{
+		gw_printf("send fail.............\n");
+		iRet = RCP_FAIL;
+	}
+
+	/* Wait until reply received */
+
+	if(iRet == RCP_OK)
+	{
+		iRet = RCP_retrieveRegWithTimeout(pReg, &rval);
+		if( iRet == RCP_OK)
+		{
+			*data = rval;
+		}
+	}
+
+	/*delete node from access list*/
+	gw_semaphore_wait(semAccessRcpRegList, GW_OSAL_WAIT_FOREVER);
+	RCP_RegList_Delete(pReg);
+	gw_semaphore_post(semAccessRcpRegList);
+
+	/*destroy access node*/
+	destroyRcpAccessRegNode(pReg);
+
+	return iRet;
+}
+#endif
+
 int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 {
     unsigned char   *rcpPktBuf;
