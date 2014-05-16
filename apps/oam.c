@@ -12,6 +12,7 @@
 #include "pkt_main.h"
 #include "oamsnmp.h"
 #include "gw_version.h"
+#include "rcp_gwd.h"
 
 //#include "sdl_api.h"
 
@@ -3019,15 +3020,13 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
     
     return CLI_OK;
 }
-
+extern void rcp_pkt_control_handler(unsigned int state);
 int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 
 	extern unsigned long   gulDebugRcp;
 	extern unsigned long   gulDebugLoopBackDetect;
-	extern unsigned long   g_onu_tx_policy;
-
-
+    extern unsigned int g_onu_tx_policy;
     // deal with help
     if(CLI_HELP_REQUESTED)
     {
@@ -3036,6 +3035,10 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
         case 1:
             return gw_cli_arg_help(cli, 0,
                 "{[rcp|loop|txrcp|all]}*1", "module indicator",
+                 NULL);
+        case 2:
+            return gw_cli_arg_help(cli, 0,
+                "[enable|disable]", "set txrcp state",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -3048,14 +3051,28 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
     		gulDebugRcp = !gulDebugRcp;
     	if(strcmp(argv[0], "loop") == 0)
     		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
-    	if(strcmp(argv[0], "txrcp") == 0)
-    	    g_onu_tx_policy = ! g_onu_tx_policy;
 
     	if(strcmp(argv[0], "all") == 0)
     	{
     		gulDebugRcp = !gulDebugRcp;
     		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
     		g_onu_tx_policy = ! g_onu_tx_policy;
+    	}
+    }else if(2 == argc)
+    {
+    	if(strcmp(argv[0], "txrcp") == 0)
+    	{
+            if(strcmp(argv[1],"enable") == 0)
+            {
+                rcp_pkt_control_handler(RCP_FIELD_ENABLE);
+                return GW_OK;
+            }
+            if(strcmp(argv[1],"disable") == 0)
+            {
+                rcp_pkt_control_handler(RCP_FIELD_DISABLE);
+                return GW_OK;
+            }
+            gw_printf("input txrcp cmd state fail\r\n");
     	}
     }
     else

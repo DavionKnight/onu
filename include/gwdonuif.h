@@ -266,6 +266,8 @@ typedef gw_int32 (*libgwdonu_mgtif_config_get)(GwdUMnGlobalParameter* inet,gw_ui
 typedef gw_int32 (*libgwdonu_mgtif_config_del)();
 /*******************************************************/
 typedef gw_int32 (*libgwdonu_vlan_field_cfg_get)(gw_uint32 port,gw_vlan_field_cfg_t* vlanfieldcfg,gw_vlan_field_update_t* fieldupdatecfg);
+/*******************************************************/
+typedef gw_int32 (*libgwdonu_rcp_field_cfg_set)(gw_uint32 rcpfieldstate);
 
 typedef struct gwdonu_im_if_s{
 
@@ -366,6 +368,8 @@ typedef struct gwdonu_im_if_s{
    libgwdonu_mgtif_config_del mgtifdel;
    /*******************************************/
    libgwdonu_vlan_field_cfg_get vlanfieldcfgget;
+   /******************************************/
+   libgwdonu_rcp_field_cfg_set rcpfieldcfgset;
 
 }gwdonu_im_if_t;
 

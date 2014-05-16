@@ -714,6 +714,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             else
                 printf("gwdonu vlan field cfg get is NULL");
             break;
+        case LIB_IF_RCP_FIELD_CFG_SET:
+            if(g_im_ifs->rcpfieldcfgset)
+                ret = (*g_im_ifs->rcpfieldcfgset)(va_arg(ap,gw_uint32));
+            else
+                printf("gwdonu rcp field cfg get is NULL");
+            break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

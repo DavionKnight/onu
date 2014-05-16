@@ -26,6 +26,11 @@ typedef unsigned long	oid;
 #define ETH_FILTER_MAX_PORT_NUM_ON_SLOT     ( 32 )
 #define VTY_NEWLINE "\r\n"
 
+
+#define WAIT_TIME_FOR_RCP_MESSAGE  	(1000*60*10)
+#define RCP_FIELD_ENABLE 1
+#define RCP_FIELD_DISABLE 0
+
 struct slot_port{
 	//void*  onuPort;
 	unsigned long	ulSlot;

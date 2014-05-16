@@ -877,7 +877,9 @@ int RCP_Say_Hello(int parentPort, unsigned short broadcastVid)
 	if(parentPort > 0)	/* Unicast Hello */
 	{
 		if(parentPort >= MAX_RRCP_SWITCH_TO_MANAGE)
+		{
 			return RCP_BAD_PARAM;
+		}
 		if(NULL != rcpDevList[parentPort])
 		{
 			switchMac = rcpDevList[parentPort]->switchMac;

@@ -26,7 +26,7 @@
 #define RPU_MODULE_NOT_USE RPU_NO
 
 #define USERMAC_EN 0x1 
-#define RPU_MODULE_RCP RPU_NO
+#define RPU_MODULE_RCP RPU_YES
 
 #endif
 

@@ -60,9 +60,29 @@ extern  "C"
 //void *my_onu_port;
 
 int my_onu_port_arg;
+unsigned int rcp_timer_id=0;
+unsigned int g_onu_tx_policy = 1; //onu comm msg tx ctrl policy, 1:enable all tx 0:disble all tx
 
-unsigned long int g_onu_tx_policy = 1; //onu comm msg tx ctrl policy, 1:enable all tx 0:disble all tx
+extern gw_int32 gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
+extern gw_int32 gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
+extern int gwd_rcp_tx_policy_set(unsigned int policystate);
+extern int gwd_rcp_thread_stop_timer_register(void);
+int gwd_rcp_tx_policy_set(unsigned int policystate)
+{
+    g_onu_tx_policy = policystate;
+    return GW_OK;
+}
 
+int gwd_rcp_tx_policy_get(unsigned int *policystate)
+{
+    int ret=GW_ERROR;
+    
+    if(policystate == NULL)
+        return ret;
+
+    *policystate = g_onu_tx_policy;
+    return GW_OK;
+}
 static unsigned long int get_onuport_from_cli_index(struct cli_def * cli)
 {
     return ETH_SLOTPORT_TO_PORTNO(cli->index.port_u.slot, cli->index.port_u.port);
@@ -5610,7 +5630,7 @@ void rcp_rcv_handll_thread(void * data)
  */
 #define RCP_DISCOVERY_PERIOD_DEF	    5
 #define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
-unsigned int iDiscovreyPeriod;
+int iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 void rcp_dev_broadcast_say_hello(void *data)
 {
 	unsigned int i = 0, ret = 0,error = 0, vid = 0;
@@ -5646,19 +5666,22 @@ void rcp_dev_broadcast_say_hello(void *data)
 void rcp_dev_monitor(void * data)
 {
 	int i = 1, ret, error;
-	unsigned int iKeepAliveTimeout, iDiscovreyPeriod;
+	unsigned int iKeepAliveTimeout;
 	RCP_DEV *pRcpDev;
 	unsigned short vlanum;
     unsigned short vid =0;
+    unsigned int policystate=1;
 
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 //	gw_circle_timer_add(2000, rcp_dev_broadcast_say_hello, &broadcast_enable);
+    gwd_rcp_thread_stop_timer_register();
     while(1) 
     {
         //added by wangxy 2013-04-19 for onu tx ctrl policy, default is set, while it is clr, all onu msg
         //can't send out, and pty transmission is the exception
-        if(g_onu_tx_policy == 0)
+        gwd_rcp_tx_policy_get(&policystate);
+        if(policystate == 0)
         {
             gw_thread_delay(200);
             continue;
@@ -5717,7 +5740,7 @@ void rcp_dev_monitor(void * data)
 			iDiscovreyPeriod--;
 			if(iDiscovreyPeriod == 0)
 			{
-				gw_thread_create( &rcp_broadcast_say_hello,
+				ret = gw_thread_create( &rcp_broadcast_say_hello,
 						"RCP say hello",
 						rcp_dev_broadcast_say_hello,
 						NULL,
@@ -5726,6 +5749,10 @@ void rcp_dev_monitor(void * data)
 						(GW_OSAL_THREAD_PRIO_NORMAL+10),
 						0
 						);
+                if(ret != GW_OK)
+                    gw_printf("---------------------------creat rcp say hello fail \r\n");
+
+                
 			}
 
 		}
@@ -6036,21 +6063,50 @@ void rcp_loopdetect_monitor(void * data)
 	}
 	return;
 }
-extern gw_int32 gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
-extern gw_int32 gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
-//extern int gw_Onu_Rcp_Detect_Set_FDB(unsigned char  opr);
 
+void rcp_pkt_control_handler(unsigned int state)
+{
+    int ret = GW_ERROR;   
+    int rcpfieldstate = RCP_FIELD_ENABLE;
+
+    rcpfieldstate = state;
+    if(state == RCP_FIELD_ENABLE)
+    {
+        gwd_rcp_tx_policy_set(RCP_FIELD_ENABLE);
+    }
+    else
+    {
+        gwd_rcp_tx_policy_set(RCP_FIELD_DISABLE);
+    }
+    ret = call_gwdonu_if_api(LIB_IF_RCP_FIELD_CFG_SET,1,rcpfieldstate);
+    if(ret != GW_OK)
+        gw_printf("rcp_switch_cli.c set rcp field cfg fail\r\n");
+    
+    return ret;
+}
+
+void gw_rcp_timer_process(void*data)
+{
+    unsigned int rcptimestartflag= RCP_FIELD_DISABLE;  
+    rcp_pkt_control_handler(rcptimestartflag);
+}
+int gwd_rcp_thread_stop_timer_register(void)
+{
+    rcp_timer_id = gw_timer_add(WAIT_TIME_FOR_RCP_MESSAGE, gw_rcp_timer_process,NULL);
+    return GW_OK;
+}
 void start_rcp_device_monitor(void)
 {
-	
+
+    gw_printf("----------------------------------------------hello rcp\r\n");
     if(!gulRcpFrameHandleRegister)
     {
 
-	gw_reg_pkt_parse(GW_PKT_RCP, gw_rcppktparser);
-	if(GW_OK == gw_reg_pkt_handler(GW_PKT_RCP, gw_rcppktHandler))
-		gulEthRxTaskReady = 1;
-	else
-		gulEthRxTaskReady = 0;
+    	gw_reg_pkt_parse(GW_PKT_RCP, gw_rcppktparser);
+    	if(GW_OK == gw_reg_pkt_handler(GW_PKT_RCP, gw_rcppktHandler))
+    		gulEthRxTaskReady = 1;
+    	else
+    		gulEthRxTaskReady = 0;
 	
            
        	gulRcpFrameHandleRegister = 1;
@@ -6066,6 +6122,7 @@ void start_rcp_device_monitor(void)
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp monitor thread created fail!\r\n");
+    #if 0
 	if(GW_OK != gw_thread_create(&rcp_loop_id,
 	"Rcp loop",
 	rcp_loopdetect_monitor,
@@ -6075,6 +6132,7 @@ void start_rcp_device_monitor(void)
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp loop cheak thread created fail!\r\n");
+    #endif
 	if(gw_pri_queue_create(&rcp_rcv_queue_id, "rcp_rcv_queue", 100, sizeof(RCP_MSG_T), 3) == GW_OK)
 	{
 
