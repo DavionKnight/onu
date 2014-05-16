@@ -60,11 +60,15 @@ extern  "C"
 //void *my_onu_port;
 
 int my_onu_port_arg;
+#define RCP_DISCOVERY_PERIOD_DEF	    5
+#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
+
+int iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 unsigned int rcp_timer_id=0;
 unsigned int g_onu_tx_policy = 1; //onu comm msg tx ctrl policy, 1:enable all tx 0:disble all tx
 
 extern gw_int32 gw_rcppktparser(gw_int8 * pkt, gw_int32 len);
-extern gw_int32 gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
+extern gw_status gw_rcppktHandler(gw_int8 * pkt, gw_int32 len, gw_int32 portid);
 extern int gwd_rcp_tx_policy_set(unsigned int policystate);
 extern int gwd_rcp_thread_stop_timer_register(void);
 int gwd_rcp_tx_policy_set(unsigned int policystate)
@@ -5628,9 +5632,6 @@ void rcp_rcv_handll_thread(void * data)
 /*
  ** Tasks
  */
-#define RCP_DISCOVERY_PERIOD_DEF	    5
-#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
-int iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 void rcp_dev_broadcast_say_hello(void *data)
 {
 	unsigned int i = 0, ret = 0,error = 0, vid = 0;
@@ -5659,7 +5660,8 @@ void rcp_dev_broadcast_say_hello(void *data)
 		}
 	}
 	RCP_Say_Hello(-1,vid);
-	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
+    iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
+    gw_thread_delay(1000);
 	gw_thread_exit();
 }
 
@@ -5750,9 +5752,10 @@ void rcp_dev_monitor(void * data)
 						0
 						);
                 if(ret != GW_OK)
+                {
+                    iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
                     gw_printf("---------------------------creat rcp say hello fail \r\n");
-
-                
+                }      
 			}
 
 		}
@@ -6097,8 +6100,6 @@ int gwd_rcp_thread_stop_timer_register(void)
 }
 void start_rcp_device_monitor(void)
 {
-
-    gw_printf("----------------------------------------------hello rcp\r\n");
     if(!gulRcpFrameHandleRegister)
     {
 
@@ -6171,7 +6172,7 @@ void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
 	struct cli_command *show_system,*port,*vlan,*stat;
 	struct cli_command *broadcast,*storm,*igmpsnooping,*multicast;
 	struct cli_command *qos,*loopback,*atu,*cable,*port_cable,*manage;
-	struct cli_command *mgt,*mgt_config,*mask,*maks_alarm,*clear,*rcp_switch;
+	struct cli_command *mgt,*mask,*maks_alarm,*clear,*rcp_switch;
 //	inter = gw_cli_register_command(cmd_root, 0,     "interface", NULL,					PRIVILEGE_PRIVILEGED, MODE_EXEC, "Select an interface to config");
 #if 1
 #ifdef __DEBUG__
@@ -6431,7 +6432,7 @@ RCP_RX_RATE Rcp_PortRateToEnum(unsigned long ulRate)
 int Rcp_Eeprom_Value_Set_Protect(struct cli_def *cli, RCP_DEV *pRcpDev, RCP_EEPROM_PARAM_T eeprm_param,  unsigned char *data, unsigned long datalen)
 {
 	int ret, i = 0;
-	char cmpdata[18];
+	unsigned char cmpdata[18];
 	do
 	{
 		ret  =  Rcp_Set_Eeprom_Param(pRcpDev, eeprm_param, data);

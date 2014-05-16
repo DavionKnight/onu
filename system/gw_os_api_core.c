@@ -517,15 +517,13 @@ gw_int32 gw_thread_delay(gw_uint32 milli_second)
 
 gw_int32 gw_thread_exit()
 {
-
+    
 	gw_uint32 thread_id = gw_creator_find();
-
 #if OS_CYG_LINUX
     cyg_mutex_lock(&gw_osal_task_table_mutex);
 #else
     pthread_mutex_lock(&gw_osal_thread_table_mut);
 #endif
-
 
     if (thread_id >= GW_OSAL_MAX_THREAD || gw_osal_thread_table[thread_id].free != FALSE) {
 #if OS_CYG_LINUX
@@ -2763,6 +2761,7 @@ gw_int32 gw_err_name_get(gw_int32 error_num, osal_err_name_t * err_name)
 ---------------------------------------------------------------------------------------*/
 gw_uint32 gw_creator_find()
 {
+    unsigned int threadid;
 #ifdef CYG_LINUX
     cyg_handle_t thread_id;
 #else
@@ -2775,9 +2774,9 @@ gw_uint32 gw_creator_find()
 #else
     thread_id = pthread_self();
 #endif
-
+    threadid = (unsigned int)thread_id;
     for (i = 0; i < GW_OSAL_MAX_THREAD; i++) {
-        if (thread_id == gw_osal_thread_table[i].id)
+        if (threadid == gw_osal_thread_table[i].id)
             break;
     }
 
