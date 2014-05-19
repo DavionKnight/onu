@@ -27,7 +27,7 @@ typedef unsigned long	oid;
 #define VTY_NEWLINE "\r\n"
 
 
-#define WAIT_TIME_FOR_RCP_MESSAGE  	(1000*60*10)
+#define WAIT_TIME_FOR_RCP_MESSAGE  	(1000*60*6)
 #define RCP_FIELD_ENABLE 1
 #define RCP_FIELD_DISABLE 0
 
