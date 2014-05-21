@@ -6038,6 +6038,10 @@ void start_rcp_device_monitor(void)
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp monitor thread created fail!\r\n");
+
+//  delete rcp loop detect thread for dma rx error test by wangxy 2014-05-21
+#if 0
+
 	if(GW_OK != gw_thread_create(&rcp_loop_id,
 	"Rcp loop",
 	rcp_loopdetect_monitor,
@@ -6047,6 +6051,9 @@ void start_rcp_device_monitor(void)
 	0
 	))
 	gw_log(GW_LOG_LEVEL_DEBUG, "rcp loop cheak thread created fail!\r\n");
+
+#endif
+
 	if(gw_pri_queue_create(&rcp_rcv_queue_id, "rcp_rcv_queue", 100, sizeof(RCP_MSG_T), 3) == GW_OK)
 	{
 
