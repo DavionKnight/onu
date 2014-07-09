@@ -3260,7 +3260,10 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
            gw_cli_register_command(cmd_root, show, "version", cmd_show_version_build_time, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "System information");
 	gw_cli_register_command(cmd_root, show, "opm", cmd_show_opm_diagnostic_variables, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "optical module diagnostic variables");
     gw_cli_register_command(cmd_root, show, "loopcfg", cmd_display_onu_loop_config_cli, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "local loop config information");
-
+#ifndef CYG_LINUX
+	extern int cmd_display_onu_thread_info_cli(struct cli_def *cli, char *command, char *argv[], int argc);
+    gw_cli_register_command(cmd_root, show, "threadinfo", cmd_display_onu_thread_info_cli, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "thread information show");
+#endif
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
 #if (RPU_MODULE_NOT_USE == RPU_YES)

@@ -720,6 +720,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             else
                 printf("gwdonu rcp field cfg get is NULL");
             break;
+        case LIB_IF_THREAD_INFO_GET:
+        	if(g_im_ifs->threadinfoget)
+        		ret = (*g_im_ifs->threadinfoget)(va_arg(ap,gw_int32*));
+        	else
+        		printf("gwdonu thread info fd get is NULL");
+        	break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

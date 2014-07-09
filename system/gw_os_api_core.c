@@ -24,7 +24,9 @@
 #endif
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/time.h>
+#include "../cli_lib/cli_common.h"
 #include "fcntl.h"
 #include "pthread.h"
 #include "semaphore.h"
@@ -32,11 +34,13 @@
 
 #ifndef CYG_LINUX
 #include "signal.h"
+#include <sys/prctl.h>
 #endif
 
 #include "../include/gw_os_common.h"
 #include "../include/gw_os_api_core.h"
 #include "../include/gw_types.h"
+#include "../apps/gwdonuif_interval.h"
 
 #ifdef CYG_LINUX
 #define GW_OSAL_MAX_PRI         31
@@ -76,7 +80,11 @@ typedef struct {
 #ifdef CYG_LINUX
     cyg_handle_t id;
 #else
+    void (*func)(void*);
     gw_uint32 id;
+    gw_uint32 ppid;
+    gw_uint32 pid;
+    void* param;
 #endif
     gw_int8 name [GW_OSAL_MAX_API_NAME];
 #ifdef CYG_LINUX
@@ -315,6 +323,7 @@ void gw_osal_core_init(void)
 
 ---------------------------------------------------------------------------------------*/
 #if 1
+#if 0
 gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
                               const void *function_pointer, void *param , gw_uint32 stack_size,
                               gw_uint32 priority, gw_uint32 flags)
@@ -445,7 +454,183 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 #endif
     return GW_E_OSAL_OK;
 }
+#else
+#ifndef CYG_LINUX
+gw_int32 Func_gwd_thread_info_show()
+{
+	int i_ret = 0;
+	int i_count=0;
 
+	for(i_count = 0; i_count < GW_OSAL_MAX_THREAD;i_count++)
+	{
+		if(gw_osal_thread_table[i_count].free == FALSE)
+		{
+			printf("%-16s %-15d %-9d %-9d %-9d %-9d\r\n", gw_osal_thread_table[i_count].name, gw_osal_thread_table[i_count].id,
+					 	 	 	 	 	 	 	 	  gw_osal_thread_table[i_count].ppid, gw_osal_thread_table[i_count].pid,
+					 	 	 	 	 	 	 	 	  gw_osal_thread_table[i_count].priority, gw_osal_thread_table[i_count].stack_size);
+		}
+	}
+	return i_ret;
+}
+void Func_gwd_thread_name_set(char*threadname)
+{
+	if(threadname == NULL)
+	{
+		return;
+	}
+	prctl(PR_SET_NAME,(unsigned long )threadname,NULL,NULL,NULL);
+}
+static void* Func_gwd_thread_create(void* thread_info)
+{
+	osal_thread_record_t* st_threadinfo = thread_info;
+	void (*func)(void*);
+	void *param = NULL;
+
+	if(thread_info == NULL)
+	{
+		return NULL;
+	}
+    st_threadinfo->id = pthread_self();
+	pthread_detach(pthread_self());
+
+	func = st_threadinfo->func;
+	param = st_threadinfo->param;
+	st_threadinfo->pid = getpid();
+	st_threadinfo->ppid = getppid();
+	st_threadinfo->creator = gw_creator_find();
+
+	Func_gwd_thread_name_set(st_threadinfo->name);
+
+	(*func)(param);
+	gw_thread_delete(st_threadinfo->creator);
+
+	return NULL;
+}
+#endif
+gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
+                              const void *function_pointer, void *param , gw_uint32 stack_size,
+                              gw_uint32 priority, gw_uint32 flags)
+{
+    gw_uint32 possible_taskid;
+    gw_uint8 *stack_buf = NULL;
+
+#ifndef CYG_LINUX
+    pthread_t threadid;
+    pthread_attr_t p_attr;
+    struct sched_param attr_param;
+#endif
+
+    /* we don't want to allow names too long*/
+    /* if truncated, two names might be the same */
+
+    /* Check for NULL pointers */
+
+    if ((thread_name == NULL) || (function_pointer == NULL) || (thread_id == NULL)) {
+        osal_printf("\r\n thread create failed , cause some parameter is NULL");
+        return GW_E_OSAL_INVALID_POINTER;
+    }
+
+    if (strlen(thread_name) >= GW_OSAL_MAX_API_NAME) {
+        osal_printf("\r\n thread name is too long");
+        return GW_E_OSAL_ERR_NAME_TOO_LONG;
+    }
+
+    /* Check for bad priority */
+
+    if (priority > GW_OSAL_MAX_PRI) {
+        osal_printf("\r\n thread priority is out of range");
+        return GW_E_OSAL_ERR_INVALID_PRIORITY;
+    }
+
+    /* Check Parameters */
+//    stack_buf = (gw_uint8 *)iros_malloc(IROS_MID_OSAL , stack_size);
+    stack_buf = (gw_uint8*)malloc(stack_size);
+    if (stack_buf == NULL) {
+        osal_printf("\r\n Allocate thread's stack space failed");
+        return GW_E_OSAL_ERR;
+    }
+
+#ifdef CYG_LINUX
+    cyg_mutex_lock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_lock(&gw_osal_thread_table_mut);
+#endif
+    for (possible_taskid = 0; possible_taskid < GW_OSAL_MAX_THREAD; possible_taskid++) {
+        if (gw_osal_thread_table[possible_taskid].free  == TRUE) {
+            break;
+        }
+    }
+
+    /* Check to see if the id is out of bounds */
+    if (possible_taskid >= GW_OSAL_MAX_THREAD || gw_osal_thread_table[possible_taskid].free != TRUE) {
+#ifdef CYG_LINUX
+        cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+        pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
+//        iros_free(stack_buf);
+        free(stack_buf);
+        osal_printf("\r\n no free thread can be allocate");
+        return GW_E_OSAL_ERR_NO_FREE_IDS;
+    }
+
+
+
+    gw_osal_thread_table[possible_taskid].free = FALSE;
+    gw_osal_thread_table[possible_taskid].func = function_pointer;
+    gw_osal_thread_table[possible_taskid].stack_size = stack_size;
+    gw_osal_thread_table[possible_taskid].priority = priority;
+    gw_osal_thread_table[possible_taskid].stack_buf = stack_buf;
+    gw_osal_thread_table[possible_taskid].param = param;
+    strcpy(gw_osal_thread_table[possible_taskid].name, thread_name);
+
+#ifdef CYG_LINUX
+    cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#else
+    pthread_mutex_unlock(&gw_osal_thread_table_mut);
+#endif
+    /* Create VxWorks Task */
+
+#ifdef CYG_LINUX
+    cyg_thread_create(priority,
+                      function_pointer,
+                      (cyg_addrword_t)param,
+                      (gw_int8*)thread_name,
+                      stack_buf,
+                      stack_size,
+                      &gw_osal_thread_table[possible_taskid].id,
+                      &gw_osal_thread_table[possible_taskid].thread_ctrl);
+    cyg_thread_resume(gw_osal_thread_table[possible_taskid].id);
+#else
+    pthread_attr_init(&p_attr);
+
+    pthread_attr_setstackaddr(&p_attr, stack_buf+stack_size);
+    pthread_attr_setstacksize(&p_attr, stack_size);
+
+
+	attr_param.sched_priority = (int)priority;
+	pthread_attr_setschedparam (&p_attr, &attr_param);
+
+    pthread_create(&threadid, &p_attr, Func_gwd_thread_create,(void*)&gw_osal_thread_table[possible_taskid]);
+#endif
+
+    *thread_id = possible_taskid;
+
+    /* this Id no longer free */
+#ifdef CYG_LINUX
+    cyg_mutex_lock(&gw_osal_task_table_mutex);
+#endif
+
+#ifdef CYG_LINUX
+    gw_osal_thread_table[*thread_id].creator = (cyg_handle_t)gw_creator_find();
+#endif
+
+#ifdef CYG_LINUX
+    cyg_mutex_unlock(&gw_osal_task_table_mutex);
+#endif
+    return GW_E_OSAL_OK;
+}
+#endif
 gw_int32 gw_thread_delete(gw_uint32 thread_id)
 {
 
@@ -481,6 +666,10 @@ gw_int32 gw_thread_delete(gw_uint32 thread_id)
     gw_osal_thread_table[thread_id].creator = 0;
     gw_osal_thread_table[thread_id].stack_size = 0;
     gw_osal_thread_table[thread_id].priority = 0;
+    gw_osal_thread_table[thread_id].func = NULL;
+    gw_osal_thread_table[thread_id].param = NULL;
+    gw_osal_thread_table[thread_id].pid = 0;
+    gw_osal_thread_table[thread_id].ppid = 0;
 
     if(gw_osal_thread_table[thread_id].stack_buf)	//free stack buff allocated by creator
     {
@@ -2810,7 +2999,77 @@ void gw_printf(const gw_int8 *String, ...)
 
     return;
 }
-
+#ifndef CYG_LINUX
+#define LOGLEN 1024
+int cmd_display_onu_thread_info_cli(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int i_ret = 0;
+	int i_fd = 0;
+	int i_count=0;
+	int i_readnum = 0;
+	unsigned char thread_info_buf[LOGLEN]={0};
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+        	return gw_cli_arg_help(cli, 0,
+        		"[show]","thread info show",
+        		NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 0, NULL);
+        }
+    }
+    if(1 ==  argc)
+    {
+    	if(strcmp(argv[0],"show") == 0)
+    	{
+			i_ret = call_gwdonu_if_api(LIB_IF_THREAD_INFO_GET, 1,&i_fd);
+			if(i_ret != CLI_OK)
+			{
+				return CLI_ERROR;
+			}
+			gw_cli_print(cli,"%-16s %-15s %-8s %-8s %-8s %-8s\r\n","THREAD","ID","PPID","PID","PRI","STACK");
+			gw_cli_print(cli,"---------------------------------------------------------------------------------------------------");
+			for(i_count = 0; i_count < GW_OSAL_MAX_THREAD;i_count++)
+			{
+				if(gw_osal_thread_table[i_count].free == FALSE)
+				{
+					gw_cli_print(cli,"%-16s %-15d %-9d %-9d %-9d %-9d", gw_osal_thread_table[i_count].name, gw_osal_thread_table[i_count].id,
+															  gw_osal_thread_table[i_count].ppid, gw_osal_thread_table[i_count].pid,
+															  gw_osal_thread_table[i_count].priority, gw_osal_thread_table[i_count].stack_size);
+				}
+			}
+			while(1)
+			{
+				memset(thread_info_buf,0,LOGLEN);
+				i_readnum = read(i_fd,thread_info_buf,(LOGLEN-1));
+				if(i_readnum == 0)
+				{
+					gw_cli_print(cli,"---------------------------------------------------------------------------------------------------");
+					sleep(1);
+					break;
+				}
+				if(i_readnum < 0)
+				{
+					gw_cli_print(cli,"--------------------please_try_agine_print_oam_log_info----------------------");
+					sleep(1);
+					break;
+				}
+				thread_info_buf[LOGLEN-1]='\0';
+				sleep(1);
+				gw_cli_print(cli,"%s",thread_info_buf);
+			}
+			close(i_fd);
+    	}
+    	else
+    	{
+    		gw_cli_print(cli,"%% input error\r\n");
+    	}
+    }
+	return i_ret;
+}
+#endif
 #ifdef CYG_LINUX
 
 gw_uint32 gw_memory_usage()
