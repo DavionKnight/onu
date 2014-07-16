@@ -105,7 +105,7 @@ g_oam_pty_cli_thread_pri = GW_OSAL_THREAD_PRIO_NORMAL+10;
 static CLI_PTY_CTRL gmCliPtyCtrl = {0,0,{0},0, 0, 0};
 
 static gw_uint32 g_oam_pty_queue_id = 0,
-		g_oam_pty_queue_deepth = 100,
+		g_oam_pty_queue_deepth = 400,
 		g_oam_pty_data_szie = 128,
 		g_oam_pty_queue_pri = 3,
 		g_oam_pty_main_thread_id,
@@ -434,8 +434,8 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 
 	while(1)
 	{
-		memset(rdata, 0, sizeof(rdata));
-		length = pty_read(g_pty_master, rbuf+1, 4094);
+		memset(rbuf, 0, 4096);
+		length = pty_read(g_pty_master, &rbuf[1], 4094);
 		rbuf[length+1] = 0;
 
 //		gw_printf("\r\nrecv msg len: %d\r\n", length);
@@ -443,7 +443,7 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 		
 		if(length > 0)
 		{ 
-			gw_thread_delay(30);
+			gw_thread_delay(10);
 			rbuf[0] = 6;
 #if 0
 				gw_printf("pty sub thread recv:\r\n");
@@ -509,10 +509,10 @@ void gw_oam_pty_cli_thread_entry(gw_uint32 * para)
 void gw_oam_pty_main_thread_entry(gw_uint32 * para)
 {
 	gw_uint32 aumsg[4], len = 0;
-
+//GW_OSAL_WAIT_FOREVER
 	while(1)
 	{
-		if(gw_pri_queue_get(g_oam_pty_queue_id, aumsg, sizeof(aumsg), &len, GW_OSAL_WAIT_FOREVER) == GW_OK)
+		if(gw_pri_queue_get(g_oam_pty_queue_id, aumsg, sizeof(aumsg), &len, 1000) == GW_OK)
 		{
 			if(len > 0)
 			{

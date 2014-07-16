@@ -1252,9 +1252,9 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
 #if (RPU_YES == RPU_MODULE_TIMING_PKT)
 
-            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*只锟斤拷使锟斤拷时锟斤拷锟斤拷一锟斤拷*/
+            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))
             {
-                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*锟斤拷锟斤拷锟斤拷锟饺硷拷= port monitor*/
+                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);
                 VOS_ASSERT(TimingPkt_TaskID != 0);
             }
 #endif
@@ -1298,7 +1298,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
             
-            if(PPPOE_RELAY_DISABLE == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
+            if(PPPOE_RELAY_DISABLE == *pReq)
             {
                 if (PPPOE_RELAY_DISABLE == g_PPPOE_relay)
                 {
@@ -1433,7 +1433,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
         }
 #endif
 
-        if(RELAY_TYPE_DHCP == *pReq)/*锟斤拷锟斤拷pppoe_relay锟斤拷锟斤拷锟斤拷*/
+        if(RELAY_TYPE_DHCP == *pReq)
         {
             DHCP_RELAY_PACKET_DEBUG(("\r\n received dhcp relay-OAM pkt!\r\n"));
             
@@ -1447,7 +1447,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
             
-            if(0 == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
+            if(0 == *pReq)
             {
                 if (0 == g_DHCP_OPTION82_Relay)
                 {
@@ -1680,10 +1680,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 							memset(info[requestNum].swmac,0,USR_MAC_LEN);/*�ҵ�֮�����mac���´ξͲ���Ҫ�ڲ���*/
 	                        responseNum++;
 	                        ResLen += sizeof(userMacResponse_t);
-							/*****************************************************************************
-							���Ҫ���mac�����Ѿ�����fdb���Ҷ��ҵ��˾Ͳ���Ҫ������
-							����ҵ�mac�����32��
-							*******************************************************************************/
+
 							if((responseNum == requestPdu->macNum) || (responseNum >= USR_MAC_RESPONS_MAC_MAX))
 							{
 								ifhavemac=1;
@@ -3382,7 +3379,6 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 
 	init_gw_oam_async();
 
-	init_oam_pty();
     //init_oam_send_relay();/*add by luh 2013-4-27*/
 //	init_oamsnmp();
 
