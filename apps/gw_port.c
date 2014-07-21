@@ -52,6 +52,10 @@ gw_int32 gw_port_ioslation_status_set(gw_int32 status)
 }
 gw_int32 gw_port_ioslation_status_get(gw_int32* status)
 {
+	if(status == NULL)
+	{
+		return GW_ERROR;
+	}
     *status = GwdPortIoslationSave;
     return GW_OK;
 }
@@ -65,7 +69,7 @@ gw_int32 gw_port_ioslation_config_showrun(gw_int32* len,gw_uint8**pv)
 	{
         *len = sizeof(ioslate_status);
         p = (gw_int32*)malloc(*len);
-        *p = ioslate_status;
+        memcpy(p,&ioslate_status,sizeof(ioslate_status));
 	    *pv = (gw_uint8*)p;
 		ret = GW_OK;
 	}
@@ -81,13 +85,19 @@ gw_int32 gw_port_ioslation_config_restore(gw_int32 len, gw_uint8 *pv)
     gw_port_ioslation_status_set(*p);
     gw_port_ioslation_status_get(&ioslate_status);
 	if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port,ioslate_status) != GW_OK)
+	{
 	    gw_printf("port %d set isolate %s fail!\r\n", port,ioslate_status?"enabled":"disabled");
+	}
     else
 	{
 		if(ioslate_status)
+		{
 			gw_printf("set all port isolate enable success\n");
+		}
 		else
+		{
 			gw_printf("set all port isolate disable success\n");
+		}
 	}
 
     return GW_OK;
