@@ -147,34 +147,30 @@ gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...)
 {
     va_list ap;
     int ret = 0;
+    int strlen = 0;
     char data[256] = "";
-
-#ifdef __DEBUG__
-	localtime_tm tm;
-	gw_time_get(&tm);
-#endif	
     char * buf = data;
-	//char *pr_buf =data;
+    memset(data,'\0',sizeof(data));
 
+#ifndef CYG_LINUX
+    time_t now;
+    struct tm *timenow;
+    time(&now);
+    timenow = localtime(&now);
+    strlen = sprintf(buf,"%s :", asctime(timenow));
+    buf +=strlen;
+#endif
     if(buf)
     {
-    	memset(buf, 0, sizeof(data));
-		#ifdef __DEBUG__
-		memcpy(buf,&tm,sizeof(localtime_tm));
-		buf + sizeof(localtime_tm);
-		#endif
     	va_start(ap, String);
     	ret = diag_vsprintf(buf, String, ap);
     	va_end(ap);
 
     	if(level >= log_level)
-    		diag_printf("%s",buf);
+    		diag_printf("%s",data);
 
     	if(level >= log_record_level)
-    		gw_log_add_record(buf, ret);
-
-//    	free(buf);
-
+    		gw_log_add_record(data, (ret+strlen));
     }
     else
     {

@@ -15,7 +15,6 @@
 #include "../qos/qos.h"
 
 extern broadcast_storm_s broad_storm;
-char   g_cSetTime[20]= {0};
 #define PORT_DOWN_ENABLE 1
 #define PORT_DOWN_DISABLE 0
 

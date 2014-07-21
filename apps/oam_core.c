@@ -140,6 +140,34 @@ static void OamPtyConFreeReqPro(GWTT_OAM_SESSION_INFO *pSeInf);
 static void OamPtyNotiMsgProcess(long int flag, long int fd);
 static void OamPtyShellTimerNoti();
 
+static int oamptystatus=0;
+gw_status Func_gwd_oam_pty_fd_get(gw_int32* slavefd,gw_int32* masterfd)
+{
+	if((slavefd == NULL) || (masterfd == NULL))
+	{
+		return GW_ERROR;
+	}
+	*slavefd = g_pty_slave;
+	*masterfd = g_pty_master;
+
+	return GW_OK;
+}
+
+gw_status Func_gwd_oam_pty_status_get(int* oamptyenable)
+{
+	if(oamptyenable == NULL)
+	{
+		return GW_ERROR;
+	}
+	*oamptyenable = oamptystatus;
+	return GW_OK;
+}
+
+gw_status Func_gwd_oam_pty_status_set(int oamptyenable)
+{
+	oamptystatus = oamptyenable;
+	return GW_OK;
+}
 gw_status gwd_oam_cli_trans_send_out()
 {
 	if(g_oam_cli_out_len > OAM_CLI_OUT_BUF_LENGTH)
@@ -361,6 +389,8 @@ void init_oam_send_relay()
 }
 void start_oamPtyCliThread()
 {
+	int oamptyenable = 1;
+	Func_gwd_oam_pty_status_set(oamptyenable);
 	if(g_oam_pty_cli_thread_id == GW_OSAL_MAX_THREAD)
 	{
         if(gw_thread_create(&g_oam_pty_cli_thread_id, "ptycli", gw_oam_pty_cli_thread_entry, NULL, g_oam_pty_cli_thread_stack_size,
@@ -443,7 +473,7 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 		
 		if(length > 0)
 		{ 
-			gw_thread_delay(10);
+			gw_thread_delay(30);
 			rbuf[0] = 6;
 #if 0
 				gw_printf("pty sub thread recv:\r\n");
@@ -594,6 +624,7 @@ void OamPtyShellTimerNoti()
 
 void OamPtyTimerMsgProcess()
 {
+	int oamptydisable = 0;
 	if( (gmCliPtyCtrl.lConnect))
 	{
 
@@ -601,6 +632,7 @@ void OamPtyTimerMsgProcess()
 
 		if(gmCliPtyCtrl.lTimeOut >= 30)
 		{
+			Func_gwd_oam_pty_status_set(oamptydisable);
 			OamPtyShellCloseNoti(g_pty_master);
 			gw_log(GW_LOG_LEVEL_MINOR, "pty time out, closed!\r\n");
 		}
