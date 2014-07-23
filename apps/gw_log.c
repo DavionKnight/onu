@@ -148,7 +148,7 @@ gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...)
     va_list ap;
     int ret = 0;
     int strlen = 0;
-    char data[256] = "";
+    char data[300] = "";
     char * buf = data;
     memset(data,'\0',sizeof(data));
 

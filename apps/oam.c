@@ -3198,7 +3198,7 @@ int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
 #endif
 
 extern gw_int32 g_pty_master, g_pty_slave, g_pty_id;
-extern gw_uint8 pty_oam_2_telnet;
+extern gw_uint8 pty_oam_to_sdk_cmd;
 extern gw_status Func_gwd_oam_pty_status_get(int* oamptyenable);
 int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -3206,7 +3206,7 @@ int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int 
 	gw_cli_print(cli,"start telnet pty ...\n");
 #if 1
 	cli->sockfd = 0;
-	pty_oam_2_telnet = 1;
+	pty_oam_to_sdk_cmd = 1;
 	int oamptyenable = 0;
 
 	Func_gwd_oam_pty_status_get(&oamptyenable);
@@ -3216,7 +3216,7 @@ int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int 
 		return GW_ERROR;
 	}
 	call_gwdonu_if_api(LIB_IF_ENTRY_SDK_CLI, 2, g_pty_slave, g_pty_master);
-	pty_oam_2_telnet = 0;
+	pty_oam_to_sdk_cmd = 0;
 	cli->sockfd = g_pty_slave;
 #else
 	write(g_pty_slave,"slave write\r\n",14);

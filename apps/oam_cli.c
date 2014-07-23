@@ -17,7 +17,6 @@
 #define GW_PORT_PRI_MAX 7
 #define GW_PORT_PRI_LAS 0
 
-extern int GwdPortIoslationSave;
 extern int gw_port_ioslation_status_set(int status);
 extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
 #if (RPU_MODULE_NOT_USE == RPU_YES)

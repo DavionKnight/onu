@@ -1,7 +1,7 @@
 /*
  * qos.h
  *
- *  Created on: 2013年9月5日
+ *  Created on:
  *      Author: tommy
  */
 
@@ -13,10 +13,10 @@
 #include "../apps/gw_conf_file.h"
 #include "../apps/gwdonuif_interval.h"
 
-#define gwd_onu_qos_vlan_max 4092
-#define gwd_onu_qos_vlan_least 2
-#define gwd_onu_qos_queue_max 7
-#define gwd_onu_qos_queue_least 0
+#define GWD_ONU_QOS_VLAN_MAX 4092
+#define GWD_ONU_QOS_VLAN_LEAST 2
+#define GWD_ONU_OQS_QUEUE_MAX 7
+#define GWD_ONU_QOS_QUEUE_LEAST 0
 
 
 void gw_qos_init();

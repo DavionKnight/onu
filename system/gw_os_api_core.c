@@ -456,6 +456,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 }
 #else
 #ifndef CYG_LINUX
+#if 0
 gw_int32 Func_gwd_thread_info_show()
 {
 	int i_ret = 0;
@@ -472,6 +473,7 @@ gw_int32 Func_gwd_thread_info_show()
 	}
 	return i_ret;
 }
+#endif
 void Func_gwd_thread_name_set(char*threadname)
 {
 	if(threadname == NULL)
@@ -480,6 +482,7 @@ void Func_gwd_thread_name_set(char*threadname)
 	}
 	prctl(PR_SET_NAME,(unsigned long )threadname,NULL,NULL,NULL);
 }
+#endif
 static void* Func_gwd_thread_create(void* thread_info)
 {
 	osal_thread_record_t* st_threadinfo = thread_info;
@@ -506,7 +509,7 @@ static void* Func_gwd_thread_create(void* thread_info)
 
 	return NULL;
 }
-#endif
+
 gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
                               const void *function_pointer, void *param , gw_uint32 stack_size,
                               gw_uint32 priority, gw_uint32 flags)
@@ -582,7 +585,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
     gw_osal_thread_table[possible_taskid].priority = priority;
     gw_osal_thread_table[possible_taskid].stack_buf = stack_buf;
     gw_osal_thread_table[possible_taskid].param = param;
-    strcpy(gw_osal_thread_table[possible_taskid].name, thread_name);
+    strncpy(gw_osal_thread_table[possible_taskid].name, thread_name,GW_OSAL_MAX_API_NAME);
 
 #ifdef CYG_LINUX
     cyg_mutex_unlock(&gw_osal_task_table_mutex);

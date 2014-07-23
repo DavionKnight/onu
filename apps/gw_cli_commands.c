@@ -441,14 +441,14 @@ int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int
             gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
             return ret;
         }
-        if((vlan < gwd_onu_qos_vlan_least)|| (vlan > gwd_onu_qos_vlan_max))
+        if((vlan < GWD_ONU_QOS_VLAN_LEAST)|| (vlan > GWD_ONU_QOS_VLAN_MAX))
         {
-            gw_cli_print(cli,"input vlan error <%d-%d>\r\n",gwd_onu_qos_vlan_least,gwd_onu_qos_vlan_max);
+            gw_cli_print(cli,"input vlan error <%d-%d>\r\n",GWD_ONU_QOS_VLAN_LEAST,GWD_ONU_QOS_VLAN_MAX);
             return ret;
         }
-        if((queue < gwd_onu_qos_queue_least) || queue > gwd_onu_qos_queue_max)
+        if((queue < GWD_ONU_QOS_QUEUE_LEAST) || queue > GWD_ONU_OQS_QUEUE_MAX)
         {
-            gw_cli_print(cli,"input queue error <%d-%d>\r\n",gwd_onu_qos_queue_least,gwd_onu_qos_queue_max);
+            gw_cli_print(cli,"input queue error <%d-%d>\r\n",GWD_ONU_QOS_QUEUE_LEAST,GWD_ONU_OQS_QUEUE_MAX);
             return ret;
         }
 
@@ -494,9 +494,9 @@ int cmd_qos_vlan_queue_map_del(struct cli_def *cli, char *command, char *argv[],
             gw_cli_print(cli,"input port error <1-%d>\r\n",onumaxport);
             return ret;
         }
-        if((vlan < gwd_onu_qos_vlan_least)|| (vlan > gwd_onu_qos_vlan_max))
+        if((vlan < GWD_ONU_QOS_VLAN_LEAST)|| (vlan > GWD_ONU_QOS_VLAN_MAX))
         {
-            gw_cli_print(cli,"input vlan error <%d-%d>\r\n",gwd_onu_qos_vlan_least,gwd_onu_qos_vlan_max);
+            gw_cli_print(cli,"input vlan error <%d-%d>\r\n",GWD_ONU_QOS_VLAN_LEAST,GWD_ONU_QOS_VLAN_MAX);
             return ret;
         }
         

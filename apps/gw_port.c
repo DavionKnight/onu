@@ -7,7 +7,7 @@
 #include "gw_port.h"
 #include "gw_conf_file.h"
 
-int GwdPortIoslationSave = 1;
+int GwdPortIoslationStatus = 1;
 unsigned char phy_log_map[NUM_UNITS_PER_SYSTEM][PHY_PORT_MAX+1] = {
     /* PHY_PORT_FE0 ~ FE7, MII, EXPAN, SMP */
    // {1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 9, 0xFF} /* uint 0 */
@@ -47,7 +47,7 @@ log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM] =
   };
 gw_int32 gw_port_ioslation_status_set(gw_int32 status)
 {
-    GwdPortIoslationSave = status;
+    GwdPortIoslationStatus = status;
     return GW_OK;
 }
 gw_int32 gw_port_ioslation_status_get(gw_int32* status)
@@ -56,7 +56,7 @@ gw_int32 gw_port_ioslation_status_get(gw_int32* status)
 	{
 		return GW_ERROR;
 	}
-    *status = GwdPortIoslationSave;
+    *status = GwdPortIoslationStatus;
     return GW_OK;
 }
 gw_int32 gw_port_ioslation_config_showrun(gw_int32* len,gw_uint8**pv)
@@ -82,8 +82,6 @@ gw_int32 gw_port_ioslation_config_restore(gw_int32 len, gw_uint8 *pv)
     gw_int32 port = 0xff;
     gw_int32 ioslate_status = 0;
     p = (gw_int32*)pv;
-    gw_port_ioslation_status_set(*p);
-    gw_port_ioslation_status_get(&ioslate_status);
 	if(call_gwdonu_if_api(LIB_IF_PORT_ISOLATE_SET, 2, port,ioslate_status) != GW_OK)
 	{
 	    gw_printf("port %d set isolate %s fail!\r\n", port,ioslate_status?"enabled":"disabled");
@@ -92,6 +90,7 @@ gw_int32 gw_port_ioslation_config_restore(gw_int32 len, gw_uint8 *pv)
 	{
 		if(ioslate_status)
 		{
+		    gw_port_ioslation_status_set(*p);
 			gw_printf("set all port isolate enable success\n");
 		}
 		else

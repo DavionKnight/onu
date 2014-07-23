@@ -6500,7 +6500,6 @@ int ereaseRcpDevCfgInFlash(RCP_DEV  *rcpDev, int allDev)
 
         fileLen = glSwitchCfgFileSizeMaxInFlash;
     /***********************************************************************
-    添加下面API:当清除交换机的所有配置(all ports)，没有清空flash空间
     ************************************************************************/
         return device_conf_write_switch_conf_to_flash((char *)gpusSwitchCfgFileBuf, fileLen);
 	}
@@ -6991,7 +6990,6 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 else if ( isspace( cToken ) )
                 {}
 	/********************************************************************************************************
-	锟叫断板级锟脚ｏ拷锟斤拷锟藉级锟斤拷锟斤拷效锟皆★拷
 	*********************************************************************************************************/
                 else if ( cToken == '/' )
                 {
@@ -7013,8 +7011,6 @@ struct slot_port * BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_
                 }
 
 /***************************************************************************************************************
-锟叫断板级锟较碉拷PORT 锟侥号ｏ拷锟斤拷锟斤拷锟絇ORT 锟斤拷锟斤拷效锟皆ｏ拷通锟斤拷寮讹拷暮锟斤拷锟斤拷卸习寮讹拷锟斤拷锟斤拷停锟�
-锟斤拷锟揭达拷锟斤拷锟斤拷锟斤拷
 ****************************************************************************************************************/
                 else if ( cToken == ',' )
                 {
@@ -7225,8 +7221,6 @@ BEGIN_PARSE_PORT_EAND_SLOT(char * argv, struct slot_port* my_onu, char *ifname,
             }
 
             /***************************************************************************************************************
-             锟叫断板级锟较碉拷PORT 锟侥号ｏ拷锟斤拷锟斤拷锟絇ORT 锟斤拷锟斤拷效锟皆ｏ拷通锟斤拷寮讹拷暮锟斤拷锟斤拷卸习寮讹拷锟斤拷锟斤拷停锟�
-             锟斤拷锟揭达拷锟斤拷锟斤拷锟斤拷
              ****************************************************************************************************************/
             else if (cToken == ',')
             {
@@ -7660,7 +7654,6 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
     char cTmp[ 3 ];
     unsigned long int i = 0, j = 0, k = 0;
 
-    /* 锟斤拷锟斤拷址锟斤拷锟斤拷欠锟斤拷锟�*/
     if ( 14 != strlen( szStr ) )
     {
         return GW_ERROR;
@@ -7671,7 +7664,6 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
     {
         if ( i != 2 )
         {
-            /* 锟介看锟斤拷锟斤拷'.' */
             q = strchr( p, '.' );
             if ( NULL == p )
             {
@@ -7683,12 +7675,10 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
             q = szStr + strlen( szStr );
         }
 
-        /* 一锟斤拷H锟斤拷锟斤拷4锟斤拷锟街凤拷 */
         if ( 4 != q - p )
         {
             return GW_ERROR;
         }
-        /* 锟斤拷锟斤拷欠锟斤拷锟�6锟斤拷锟狡碉拷锟斤拷锟斤拷 */
         for ( j = 0; j < 4; j++ )
         {
             if ( !( ( *( p + j ) >= '0' && *( p + j ) <= '9' ) || ( *( p + j 
@@ -7714,7 +7704,6 @@ long GetMacAddr( char * szStr, char * pucMacAddr )
         p = q + 1;
     }
 
-    /* 锟叫讹拷锟角凤拷全锟斤拷为0 */
     if ( 0x0 == pucMacAddr[ 0 ] && 0x0 == pucMacAddr[ 1 ] && 0x0 == pucMacAddr
 [ 2 ]
             && 0x0 == pucMacAddr[ 3 ] && 0x0 == pucMacAddr[ 4 ] && 0x0 == 
@@ -7723,7 +7712,6 @@ pucMacAddr[ 5 ] )
         return GW_ERROR;
     }
 
-    /* 锟叫讹拷锟角凤拷全锟斤拷为ff */
     if ( 0xff == pucMacAddr[ 0 ] && 0xff == pucMacAddr[ 1 ] && 0xff == 
 pucMacAddr[ 2 ]
             && 0xff == pucMacAddr[ 3 ] && 0xff == pucMacAddr[ 4 ] && 0xff == 
@@ -7732,7 +7720,6 @@ pucMacAddr[ 5 ] )
         return GW_ERROR;
     }
 
-    /* 锟叫讹拷锟角凤拷为锟洁播 */
     if ( 0 != ( pucMacAddr[ 0 ] & 0x01 ) )
     {
         return GW_ERROR;

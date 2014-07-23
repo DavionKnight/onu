@@ -13,6 +13,7 @@
 
 
 #define OAM_CLI_OUT_BUF_LENGTH 2048
+#define OAM_PTY_SUB_LEN 4096
 
 void init_gw_oam_async();
 void init_oam_pty();

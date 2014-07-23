@@ -457,7 +457,7 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 	gw_uint8 rdata[128]="";
 	gw_int32 length = 0;
 
-	gw_uint8 *rbuf = malloc(4096);
+	gw_uint8 *rbuf = malloc(OAM_PTY_SUB_LEN);
 
 	if(rbuf == NULL)
 		return;
@@ -465,7 +465,7 @@ void gw_oam_pty_sub_thread_entry(gw_uint32 * para)
 	while(1)
 	{
 		memset(rbuf, 0, 4096);
-		length = pty_read(g_pty_master, &rbuf[1], 4094);
+		length = pty_read(g_pty_master, &rbuf[1], OAM_PTY_SUB_LEN);
 		rbuf[length+1] = 0;
 
 //		gw_printf("\r\nrecv msg len: %d\r\n", length);
@@ -539,10 +539,9 @@ void gw_oam_pty_cli_thread_entry(gw_uint32 * para)
 void gw_oam_pty_main_thread_entry(gw_uint32 * para)
 {
 	gw_uint32 aumsg[4], len = 0;
-//GW_OSAL_WAIT_FOREVER
 	while(1)
 	{
-		if(gw_pri_queue_get(g_oam_pty_queue_id, aumsg, sizeof(aumsg), &len, 1000) == GW_OK)
+		if(gw_pri_queue_get(g_oam_pty_queue_id, aumsg, sizeof(aumsg), &len, GW_OSAL_WAIT_FOREVER) == GW_OK)
 		{
 			if(len > 0)
 			{
@@ -672,7 +671,7 @@ int cl_pty_fd_get(void(*closenoti)(long))
 	     return(g_pty_master);
 	else return(-1);
 }
-gw_uint8 pty_oam_2_telnet = 0;
+gw_uint8 pty_oam_to_sdk_cmd = 0;
 static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen)
 {
     char lCtlCode;
@@ -738,7 +737,7 @@ static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, l
 //				 char strPty[50] = "\0";
 //				 sprintf(strPty, "pty_oam_2_telnet is %x PayLoad +1 is %x\r\n",pty_oam_2_telnet,*(pPayLoad+1));
 //				 pty_write(g_pty_slave,strPty,strlen(strPty)+1);
-				 if(!pty_oam_2_telnet)
+				 if(!pty_oam_to_sdk_cmd)
 				 {
 					 if(*(pPayLoad+1) == 0x0a)
 						 *(pPayLoad+1) = 0x0d;
