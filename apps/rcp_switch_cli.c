@@ -5632,36 +5632,41 @@ void rcp_rcv_handll_thread(void * data)
 /*
  ** Tasks
  */
-void rcp_dev_broadcast_say_hello(void *data)
+void rcp_update_vlan_and_say_hello(void *data)
 {
 	unsigned int i = 0, ret = 0,error = 0, vid = 0;
 	unsigned short vlanum = 0;
 
-	for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
+	while(1)
 	{
-		if(RCP_Dev_Is_Valid(i))
+		if(gulEnableEpswitchMgt)
 		{
-			if(1 == RCP_Dev_Is_Exist(i))
+			for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
 			{
-				error=0;
-				for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
+				if(RCP_Dev_Is_Valid(i))
 				{
-					if(RCP_OK != (ret = RCP_GetVlanVID(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanVid[vlanum]))))
-						error++;
+					if(1 == RCP_Dev_Is_Exist(i))
+					{
+						error=0;
+						for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
+						{
+							if(RCP_OK != (ret = RCP_GetVlanVID(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanVid[vlanum]))))
+								error++;
 
-					if(RCP_OK != (ret = RCP_GetVlanPort(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanPort[vlanum]))))
-						error++;
-				}
-				if(error != 0)
-				{
-					//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+							if(RCP_OK != (ret = RCP_GetVlanPort(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanPort[vlanum]))))
+								error++;
+						}
+						if(error != 0)
+						{
+							//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+						}
+					}
 				}
 			}
+			RCP_Say_Hello(-1,vid);
 		}
+	    gw_thread_delay(1000);
 	}
-	RCP_Say_Hello(-1,vid);
-    iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
-    gw_thread_delay(1000);
 	gw_thread_exit();
 }
 
@@ -5675,9 +5680,21 @@ void rcp_dev_monitor(void * data)
     unsigned int policystate=1;
 
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
-	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 //	gw_circle_timer_add(2000, rcp_dev_broadcast_say_hello, &broadcast_enable);
     gwd_rcp_thread_stop_timer_register();
+	ret = gw_thread_create( &rcp_broadcast_say_hello,
+						"RCP say hello",
+						rcp_update_vlan_and_say_hello,
+						NULL,
+						GW_OSAL_THREAD_STACK_SIZE_TINY,
+						//	TASK_PRIORITY_LOWEST,
+						(GW_OSAL_THREAD_PRIO_NORMAL+10),
+						0
+						);
+    if(ret != GW_OK)
+    {
+        gw_printf("------------------creat rcp say hello fail--------- \r\n");
+    }      
     while(1) 
     {
         //added by wangxy 2013-04-19 for onu tx ctrl policy, default is set, while it is clr, all onu msg
@@ -5738,25 +5755,6 @@ void rcp_dev_monitor(void * data)
 #if 0/* Say broadcast hello with new authenKey will no replay */
 			RCP_Say_Hello(0,vid);
 #endif
-
-			iDiscovreyPeriod--;
-			if(iDiscovreyPeriod == 0)
-			{
-				ret = gw_thread_create( &rcp_broadcast_say_hello,
-						"RCP say hello",
-						rcp_dev_broadcast_say_hello,
-						NULL,
-						GW_OSAL_THREAD_STACK_SIZE_TINY,
-						//	TASK_PRIORITY_LOWEST,
-						(GW_OSAL_THREAD_PRIO_NORMAL+10),
-						0
-						);
-                if(ret != GW_OK)
-                {
-                    iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
-                    gw_printf("---------------------------creat rcp say hello fail \r\n");
-                }      
-			}
 
 		}
 
