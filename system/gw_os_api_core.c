@@ -3016,60 +3016,51 @@ int cmd_display_onu_thread_info_cli(struct cli_def *cli, char *command, char *ar
         switch(argc)
         {
         case 1:
-        	return gw_cli_arg_help(cli, 0,
+        	/*return gw_cli_arg_help(cli, 0,
         		"[show]","thread info show",
-        		NULL);
+        		NULL);*/
         default:
             return gw_cli_arg_help(cli, argc > 0, NULL);
         }
     }
-    if(1 ==  argc)
-    {
-    	if(strcmp(argv[0],"show") == 0)
-    	{
-			i_ret = call_gwdonu_if_api(LIB_IF_THREAD_INFO_GET, 1,&i_fd);
-			if(i_ret != CLI_OK)
-			{
-				return CLI_ERROR;
-			}
-			gw_cli_print(cli,"%-16s %-15s %-8s %-8s %-8s %-8s\r\n","THREAD","ID","PPID","PID","PRI","STACK");
+	i_ret = call_gwdonu_if_api(LIB_IF_THREAD_INFO_GET, 1,&i_fd);
+	if(i_ret != CLI_OK)
+	{
+		return CLI_ERROR;
+	}
+	gw_cli_print(cli,"%-16s %-15s %-8s %-8s %-8s %-8s\r\n","THREAD","ID","PPID","PID","PRI","STACK");
+	gw_cli_print(cli,"---------------------------------------------------------------------------------------------------");
+	for(i_count = 0; i_count < GW_OSAL_MAX_THREAD;i_count++)
+	{
+		if(gw_osal_thread_table[i_count].free == FALSE)
+		{
+			gw_cli_print(cli,"%-16s %-15d %-9d %-9d %-9d %-9d", gw_osal_thread_table[i_count].name, gw_osal_thread_table[i_count].id,
+													  gw_osal_thread_table[i_count].ppid, gw_osal_thread_table[i_count].pid,
+													  gw_osal_thread_table[i_count].priority, gw_osal_thread_table[i_count].stack_size);
+		}
+	}
+	while(1)
+	{
+		memset(thread_info_buf,0,LOGLEN);
+		i_readnum = read(i_fd,thread_info_buf,(LOGLEN-1));
+		if(i_readnum == 0)
+		{
 			gw_cli_print(cli,"---------------------------------------------------------------------------------------------------");
-			for(i_count = 0; i_count < GW_OSAL_MAX_THREAD;i_count++)
-			{
-				if(gw_osal_thread_table[i_count].free == FALSE)
-				{
-					gw_cli_print(cli,"%-16s %-15d %-9d %-9d %-9d %-9d", gw_osal_thread_table[i_count].name, gw_osal_thread_table[i_count].id,
-															  gw_osal_thread_table[i_count].ppid, gw_osal_thread_table[i_count].pid,
-															  gw_osal_thread_table[i_count].priority, gw_osal_thread_table[i_count].stack_size);
-				}
-			}
-			while(1)
-			{
-				memset(thread_info_buf,0,LOGLEN);
-				i_readnum = read(i_fd,thread_info_buf,(LOGLEN-1));
-				if(i_readnum == 0)
-				{
-					gw_cli_print(cli,"---------------------------------------------------------------------------------------------------");
-					sleep(1);
-					break;
-				}
-				if(i_readnum < 0)
-				{
-					gw_cli_print(cli,"--------------------please_try_agine_print_oam_log_info----------------------");
-					sleep(1);
-					break;
-				}
-				thread_info_buf[LOGLEN-1]='\0';
-				sleep(1);
-				gw_cli_print(cli,"%s",thread_info_buf);
-			}
-			close(i_fd);
-    	}
-    	else
-    	{
-    		gw_cli_print(cli,"%% input error\r\n");
-    	}
-    }
+			sleep(1);
+			break;
+		}
+		if(i_readnum < 0)
+		{
+			gw_cli_print(cli,"--------------------please_try_agine_print_oam_log_info----------------------");
+			sleep(1);
+			break;
+		}
+		thread_info_buf[LOGLEN-1]='\0';
+		sleep(1);
+		gw_cli_print(cli,"%s",thread_info_buf);
+	}
+	close(i_fd);
+
 	return i_ret;
 }
 #endif
