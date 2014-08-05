@@ -5681,7 +5681,9 @@ void rcp_dev_monitor(void * data)
 
 	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 //	gw_circle_timer_add(2000, rcp_dev_broadcast_say_hello, &broadcast_enable);
+#if __RCP_STOP__
     gwd_rcp_thread_stop_timer_register();
+#endif
 	ret = gw_thread_create( &rcp_broadcast_say_hello,
 						"RCP say hello",
 						rcp_update_vlan_and_say_hello,
@@ -6085,7 +6087,7 @@ void rcp_pkt_control_handler(unsigned int state)
     
     return ret;
 }
-
+#if __RCP_STOP__
 void gw_rcp_timer_process(void*data)
 {
     unsigned int rcptimestartflag= RCP_FIELD_DISABLE;  
@@ -6096,6 +6098,7 @@ int gwd_rcp_thread_stop_timer_register(void)
     rcp_timer_id = gw_timer_add(WAIT_TIME_FOR_RCP_MESSAGE, gw_rcp_timer_process,NULL);
     return GW_OK;
 }
+#endif
 void start_rcp_device_monitor(void)
 {
     if(!gulRcpFrameHandleRegister)

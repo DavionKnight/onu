@@ -49,8 +49,8 @@ void plat_init()
     gw_onu_ifconfig_init();
 #endif
 	gw_conf_restore();
+	init_oam_pty();
 	init_pkt_proc();
 	gwd_onu_init();
 	gwd_thread_init();
-	init_oam_pty();
 }
