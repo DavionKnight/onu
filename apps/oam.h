@@ -16,7 +16,6 @@
 #include "gw_port.h"
 typedef gw_uint32 epon_port_id_t;
 
-#define ONU_LOCATE_USER					200
 #define USR_MAC_ADDRES_CHEAK 		1
 #define USR_MAC_MAX_T 256
 #define USR_MAC_RESPONS_MAC_MAX 32
@@ -369,6 +368,7 @@ extern unsigned long   gulDebugOamFileOp;
 #define ONU_SWITCH_STATUS_CHANGE_ALARM  80
 #define ONU_SWITCH_STATUS_CHANGE_ALARM_LEN  14
 
+/*begin: gwd oam types enum for info request opcode (1) */
 #define ONU_INFOR_GET				1	/*ONU�豸��Ϣ��ѯ */
 #define ONU_INFOR_SET				2	/*ONU�豸��Ϣ���� */
 #define ONU_REALTIME_SYNC			3	/*ONUϵͳʱ��ͬ�� */
@@ -380,6 +380,11 @@ added by wangxiaoyu 2008-05-05
 #define ONU_BOARD_GET					5	/*ONU board info get*/
 
 #define ACCESS_IDENTIFIER     8/*ONU�û�������·��ʶ*/
+
+#define ONU_LOCATE_USER					200
+
+#define ONU_FAST_STATISTIC				201
+/*end: gwd oam types enum for info request opcode (1) */
 
 #define ONU_BOARD_GET_RESP_SUCCESS		1
 #define ONU_BOARD_GET_RESP_FAIL			2
