@@ -6070,7 +6070,7 @@ int rcp_pkt_control_handler(unsigned int state)
     
     return ret;
 }
-
+#if __RCP_STOP__
 void gw_rcp_timer_process(void*data)
 {
     unsigned int rcptimestartflag= RCP_FIELD_DISABLE;  
@@ -6081,6 +6081,7 @@ int gwd_rcp_thread_stop_timer_register(void)
     rcp_timer_id = gw_timer_add(WAIT_TIME_FOR_RCP_MESSAGE, gw_rcp_timer_process,NULL);
     return GW_OK;
 }
+#endif
 void start_rcp_device_monitor(void)
 {
     if(!gulRcpFrameHandleRegister)

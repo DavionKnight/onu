@@ -9,7 +9,7 @@
 #include "gw_log.h"
 #include "../include/gwdonuif.h"
 
-static gw_int32 log_level = GW_LOG_LEVEL_MINOR;
+static gw_int32 log_level = GW_LOG_LEVEL_CRI;
 static gw_int32 log_record_level = GW_LOG_LEVEL_MAJOR;
 static gw_int32 log_current_slot = 0;
 typedef struct{
@@ -152,16 +152,21 @@ gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...)
     char * buf = data;
     memset(data,'\0',sizeof(data));
 
+    if(buf)
+    {
+
+    	if(level >= log_record_level)
+    	{
 #ifndef CYG_LINUX
     time_t now;
     struct tm *timenow;
     time(&now);
     timenow = localtime(&now);
-    strlen = sprintf(buf,"%s :", asctime(timenow));
+    strlen = sprintf(buf,"%s", asctime(timenow));
     buf +=strlen;
 #endif
-    if(buf)
-    {
+    	}
+
     	va_start(ap, String);
     	ret = diag_vsprintf(buf, String, ap);
     	va_end(ap);

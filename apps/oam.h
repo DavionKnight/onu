@@ -16,7 +16,6 @@
 #include "gw_port.h"
 typedef gw_uint32 epon_port_id_t;
 
-#define ONU_LOCATE_USER					200
 #define USR_MAC_ADDRES_CHEAK 		1
 #define USR_MAC_MAX_T 256
 #define USR_MAC_RESPONS_MAC_MAX 32
@@ -88,7 +87,6 @@ typedef struct gwtt_oam_header
 	unsigned char sessionId[8];		/* sesion id used by EMS */
 } __attribute__ ((packed)) GWTT_OAM_HEADER;
 
-/* �й���Ŷ��� */
 typedef struct ctc_oam_header
 {
 	unsigned char oui[3];				/* CTC's OUI is waiting define */
@@ -128,25 +126,9 @@ typedef struct TLV_Varialbe_Indication
 
 typedef struct TLV_Classification_Marking_Entry
 {
-	unsigned char field_sel;				/* ��1��������Ӧ����field����
-										 * 0x00������DA MAC���ࣻ
-										 * 0x01������SA MAC���ࣻ
-										 * 0x02��������̫�����ȼ�Pri��IEEE 802.1D�����ࣻ
-										 * 0x03������VLAN ID���ࣻ
-										 * 0x04��������̫�����ͣ�0x8808��0x8809��0x88A8�ȡ���Ҫָ��̫��
-										 * ֡�е�ԭʼ��Length/EtherType������VLAN tag�е�TPID�򣩣�
-										 * 0x05������Ŀ��IP��ַ���ࣻ
-										 * 0x06������ԴIP��ַ���ࣻ
-										 * 0x07������IPЭ�����ͣ�IP��ICMP��IGMP�ȣ�
-										 * 0x08������IP TOS/DSCP��IP V4�����ࣻ
-										 * 0x09������IP Precedence��IP V6�����ࣻ
-										 * 0x0A������L4 ԴPORT���ࣻ
-										 * 0x0B������L4 Ŀ��PORT���ࣻ
-										 * ����ʽ���塣 */
-	unsigned char value[6];				/* ��1��������ƥ��ֵ��������Ӧ����С��6�ֽڣ�����VLAN Pri=1
-										 * ��Ϊƥ���򣩣��������λ���뽫��ƥ��ֵ���ڱ�6�ֽڵ�
-										 * ���λ����Ӧ��ƥ��ֵΪ0x00 00 00 00 00 01���� */
-	unsigned char match_op;				/*  0x00 F Never match
+	unsigned char field_sel;
+	unsigned char value[6];
+	unsigned char match_op;			/*  0x00 F Never match
 										 * 0x01 == Field Equal to value
 										 * 0x02 != Field Not equal to value
 										 * 0x03 <= Field Less than or equal to value(��ѡ)
@@ -159,13 +141,12 @@ typedef struct TLV_Classification_Marking_Entry
 typedef struct TLV_Classification_Marking
 {
 	unsigned char precedence;			/* �����ࡢ�Ŷ�&��ǡ���������ȼ����� */
-	unsigned char rule_len;				/* ����ĳ��ȣ���λΪ�ֽ� */
+	unsigned char rule_len;
 	unsigned char queue_mapped;			/* ��ϱ��������̫��֡��Ҫӳ��Ķ��б�� */
 	unsigned char eth_pri_mark;			/* �Է�ϱ��������̫��֡�������ȼ���ǣ�IEEE 802.1D����
 										 * ��ֵΪ0x00��0x07�����ֽ�ȱʡֵΪ0x00���籾�ֽڵ�ֵ
 										 * Ϊ0xFF������ζ�ŶԷ�ϸ�������֡���������ȼ���ǡ� */
 	unsigned char entry_num;			/* �������������������entries������������ж��������������
-										 * Ϊ���field-value-operator�򣬼���ζ�ű���ͬʱ���������������
 										 * ����ִ����������action�� */
 	TLV_CLASSIFICATION_MARKING_ENTRY entry[1];
 } __attribute__ ((packed)) TLV_CLASSIFICATION_MARKING;
@@ -273,7 +254,7 @@ extern unsigned long   gulDebugOamFileOp;
 #define OAM_DATA_LEN				65535
 #define OAM_OVERHEAD_LEN_STD		22	/* DA/SA/Len/Sub/Flag/Code/FCS */
 #define OAM_OVERHEAD_LEN_GW			22	/* OUI/Op/Ser/WLen/POff/PLen/SnID/ */
-#define OAM_MAX_FRAM_SIZE 			(106-22)	/*GW˽��֡���ɵ���󳤶� */
+#define OAM_MAX_FRAM_SIZE 			(106-22)
 #define OAM_MIN_FRAM_SIZE			20	/*GW˽��֡���ɵ���С���� */
 
 /* OAM opCode definations */
@@ -376,28 +357,34 @@ extern unsigned long   gulDebugOamFileOp;
 #define DEVICE_CHIP_6201			0x6201
 
 #define ONU_TEMPRATURE_ALARM			2	/*ONU�¶ȸ澯 */
-#define ONU_ETH_PORT_STATE				10	/*ONU��̫��˿�״̬�澯 */
-#define ONU_ETH_PORT_ABILITY			20	/*ONU��̫��˿����ܸ澯 */
-#define ONU_ETH_WORK_STOP				21	/*ONU��̫��˿�ҵ���жϸ澯 */
+#define ONU_ETH_PORT_STATE				10
+#define ONU_ETH_PORT_ABILITY			20
+#define ONU_ETH_WORK_STOP				21
 #define ONU_STP_EVENT					30	/*STP�¼� */
 #define ONU_DEVICE_INFO_CHANGE			100	/*ONU�豸��Ϣ�޸��¼� */
-#define ONU_FILE_DOWNLOAD				50	/*ONU��ݼ����¼� */
-#define ONU_DATAFILE_CHG				60	/*ONU����ļ��޸��¼� */
+#define ONU_FILE_DOWNLOAD				50
+#define ONU_DATAFILE_CHG				60
 #define ONU_PORT_LOOP_ALARM      		11  /*ONU or Switch port loop alarm*/
-#define ONU_SWITCH_STATUS_CHANGE_ALARM  80  /*ONU�¹ҽ������ע�����߸澯*/
-#define ONU_SWITCH_STATUS_CHANGE_ALARM_LEN  14  /*ONU�¹ҽ������ע�����߸澯��Ϣ����*/
+#define ONU_SWITCH_STATUS_CHANGE_ALARM  80
+#define ONU_SWITCH_STATUS_CHANGE_ALARM_LEN  14
 
+/*begin: gwd oam types enum for info request opcode (1) */
 #define ONU_INFOR_GET				1	/*ONU�豸��Ϣ��ѯ */
 #define ONU_INFOR_SET				2	/*ONU�豸��Ϣ���� */
 #define ONU_REALTIME_SYNC			3	/*ONUϵͳʱ��ͬ�� */
 /*begin:
 added by wangxiaoyu 2008-05-05
 */
-#define ONU_LPB_DETECT					4	/*ONU���ؼ��*/
+#define ONU_LPB_DETECT					4
 /*end*/
 #define ONU_BOARD_GET					5	/*ONU board info get*/
 
 #define ACCESS_IDENTIFIER     8/*ONU�û�������·��ʶ*/
+
+#define ONU_LOCATE_USER					200
+
+#define ONU_FAST_STATISTIC				201
+/*end: gwd oam types enum for info request opcode (1) */
 
 #define ONU_BOARD_GET_RESP_SUCCESS		1
 #define ONU_BOARD_GET_RESP_FAIL			2
@@ -558,22 +545,22 @@ modified by wangxiaoyu 2008-12-25 IP_RESOURCE_ALLOC value 10-->12
 #define WRITE_DENY         0x200		/*  д�ܾ� */
 #define WRITE_ACCEPT     	0x201		/*  д���� */
 #define TRANS_ERROR       	0x300		/*  ���ʹ��� */
-#define TRANS_START      	0x301		/*  ���Ϳ�ʼ�����͹�̿���Ӧ��Ҳ��ʾ������ */
-#define TRANS_DOING      	0x302		/*  �����У����͹�̿���Ӧ��Ҳ��ʾ������ */
-#define TRANS_DONE        	0x303		/*  ���ͽ����͹�̿���Ӧ��Ҳ��ʾ������ */
+#define TRANS_START      	0x301
+#define TRANS_DOING      	0x302
+#define TRANS_DONE        	0x303
 
 /* ACK ERROR Codes */
 #define SYS_NOERROR			0x00		/*  �޴��� */
 #define SYS_BUSY			0x01		/*  ϵͳæ */
 #define SYS_NORESOURCE 	0x02			/*  ϵͳ��Դ���� */
-#define SYS_PROCESSERR		0x03		/*  ϵͳ������� */
+#define SYS_PROCESSERR		0x03
 #define SYS_PROTOERR		0x04		/*  ���̴��� */
 #define SYS_NOSUCHFILE		0x05		/*  �ļ������� */
 #define SYS_FILETOOLONG	0x06			/*  �ļ�̫�� */
 #define SYS_FILETOOSHORT	0x07		/*  �ļ�̫�� */
-#define SYS_FILEOPERR		0x08		/*  ���Ȼ�ƫ��ƥ����� */
+#define SYS_FILEOPERR		0x08
 #define SYS_FILECKERR		0x09		/*  ���У����� */
-#define SYS_FILESAVEERR		0x0A		/*  �ļ�������� */
+#define SYS_FILESAVEERR		0x0A
 
 #define FILE_OP_PACKET		0x01
 #define FILE_OP_COMMAND		0x02
@@ -653,15 +640,15 @@ typedef struct _file_op_session_ctl_block
 #define Extended_Variable_Response		0x2	/* ����ONU��OLT ������չ���� */
 #define Extended_Variable_Set_Request	0x3	/* ����OLT ��ONU ������չ����/���� */
 #define Extended_Variable_Set_Response	0x4	/* ����ONU��OLT���ض���չ����/�������õ�ȷ�� */
-#define Extended_Variable_Churning		0x5	/* ��Triply-Churning ��ص���Կ���� */
-#define Extended_Variable_DBA			0x6	/* DBA �����������ѯ */
+#define Extended_Variable_Churning		0x5
+#define Extended_Variable_DBA			0x6
 
 /* Branch ID for CTC */
 #define Branch_Standard_Attribute1		0x07	/* IEEE 802.3 Clause 30�涨�ı�׼���� */
 #define Branch_Standard_Attribute2		0x09	/* IEEE 802.3 Clause 30�涨�Ĳ������� */
 #define Branch_Ctc_Extended_Attribute1	0xc7	/* CTC��չ�����ԣ�����ִ��Get��(��)Set���� */
 #define Branch_Ctc_Extended_Attribute2	0xc9	/* CTC��չ�Ĳ��� */
-#define Branch_Instance_Index			0x36	/* ʵ���������Ϊʵ������ */
+#define Branch_Instance_Index			0x36
 
 /* Leaf */
 #define Leaf_Index_Port			0x0001	/* �˿�ʵ�������leafֵ */
@@ -671,8 +658,8 @@ typedef struct _file_op_session_ctl_block
 #define Leaf_ONU_Capabilities		0x0004	/* ONU�Ķ˿ڡ����� */
 
 #define Leaf_EthLinkState			0x0011	/* ��̫���û��˿ڵ���·״̬ */
-#define Leaf_EthPortPause		0x0012	/* ��̫��˿ڵ����ع��ܼ����� */
-#define Leaf_EthPortPolicing		0x0013	/* ��̫��˿ڵ����ٹ��ܣ����У� */
+#define Leaf_EthPortPause		0x0012
+#define Leaf_EthPortPolicing		0x0013
 #define Leaf_VoIP_Port			0x0014	/* VoIP�˿ڹ��� */
 
 #define Leaf_VLAN				0x0021	/* ONU��VLAN���� */
@@ -682,13 +669,13 @@ typedef struct _file_op_session_ctl_block
 #define Leaf_Add_Del_Multicast_VLAN	0x0041	/* ONU����̫��˿ڵ��鲥VLAN���� */
 #define Leaf_MulticastTagStripe	0x0042	/* ONU������Multicast��ݱ��ĵ�VLAN TAG���� */
 #define Leaf_MulticastSwitch		0x0043	/* �鲥Э�鿪�� */
-#define Leaf_MulticastControl		0x0044	/* ����Ƶ�����鲥ҵ����� */
-#define Leaf_Group_Num_Max		0x0045	/* ONU��˿�ͬʱ֧�ֵ��鲥������ */
+#define Leaf_MulticastControl		0x0044
+#define Leaf_Group_Num_Max		0x0045
 
 /* Leaf,  branch 0x07/0x09 */
-#define Leaf_aPhyAdminState		0x0025	/* ��ѯ��̫��˿ڵ�״̬, 0x07 */
-#define Leaf_acPhyAdminControl	0x0005	/* ���û�����̫������˿ڵ�״̬, 0x09 */
-#define Leaf_aAutoNegAdminState	0x004f	/* ��̫��˿ڵ�״̬����Э�̣�, 0x07 */
+#define Leaf_aPhyAdminState		0x0025
+#define Leaf_acPhyAdminControl	0x0005
+#define Leaf_aAutoNegAdminState	0x004f
 #define Leaf_aAutoNegLocalTechnologyAbility	0x0052	/* actual port capabilities, 0x07 */
 #define Leaf_aAutoNegAdvertisedTechnologyAbility	0x0053	/* �˿���Э������ͨ��, 0x07 */
 #define Leaf_acAutoNegRestartAutoConfig	0x000b	/* ǿ����·����Э��, 0x09 */
@@ -698,17 +685,13 @@ typedef struct _file_op_session_ctl_block
 
 #define TLV_SET_OK				0x80	/* ��set variable request�������Action����ȷ�� */
 #define TLV_SET_PARAM_ERR		0x86	/* ��������Set Request���������Action���Ĳ�����Ч */
-#define TLV_SET_ERR				0x87	/* ��������Set Request���������Action���Ĳ�����Ч����ONU�ĵ�ǰ״̬ʹ�ò����޷���� */
+#define TLV_SET_ERR				0x87
 
 #define CLASS_MARK_DEL			0x00	/* ɾ��������Classification��Queuing&Marking���ƹ�������Set Variable Request��Ϣ��*/
 #define CLASS_MARK_ADD			0x01	/* ����������Classification��Queuing&Marking���ƹ�������Set Variable Request��Ϣ��*/
-#define CLASS_MARK_CLR			0x02	/* ���ONU��Classification��Queuing&Marking���Ʊ?��ɾ���ONU����
-										    �ķ��ࡢ�ŶӺͱ�ǹ��򣩣��ò������ͽ�����Set Variable
-										    Request��Ϣ������containerΪ�˲�������ʱ�����ֽں���û���������*/
-#define CLASS_MARK_GET			0x03	/* �г���ONU���е�Classification��Queuing&Marking������Ŀ����
-										     ��Get Variable Request/Response��Ϣ)������container����Get Variable Requestʱ��
-										     ���ֽں���û��������ݣ�����container����Get Variable Responseʱ��
-										     ���ֽں���Ϊ�ö˿ڵ����з��ࡢ�ŶӺͱ�ǹ���*/
+#define CLASS_MARK_CLR			0x02
+#define CLASS_MARK_GET			0x03
+
 #define CTC_OAM_RESPONSE_COPY(dest, src, len, proclen)  \
 { \
 	CTC_OAM_MESSAGE_NODE *_resp ;  \
@@ -820,16 +803,16 @@ added by wangxiaoyu 2008-05-05
 ���ز���OAM ��
 */
 typedef struct Oam_Onu_Lpb_Detect_Frame{
-unsigned char	type;		//�������ͣ�4��ʾΪ���ؼ��
-unsigned char	result;		//���Խ����ONU�����
-unsigned char	enable;		//�Ƿ�ʹ�ܹ��ܣ���OLT�����
-unsigned short	vid;			//���в��Ե�VLAN, 0:ONU��������VLAN
-unsigned char	smac[6];	//�����õ�ԴMAC
-unsigned short	interval;		//OLT������֡�ļ��ʱ��s
-unsigned short	policy;		//���򣬼��Ƿ�رն˿�
+unsigned char	type;
+unsigned char	result;
+unsigned char	enable;
+unsigned short	vid;
+unsigned char	smac[6];
+unsigned short	interval;
+unsigned short	policy;
 /*added by wangxiaoyu 2009-03-11*/
-unsigned short  waitforwakeup; //�ȴ����ѵ����ڣ�Ϊ��ѯ���ڵı���
-unsigned short  maxwakeup;		//����������Դ���
+unsigned short  waitforwakeup;
+unsigned short  maxwakeup;
 }__attribute__((packed))OAM_ONU_LPB_DETECT_FRAME;
 /*end*/
 

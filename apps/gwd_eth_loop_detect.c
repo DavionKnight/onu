@@ -1168,6 +1168,8 @@ int lpbDetectTransFrames(unsigned short usVid)
     int i, iRet;
     GWD_OLT_TYPE type;
     unsigned long ulSlot, ulPon;
+    unsigned int tag_ports=0;
+    unsigned int untag_ports=0;
     
     char sysMac[6] = {0}, olt_mac_addr[6]={0};
     char loopVid[2] = { 0 };
@@ -1215,25 +1217,32 @@ int lpbDetectTransFrames(unsigned short usVid)
     }
 
     DevId = 1;
-    for(i=0; i<gw_onu_read_port_num(); i++)
+
+    if(call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GET, 3, usVid, &tag_ports, &untag_ports) == GWD_RETURN_OK)
     {
-        call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, i+1, &lb_port_opr_status);
-        if (lb_port_opr_status == PORT_OPER_STATUS_UP)			
-        {        
-		/*LoopBackDetectPktBuffer[12] = 0xC0 + DevId;*/			/* Use Forward DSA tag: forwarding tag/untag based on switch rule */
-		/*LoopBackDetectPktBuffer[12] = 0x40 + DevId;*/		/* Use FromCPU DSA tag: forwarding tag/untag based on CPU control */
-		/*LoopBackDetectPktBuffer[13] = (char)(i<<3);*/
-		/*LoopBackDetectPktBuffer[12] = 0xFF;
-		LoopBackDetectPktBuffer[13] = 0xFE;*/
-		DUMPGWDPKT("\r\nLoopDetectPkt : ", i+1, LoopBackDetectPktBuffer, sizeof(LoopBackDetectPktBuffer));
-//             iRet = epon_onu_sw_send_frame(i+1, LoopBackDetectPktBuffer, 64);
-		iRet = call_gwdonu_if_api(LIB_IF_PORTSEND, 4, i+1, LoopBackDetectPktBuffer, 64);
-		LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_sw_send_frame(v%d,p%d) return %d.", usVid, i+1, iRet));
-        }
-        else
-        {
-			LOOPBACK_DETECT_DEBUG(("\r\nPort %d no need send for not up.", i+1));
-        }
+		for(i=0; i<gw_onu_read_port_num(); i++)
+		{
+			if((tag_ports & (1<<i) )|| (untag_ports & (1<<i)))
+			{
+				call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, i+1, &lb_port_opr_status);
+				if (lb_port_opr_status == PORT_OPER_STATUS_UP)
+				{
+				/*LoopBackDetectPktBuffer[12] = 0xC0 + DevId;*/			/* Use Forward DSA tag: forwarding tag/untag based on switch rule */
+				/*LoopBackDetectPktBuffer[12] = 0x40 + DevId;*/		/* Use FromCPU DSA tag: forwarding tag/untag based on CPU control */
+				/*LoopBackDetectPktBuffer[13] = (char)(i<<3);*/
+				/*LoopBackDetectPktBuffer[12] = 0xFF;
+				LoopBackDetectPktBuffer[13] = 0xFE;*/
+				DUMPGWDPKT("\r\nLoopDetectPkt : ", i+1, LoopBackDetectPktBuffer, sizeof(LoopBackDetectPktBuffer));
+		//             iRet = epon_onu_sw_send_frame(i+1, LoopBackDetectPktBuffer, 64);
+				iRet = call_gwdonu_if_api(LIB_IF_PORTSEND, 3, i+1, LoopBackDetectPktBuffer, 64);
+				LOOPBACK_DETECT_DEBUG(("\r\nepon_onu_sw_send_frame(v%d,p%d) return %d.", usVid, i+1, iRet));
+				}
+				else
+				{
+					LOOPBACK_DETECT_DEBUG(("\r\nPort %d no need send for not up.", i+1));
+				}
+			}
+		}
     }
 
     return GWD_RETURN_OK;

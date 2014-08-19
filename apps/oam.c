@@ -14,6 +14,15 @@
 #include "gw_version.h"
 #include "rcp_gwd.h"
 
+#define GWD_OAM_CAP_CTC_STATISTIC 		(0x80>>0)
+#define GWD_OAM_CAP_SNMP_TRANS			(0x80>>1)
+#define GWD_OAM_CAP_CTC_FAST_STATISTIC	(0x80>>2)
+
+typedef enum{
+	GWD_OAM_FAST_STATS_OCTECTS,
+	GWD_OAM_FAST_STATS_MAX
+}GWD_OAM_FAST_STATS_E;
+
 //#include "sdl_api.h"
 
 #define OAMDBGERR               diag_printf
@@ -64,6 +73,8 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest );
 static int GwOamMessageListNodeRem(GWTT_OAM_MESSAGE_NODE *pNode);
 static int GwOamAlarmResponse(GWTT_OAM_MESSAGE_NODE *pRequest );
 short int CtcOnuMsgReveive(CTC_OAM_MESSAGE_NODE **ppMessage,unsigned char *MessagData, unsigned short PayloadLength);
+
+extern gw_uint8 gw_onu_read_port_num();
 
 #if 0
 void OamMessageRecevTimeOut(epon_timer_t *timer);
@@ -935,10 +946,105 @@ int GwGetPonSlotPort(unsigned char *mac, GWD_OLT_TYPE type, unsigned long *slot,
 	return GWD_RETURN_OK;
 }
 localtime_tm w_gw_tim;
+
+static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *res, int *reslen)
+{
+	int ret = -1;
+
+	if(pReq && res && reslen)
+	{
+		unsigned char * ptr = res;
+		unsigned long int tbitshi = ntohl(*(unsigned long int*)(pReq->pPayLoad+1));
+		unsigned long int tbitslo = ntohl(*(unsigned long int*)(pReq->pPayLoad+5));
+		unsigned long int tbitsport = ntohl(*(unsigned long int*)(pReq->pPayLoad+9));
+		unsigned char num = gw_onu_read_port_num(), port = 0, tb = 0;
+
+		gw_log(GW_LOG_LEVEL_DEBUG, "%s request tbishi 0x%08x tbitslo 0x%08x tbitsport 0x%08x\n",
+				__func__, tbitshi, tbitslo, tbitsport);
+
+//		if request all ports, caculate the real bitsport for onu
+		if(tbitsport == 0xffffffff)
+		{
+			int i=0;
+			for(i=num; i<32; i++)
+				tbitsport &= ~(0x80000000>>i);
+		}
+
+//		filled payload header type+typebtismask+portmask
+		*ptr++ = ONU_FAST_STATISTIC;
+		*ptr++ = 1;
+		*(unsigned long int*)ptr = htonl(tbitshi);
+		ptr += sizeof(unsigned long int);
+		*(unsigned long int*)ptr = htonl(tbitslo);
+		ptr += sizeof(unsigned long int);
+		*(unsigned long int*)ptr = htonl(tbitsport);
+		ptr += sizeof(unsigned long int);
+
+//		enum port for statistic data
+		while(tbitsport)
+		{
+			gw_log(GW_LOG_LEVEL_DEBUG, "%s tbitsport val 0x%08x\n", __func__, tbitsport);
+			if(tbitsport & 0x80000000)
+			{
+				gw_onu_port_counter_t data;
+				int len = sizeof(gw_onu_port_counter_t);
+				if(call_gwdonu_if_api(LIB_IF_PORT_STATISTIC_GET, 3, port+1, &data, &len) == GW_OK)
+				{
+//					enum type mask for statistic data
+					unsigned long int tbits = tbitshi;
+					tb = 0;
+					while(tbits)
+					{
+						gw_log(GW_LOG_LEVEL_DEBUG, "%s tbitshi val 0x%08x\n", __func__, tbits);
+						if(tbits & 0x80000000)
+						{
+							switch (tb)
+							{
+							case GWD_OAM_FAST_STATS_OCTECTS:
+								*(gw_uint64*)ptr = htonll(data.counter.RxOctetsOKLsb);
+								ptr += sizeof(gw_uint64);
+								*(gw_uint64*)ptr = htonll(data.counter.TxOctetsOk);
+								ptr += sizeof(gw_uint64);
+
+								gw_log(GW_LOG_LEVEL_DEBUG, "%s fast stats octects in %llu out %llu\n", __func__, data.counter.RxOctetsOKLsb, data.counter.TxOctetsOk);
+								break;
+							default:
+								break;
+							}
+						}
+						tbits <<= 1;
+						tb++;
+					}
+
+					tbits = tbitslo;
+					while(tbits)
+					{
+						gw_log(GW_LOG_LEVEL_DEBUG, "%s tbitslo val 0x%08x\n", __func__, tbits);
+						if(tbits & 0x80000000)
+						{
+						}
+						tbits <<= 1;
+						tb++;
+					}
+				}
+			}
+			tbitsport <<= 1;
+			port++;
+		}
+
+//		caculate data length
+		ret = 0;
+		*reslen = ptr-res;
+
+		gw_log(GW_LOG_LEVEL_DEBUG, "%s return reslen %d\n", __func__, *reslen);
+
+	}
+	return ret;
+}
 static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 {
 	unsigned char ver[4] = {1, 1, 1, 1};
-	unsigned char Response[1024]={'\0'},*ptr, *pReq; 
+	unsigned char Response[1024]="",*ptr, *pReq;
 	unsigned char temp[128];
 	int ResLen=0;
 	unsigned short device_type;
@@ -1059,7 +1165,8 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			/*extension capality*/
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
-			*ptr ++= 0x80; /*added ctc statistic function surpport*/
+			*ptr ++= GWD_OAM_CAP_CTC_STATISTIC | GWD_OAM_CAP_CTC_FAST_STATISTIC; /*added ctc statistic function surpport*/
+																				/*added fast statistic cap by wangxiaoyu @2014-08-15*/
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
 			gulGwOamConnect = 1;
@@ -1731,6 +1838,12 @@ END:
 			}
 			break;
 #endif
+		case ONU_FAST_STATISTIC:
+			if(GwdOamFastStatsReqHandle(pRequest, Response, &ResLen))
+			{
+				return GWD_RETURN_ERR;
+			}
+			break;
 		default:
 		{
 //			IROS_LOG_MAJ(IROS_MID_OAM, "OAM INFO request (%d) no suportted!", *pRequest->pPayLoad);
