@@ -6728,6 +6728,12 @@ int rrcp_packet_handler(unsigned int srcPort, unsigned int len, unsigned char *p
 	     	break;
 	}
 
+	if((NULL != rcpDevList[srcPort])&&(srcPort < MAX_RRCP_SWITCH_TO_MANAGE)&&(NULL!=packet))
+	{
+		rcpDevList[srcPort]->timeoutFlag = 0;
+		rcpDevList[srcPort]->timeoutCounter = 0;
+	}
+
 	return iRet;
 }
 

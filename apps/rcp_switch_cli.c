@@ -61,7 +61,7 @@ extern  "C"
 
 int my_onu_port_arg;
 #define RCP_DISCOVERY_PERIOD_DEF	    5
-#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
+#define RCP_KEEP_ALIVE_TIMEOUT_DEF		1
 
 int iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 unsigned int rcp_timer_id=0;
@@ -5273,9 +5273,7 @@ int cli_int_mgt_config_save(struct cli_def *cli, char *command, char *argv[], in
 
 int cli_int_show_loop_port(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	int ret;
 	RCP_DEV *pRcpDev;
-	unsigned long portlist;
 	unsigned long slot, port,phyPort;
 	if(CLI_HELP_REQUESTED)
     {
@@ -5634,8 +5632,8 @@ void rcp_rcv_handll_thread(void * data)
  */
 void rcp_update_vlan_and_say_hello(void *data)
 {
-	unsigned int i = 0, ret = 0,error = 0, vid = 0;
-	unsigned short vlanum = 0;
+	unsigned int i = 0, ret = 0,error = 0;
+	unsigned short vlanum = 0, vid = 0;
 
 	while(1)
 	{
@@ -5669,19 +5667,54 @@ void rcp_update_vlan_and_say_hello(void *data)
 	}
 	gw_thread_exit();
 }
+void rcp_dev_status_get()
+{
+	RCP_DEV *pRcpDev;
+	unsigned short vid =0;
+	int i = 1;
 
+	if(gulEnableEpswitchMgt)
+	{
+		for(i=1; i< MAX_RRCP_SWITCH_TO_MANAGE; i++)
+		{
+			if(RCP_Dev_Is_Valid(i))
+			{
+				RCP_Say_Hello(i,vid);
+				gw_thread_delay(100);
+
+				pRcpDev = RCP_Get_Dev_Ptr(i);
+				if(RCP_KEEP_ALIVE_TIMEOUT_DEF != pRcpDev->timeoutCounter)
+				{
+					pRcpDev->timeoutCounter = RCP_KEEP_ALIVE_TIMEOUT_DEF;
+				}
+				else
+				{
+					pRcpDev->timeoutFlag = 1;
+				}
+				pRcpDev->previousOnlineStatus = pRcpDev->onlineStatus;
+				if(1 == pRcpDev->timeoutFlag)
+				{
+					pRcpDev->onlineStatus = 0;
+				}
+				else
+				{
+					pRcpDev->onlineStatus = 1;
+				}
+			}
+		}
+
+	}
+}
 void rcp_dev_monitor(void * data)
 {
-	int i = 1, ret, error;
-	unsigned int iKeepAliveTimeout;
-	RCP_DEV *pRcpDev;
-	unsigned short vlanum;
-    unsigned short vid =0;
-    unsigned int policystate=1;
+	int ret = GW_ERROR;
+	unsigned int policystate=1;
+	gw_uint32 rcp_status_timer=0;
 
-	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
 //	gw_circle_timer_add(2000, rcp_dev_broadcast_say_hello, &broadcast_enable);
+#if __RCP_STOP__
     gwd_rcp_thread_stop_timer_register();
+#endif
 	ret = gw_thread_create( &rcp_broadcast_say_hello,
 						"RCP say hello",
 						rcp_update_vlan_and_say_hello,
@@ -5693,8 +5726,11 @@ void rcp_dev_monitor(void * data)
 						);
     if(ret != GW_OK)
     {
-        gw_printf("------------------creat rcp say hello fail--------- \r\n");
-    }      
+        gw_printf("------------------create rcp say hello fail--------- \r\n");
+    }
+
+    rcp_status_timer = gw_circle_timer_add(30000, rcp_dev_status_get, NULL); // 30 sec
+
     while(1) 
     {
         //added by wangxy 2013-04-19 for onu tx ctrl policy, default is set, while it is clr, all onu msg
@@ -5706,58 +5742,6 @@ void rcp_dev_monitor(void * data)
             continue;
         }
 
-		if(gulEnableEpswitchMgt)
-		{
-			for(i=1; i< MAX_RRCP_SWITCH_TO_MANAGE; i++)
-			{
-			#if 0
-			for(port=1; port < MAX_RRCP_SWITCH_TO_MANAGE; port++)
-				{
-					call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, port, &port_opr_status);
-					if(port_opr_status != PORT_OPER_STATUS_UP)
-						{
-							if(rcpDevList[port] != NULL)
-								rcpDevList[port]->onlineStatus = 0;
-								
-						}
-				}
-			#endif
-			if(RCP_Dev_Is_Valid(i))
-			{
-				RCP_Say_Hello(i,vid);
-				gw_thread_delay(100);
-#if 0
-	      struct  timeval    tv;
-			gettimeofday(&tv,NULL);
-			gw_printf("\nafter delay %d\ntime is :\ntv_sec :%d\ntv_usec :%d\n\n", num, tv.tv_sec,tv.tv_usec);
-#endif
-					pRcpDev = RCP_Get_Dev_Ptr(i);	
-					if(pRcpDev->timeoutCounter < iKeepAliveTimeout)
-					{
-						pRcpDev->timeoutCounter++;
-
-					}
-					else	
-					{
-						pRcpDev->timeoutFlag = 1;
-					}
-					pRcpDev->previousOnlineStatus = pRcpDev->onlineStatus;
-					if(1 == pRcpDev->timeoutFlag)
-					{
-						pRcpDev->onlineStatus = 0;
-					}
-					else
-					{
-						pRcpDev->onlineStatus = 1;
-					}
-				}
-			}
-#if 0/* Say broadcast hello with new authenKey will no replay */
-			RCP_Say_Hello(0,vid);
-#endif
-
-		}
-
 		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
 		gw_thread_delay(200);
 
@@ -5766,6 +5750,7 @@ void rcp_dev_monitor(void * data)
 			rcp_dev_status_check();	
 		}
     }
+	gw_timer_del(rcp_status_timer);
 	return;
 }
 
@@ -6065,7 +6050,7 @@ void rcp_loopdetect_monitor(void * data)
 	return;
 }
 
-void rcp_pkt_control_handler(unsigned int state)
+int rcp_pkt_control_handler(unsigned int state)
 {
     int ret = GW_ERROR;   
     int rcpfieldstate = RCP_FIELD_ENABLE;
