@@ -397,6 +397,12 @@ int RCP_DevList_Update(unsigned long parentPort, char *pkt)
 	rcpDevList[parentPort]->timeoutCounter = 0;
 	rcpDevList[parentPort]->phyAddr = 0x10;		/* useless . it depends on the phy port number */
 	rcpDevList[parentPort]->alarmMask = gucRcpAlarmMask;
+	/*if switch offline ,register it quickly*/
+	if(0 == rcpDevList[parentPort]->onlineStatus)
+	{
+		rcpDevList[parentPort]->previousOnlineStatus = rcpDevList[parentPort]->onlineStatus;
+		rcpDevList[parentPort]->onlineStatus = 1;
+	}
 
 	gw_rcp_sem_give(semAccessRcpDevList);
 	
