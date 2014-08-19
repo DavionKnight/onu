@@ -19,7 +19,7 @@
 #define GWD_OAM_CAP_CTC_FAST_STATISTIC	(0x80>>2)
 
 typedef enum{
-	GWD_OAM_FAST_STATS_OCTECTS,
+	GWD_OAM_FAST_STATS_OCTECTS = 0,
 	GWD_OAM_FAST_STATS_MAX
 }GWD_OAM_FAST_STATS_E;
 
@@ -954,9 +954,24 @@ static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *
 	if(pReq && res && reslen)
 	{
 		unsigned char * ptr = res;
+		unsigned long int tbitshi=0;
+		unsigned long int tbitslo=0;
+		unsigned long int tbitsport=0;
+		unsigned long int preq_tbitshi=0;
+		unsigned long int preq_tbitslo=0;
+		unsigned long int preq_tbitsport=0;
+#if 0
 		unsigned long int tbitshi = ntohl(*(unsigned long int*)(pReq->pPayLoad+1));
 		unsigned long int tbitslo = ntohl(*(unsigned long int*)(pReq->pPayLoad+5));
 		unsigned long int tbitsport = ntohl(*(unsigned long int*)(pReq->pPayLoad+9));
+#else
+		memcpy(&preq_tbitshi,(pReq->pPayLoad+1),sizeof(unsigned long int));
+		memcpy(&preq_tbitslo,(pReq->pPayLoad+5),sizeof(unsigned long int));
+		memcpy(&preq_tbitsport,(pReq->pPayLoad+9),sizeof(unsigned long int));
+		unsigned long int tbitshi = ntohl(preq_tbitshi);
+		unsigned long int tbitslo = ntohl(preq_tbitslo);
+		unsigned long int tbitsport = ntohl(preq_tbitsport);
+#endif
 		unsigned char num = gw_onu_read_port_num(), port = 0, tb = 0;
 
 		gw_log(GW_LOG_LEVEL_DEBUG, "%s request tbishi 0x%08x tbitslo 0x%08x tbitsport 0x%08x\n",
@@ -971,6 +986,7 @@ static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *
 		}
 
 //		filled payload header type+typebtismask+portmask
+#if 0
 		*ptr++ = ONU_FAST_STATISTIC;
 		*ptr++ = 1;
 		*(unsigned long int*)ptr = htonl(tbitshi);
@@ -979,7 +995,20 @@ static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *
 		ptr += sizeof(unsigned long int);
 		*(unsigned long int*)ptr = htonl(tbitsport);
 		ptr += sizeof(unsigned long int);
+#else
+		*ptr++ = ONU_FAST_STATISTIC;
+		*ptr++ = 1;
+		unsigned long int ptr_tbitshi = htonl(tbitshi);
+		memcpy(ptr,&ptr_tbitshi,sizeof(unsigned long int));
+		ptr += sizeof(unsigned long int);
+		unsigned long int ptr_tbitslo = htonl(tbitslo);
+		memcpy(ptr,&ptr_tbitslo,sizeof(unsigned long int));
+		ptr += sizeof(unsigned long int);
+		unsigned long int ptr_tbitsport = htonl(tbitsport);
+        memcpy(ptr,&ptr_tbitsport,sizeof(unsigned long int));
+		ptr += sizeof(unsigned long int);
 
+#endif
 //		enum port for statistic data
 		while(tbitsport)
 		{
@@ -1015,7 +1044,7 @@ static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *
 						tbits <<= 1;
 						tb++;
 					}
-
+					tb=32;
 					tbits = tbitslo;
 					while(tbits)
 					{
