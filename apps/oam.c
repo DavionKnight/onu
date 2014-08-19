@@ -968,9 +968,9 @@ static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *
 		memcpy(&preq_tbitshi,(pReq->pPayLoad+1),sizeof(unsigned long int));
 		memcpy(&preq_tbitslo,(pReq->pPayLoad+5),sizeof(unsigned long int));
 		memcpy(&preq_tbitsport,(pReq->pPayLoad+9),sizeof(unsigned long int));
-		unsigned long int tbitshi = ntohl(preq_tbitshi);
-		unsigned long int tbitslo = ntohl(preq_tbitslo);
-		unsigned long int tbitsport = ntohl(preq_tbitsport);
+		tbitshi = ntohl(preq_tbitshi);
+		tbitslo = ntohl(preq_tbitslo);
+	    tbitsport = ntohl(preq_tbitsport);
 #endif
 		unsigned char num = gw_onu_read_port_num(), port = 0, tb = 0;
 
