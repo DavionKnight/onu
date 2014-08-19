@@ -394,7 +394,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG, "special pkt handler register if is null!\r\n");
 			break;
-		case LIB_IF_SYSTERM_CURRENT_TIME_GET:
+		case LIB_IF_SYSTERM_CURRENT_MS_TIME_GET:
 			if(g_im_ifs->currenttimeget)
 				ret = (*g_im_ifs->currenttimeget)(va_arg(ap,gw_uint32*));
 			else

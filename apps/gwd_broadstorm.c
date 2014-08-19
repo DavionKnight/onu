@@ -105,7 +105,7 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 	return GW_RETURN_FAIL;
 	}
 #endif
-	call_gwdonu_if_api(LIB_IF_SYSTERM_CURRENT_TIME_GET, 1, &gulCurrentTick4PortMon[port]);
+	call_gwdonu_if_api(LIB_IF_SYSTERM_CURRENT_MS_TIME_GET, 1, &gulCurrentTick4PortMon[port]);
 	gw_log(GW_LOG_LEVEL_INFO, "port %d time flag: %u\r\n", port+1, gulCurrentTick4PortMon[port]);
 #ifdef __NOT_USE__
 	gulCurrentTick4PortMon[port] = cyg_current_time();
@@ -141,7 +141,7 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 				gw_printf("rate:%lld\n",(pd->counter.RxBroadcasts - gulCurrentpktCntIn[port]));
 			}
 	#endif
-		fRate = (gw_float)((pd->counter.RxBroadcasts - gulCurrentpktCntIn[port]))/(gw_float)ulIntervalTick*100;
+		fRate = (gw_float)((pd->counter.RxBroadcasts - gulCurrentpktCntIn[port]))/(gw_float)ulIntervalTick*1000;
 	}
 	else
 	{
@@ -168,7 +168,7 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 	gw_log(GW_LOG_LEVEL_INFO, "port %d broadcoast rate: %llu\r\n", port+1, gulOctRateIn[port]);
 	if ( pd->counter.TxBroadcasts >= gulCurrentpktCntOut[port] )
 	{
-		fRate = (gw_float)((pd->counter.TxBroadcasts - gulCurrentpktCntOut[port]))/(gw_float)ulIntervalTick*100;
+		fRate = (gw_float)((pd->counter.TxBroadcasts - gulCurrentpktCntOut[port]))/(gw_float)ulIntervalTick*1000;
 	}
 	else
 	{
@@ -232,7 +232,7 @@ void broad_storm_thread(void* data)
 #endif
                 {
 #ifdef __DEBUG__
-
+                	gw_printf("gulOctRateIn[physical_port]:%lld\r\n",gulOctRateIn[physical_port]);
                         gw_printf("port %d event counter:%d\n",logical_port,ulBcStormEventCnt[physical_port]);
 #endif
                     ulBcStormEventCnt[physical_port]++;
