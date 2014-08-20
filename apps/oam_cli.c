@@ -519,8 +519,11 @@ int cmd_vlan_field_cfg_show(struct cli_def *cli, char *command, char *argv[], in
 				return CLI_OK;
 			}
             memset(&vlanfieldcfg,0,sizeof(gw_vlan_field_cfg_t));
-            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 2,ulPort,&vlanfieldcfg,&fieldupdatecfg))
-				gw_cli_print(cli, "get port %s vlan field cfg fail!\r\n",ulPort);
+            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 3,ulPort,&vlanfieldcfg,&fieldupdatecfg))
+            {
+				gw_cli_print(cli, "CURRET VLAN MODE NOT THRUNK  SO NO VLAN CONFIG!\r\n",ulPort);
+				return CLI_ERROR;
+            }
 
             gw_cli_print(cli,"%-10d %d %d %d %d %d %d %d %d %-8d  %-15s   %d",ulPort,vlanfieldcfg.defaultvlan,
                 vlanfieldcfg.trunkvlan[0],vlanfieldcfg.trunkvlan[1],vlanfieldcfg.trunkvlan[2],
@@ -541,7 +544,7 @@ int cmd_vlan_field_cfg_show(struct cli_def *cli, char *command, char *argv[], in
 				return CLI_OK;
 			}
             memset(&fieldupdatecfg,0,sizeof(gw_vlan_field_update_t));
-            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 2,ulPort,&vlanfieldcfg,&fieldupdatecfg))
+            if(GW_OK != call_gwdonu_if_api(LIB_IF_VLAN_FIELD_CFG_GET, 3,ulPort,&vlanfieldcfg,&fieldupdatecfg))
 				gw_cli_print(cli, "get port %s vlan field cfg fail!\r\n",ulPort);
 
             gw_cli_print(cli,"%-10d %d %d %d %d %d %d %d %d %-8d  %d",ulPort,fieldupdatecfg.defaultvlan,
