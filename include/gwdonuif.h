@@ -214,7 +214,7 @@ typedef gw_status (*libgwdonu_onu_static_mac_add_t)(gw_int8* gw_mac,gw_uint32 gw
 typedef gw_status (*libgwdonu_onu_static_mac_del_t)(gw_int8* gw_mac,gw_uint32 gw_vlan);
 typedef gw_status (*libgwdonu_onu_register_stat_get)(gw_uint8* onuregister);
 #ifndef CYG_LINUX
-typedef gw_status (*libgwdonu_onu_reset)(gw_int32 a);
+typedef gw_status (*libgwdonu_onu_reset)();
 #endif
 
 typedef void      (*libgwdonu_onu_set_loopalm_led)();

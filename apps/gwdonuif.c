@@ -432,14 +432,14 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 				gw_log(GW_LOG_LEVEL_DEBUG,"get onu register if is null!\r\n");
 			}
 			break;
-			#ifndef CYG_LINUX
+#ifndef CYG_LINUX
 		case LIB_IF_ONU_REBOOT:
 			if(g_im_ifs->onureset)
-				ret = (*g_im_ifs->onureset)(va_arg(ap,gw_int32));
+				ret = (*g_im_ifs->onureset)();
 			else
 				gw_log(GW_LOG_LEVEL_DEBUG,"onu reboot if is null!\r\n");
 			break;
-			#endif
+#endif
 
 		case LIB_IF_ONU_START_LOOP_LED:
 			if(g_im_ifs->startloopled)

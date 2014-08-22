@@ -860,34 +860,19 @@ extern int gwd_onu_reboot(int a);
 
 int cmd_onu_reboot(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-	int a = 10;
 #ifndef CYG_LINUX
-	int enable;
-	if (CLI_HELP_REQUESTED) {
-	switch (argc) {
-	case 1:
-		return gw_cli_arg_help(cli, 0, "[0|1]", "reboot enable",
-				NULL );
-	default:
-		return gw_cli_arg_help(cli, argc > 1, NULL );
-		}
-
-	}
-
-    if(argc == 1)
-    {
-    	enable = atoi(argv[0]);
-		if(enable)
-			call_gwdonu_if_api(LIB_IF_ONU_REBOOT, 1,a);
-		else
-			gw_printf("reboot error\n");
-
-    }
-	else
+	if (CLI_HELP_REQUESTED)
 	{
-		gw_cli_print(cli, "%% Invalid input.");
-        return CLI_OK;
+		switch (argc)
+		{
+
+		default:
+			return gw_cli_arg_help(cli, argc > 0, NULL );
+		}
 	}
+
+
+	call_gwdonu_if_api(LIB_IF_ONU_REBOOT, 0,NULL);
 	#else
 	gwd_onu_reboot(a);
 	#endif
@@ -923,8 +908,8 @@ void gw_cli_reg_oam_cmd(struct cli_command **cmd_root)
 
 	c = gw_cli_register_command(cmd_root, NULL, "event", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "event show");
 	gw_cli_register_command(cmd_root, c, "show", cmd_oam_event_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show");
-	reboot = gw_cli_register_command(cmd_root, NULL, "ONU",NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
-	gw_cli_register_command(cmd_root,reboot, "reboot", cmd_onu_reboot, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
+//	reboot = gw_cli_register_command(cmd_root, NULL, "ONU",NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
+	gw_cli_register_command(cmd_root,NULL, "reboot", cmd_onu_reboot, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "reboot onu");
 
 
     return;

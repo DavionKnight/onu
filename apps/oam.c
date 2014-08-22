@@ -3505,7 +3505,55 @@ void gw_broadcast_storm_init()
 	broad_storm.gulBcStormStat = 0;
 	return;
 }
+#if 0
+int Gwd_func_pon_version_sysinfo_get(unsigned long *flag,unsigned long *version)
+{
+	int ret = GW_ERROR;
+	if((flag == NULL) || (version == NULL))
+	{
+		return ret;
+	}
+	*flag = gw_onu_system_info_total.PonPersFlag;
+	*version = gw_onu_system_info_total.PonPersVersion;
+	return GW_OK;
+}
+int Gwd_func_pon_version_sysinfo_set(unsigned long flag,unsigned long version)
+{
+	int ret = GW_ERROR;
+	gw_onu_system_info_total.PonPersFlag = flag;
+	gw_onu_system_info_total.PonPersVersion = version;
+	return GW_OK;
+}
+int Gwd_func_check_pon_version_number()
+{
+	int ret=GW_ERROR;
+	unsigned long ponpersflag=0;
+	unsigned long ponpersversion=0;
+	ret = GW_Onu_Sysinfo_Get();
+	if(ret == GW_ERROR)
+	{
+		gw_log(GW_LOG_LEVEL_CRI,"%s %d get gwd onu sysinfo error\r\n",__func__,__LINE__);
+		return ret;
+	}
 
+	Gwd_func_pon_version_sysinfo_get(&ponpersflag,&ponpersversion);
+	gw_log(GW_LOG_LEVEL_CRI,"GW_PON_PERS_FLAG:%d PONPERS_VERSION:%d\r\n",ponpersflag,ponpersversion);
+	if((ponpersflag != GW_PON_PERS_FLAG)||(ponpersversion != PONPERS_VERSION))
+	{
+		ponpersversion=PONPERS_VERSION;
+		ponpersflag=GW_PON_PERS_FLAG;
+		Gwd_func_pon_version_sysinfo_set(ponpersflag,ponpersversion);
+		gw_log(GW_LOG_LEVEL_CRI,"gwd pon version sysinfo set ok\r\n");
+		ret = GW_Onu_Sysinfo_Save();
+		if(ret ==GW_ERROR)
+		{
+			gw_log(GW_LOG_LEVEL_CRI,"%s %d gwd onu sysinfo save error\r\n",__func__,__LINE__);
+		}
+		call_gwdonu_if_api(LIB_IF_ONU_REBOOT, 0,NULL);
+	}
+	return GW_OK;
+}
+#endif
 void gwd_onu_init(void)
 {
 extern void Rcp_Mgt_init(void);
