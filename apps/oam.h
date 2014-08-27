@@ -12,6 +12,17 @@
 
 #include "plat_common.h"
 #endif
+
+
+#define GWD_OAM_CAP_CTC_STATISTIC 		(0x80>>0)
+#define GWD_OAM_CAP_SNMP_TRANS			(0x80>>1)
+#define GWD_OAM_CAP_CTC_FAST_STATISTIC	(0x80>>2)
+
+typedef enum{
+	GWD_OAM_FAST_STATS_OCTECTS,
+	GWD_OAM_FAST_STATS_MAX
+}GWD_OAM_FAST_STATS_E;
+
 typedef gw_uint32 epon_port_id_t;
 
 /* This struct should be moved to a header file */
@@ -37,7 +48,7 @@ typedef struct gwtt_oam_header
 	unsigned char sessionId[8];		/* sesion id used by EMS */
 } __attribute__ ((packed)) GWTT_OAM_HEADER;
 
-/* �й���Ŷ��� */
+/* 锟叫癸拷锟斤拷哦锟斤拷锟� */
 typedef struct ctc_oam_header
 {
 	unsigned char oui[3];				/* CTC's OUI is waiting define */
@@ -77,29 +88,29 @@ typedef struct TLV_Varialbe_Indication
 
 typedef struct TLV_Classification_Marking_Entry
 {
-	unsigned char field_sel;				/* ��1��������Ӧ����field����
-										 * 0x00������DA MAC���ࣻ
-										 * 0x01������SA MAC���ࣻ
-										 * 0x02��������̫�����ȼ�Pri��IEEE 802.1D�����ࣻ
-										 * 0x03������VLAN ID���ࣻ
-										 * 0x04��������̫�����ͣ�0x8808��0x8809��0x88A8�ȡ���Ҫָ��̫��
-										 * ֡�е�ԭʼ��Length/EtherType������VLAN tag�е�TPID�򣩣�
-										 * 0x05������Ŀ��IP��ַ���ࣻ
-										 * 0x06������ԴIP��ַ���ࣻ
-										 * 0x07������IPЭ�����ͣ�IP��ICMP��IGMP�ȣ�
-										 * 0x08������IP TOS/DSCP��IP V4�����ࣻ
-										 * 0x09������IP Precedence��IP V6�����ࣻ
-										 * 0x0A������L4 ԴPORT���ࣻ
-										 * 0x0B������L4 Ŀ��PORT���ࣻ
-										 * ����ʽ���塣 */
-	unsigned char value[6];				/* ��1��������ƥ��ֵ��������Ӧ����С��6�ֽڣ�����VLAN Pri=1
-										 * ��Ϊƥ���򣩣��������λ���뽫��ƥ��ֵ���ڱ�6�ֽڵ�
-										 * ���λ����Ӧ��ƥ��ֵΪ0x00 00 00 00 00 01���� */
+	unsigned char field_sel;				/* 锟斤拷1锟斤拷锟斤拷锟斤拷锟斤拷应锟斤拷锟斤拷field锟斤拷锟斤拷
+										 * 0x00锟斤拷锟斤拷锟斤拷DA MAC锟斤拷锟洁；
+										 * 0x01锟斤拷锟斤拷锟斤拷SA MAC锟斤拷锟洁；
+										 * 0x02锟斤拷锟斤拷锟斤拷锟斤拷太锟斤拷锟斤拷锟饺硷拷Pri锟斤拷IEEE 802.1D锟斤拷锟斤拷锟洁；
+										 * 0x03锟斤拷锟斤拷锟斤拷VLAN ID锟斤拷锟洁；
+										 * 0x04锟斤拷锟斤拷锟斤拷锟斤拷太锟斤拷锟斤拷锟酵ｏ拷0x8808锟斤拷0x8809锟斤拷0x88A8锟饺★拷锟斤拷要指锟斤拷太锟斤拷
+										 * 帧锟叫碉拷原始锟斤拷Length/EtherType锟斤拷锟斤拷锟斤拷VLAN tag锟叫碉拷TPID锟津）ｏ拷
+										 * 0x05锟斤拷锟斤拷锟斤拷目锟斤拷IP锟斤拷址锟斤拷锟洁；
+										 * 0x06锟斤拷锟斤拷锟斤拷源IP锟斤拷址锟斤拷锟洁；
+										 * 0x07锟斤拷锟斤拷锟斤拷IP协锟斤拷锟斤拷锟酵ｏ拷IP锟斤拷ICMP锟斤拷IGMP锟饺ｏ拷
+										 * 0x08锟斤拷锟斤拷锟斤拷IP TOS/DSCP锟斤拷IP V4锟斤拷锟斤拷锟洁；
+										 * 0x09锟斤拷锟斤拷锟斤拷IP Precedence锟斤拷IP V6锟斤拷锟斤拷锟洁；
+										 * 0x0A锟斤拷锟斤拷锟斤拷L4 源PORT锟斤拷锟洁；
+										 * 0x0B锟斤拷锟斤拷锟斤拷L4 目锟斤拷PORT锟斤拷锟洁；
+										 * 锟斤拷锟斤拷式锟斤拷锟藉。 */
+	unsigned char value[6];				/* 锟斤拷1锟斤拷锟斤拷锟斤拷锟斤拷匹锟斤拷值锟斤拷锟斤拷锟斤拷锟斤拷应锟斤拷锟斤拷小锟斤拷6锟街节ｏ拷锟斤拷锟斤拷VLAN Pri=1
+										 * 锟斤拷为匹锟斤拷锟津）ｏ拷锟斤拷锟斤拷锟斤拷锟轿伙拷锟斤拷虢拷锟狡ワ拷锟街碉拷锟斤拷诒锟�6锟街节碉拷
+										 * 锟斤拷锟轿伙拷锟斤拷锟接︼拷锟狡ワ拷锟街滴�0x00 00 00 00 00 01锟斤拷锟斤拷 */
 	unsigned char match_op;				/*  0x00 F Never match
 										 * 0x01 == Field Equal to value
 										 * 0x02 != Field Not equal to value
-										 * 0x03 <= Field Less than or equal to value(��ѡ)
-										 * 0x04 >= Field Greater than or equal to value����ѡ��
+										 * 0x03 <= Field Less than or equal to value(锟斤拷选)
+										 * 0x04 >= Field Greater than or equal to value锟斤拷锟斤拷选锟斤拷
 										 * 0x05 exists True if field exists (value ignored)
 										 * 0x06 !exist True if field does not exist (value ignored)
 										 * 0x07 T Always match */
@@ -107,15 +118,15 @@ typedef struct TLV_Classification_Marking_Entry
 
 typedef struct TLV_Classification_Marking
 {
-	unsigned char precedence;			/* �����ࡢ�Ŷ�&��ǡ���������ȼ����� */
-	unsigned char rule_len;				/* ����ĳ��ȣ���λΪ�ֽ� */
-	unsigned char queue_mapped;			/* ��ϱ��������̫��֡��Ҫӳ��Ķ��б�� */
-	unsigned char eth_pri_mark;			/* �Է�ϱ��������̫��֡�������ȼ���ǣ�IEEE 802.1D����
-										 * ��ֵΪ0x00��0x07�����ֽ�ȱʡֵΪ0x00���籾�ֽڵ�ֵ
-										 * Ϊ0xFF������ζ�ŶԷ�ϸ�������֡���������ȼ���ǡ� */
-	unsigned char entry_num;			/* �������������������entries������������ж��������������
-										 * Ϊ���field-value-operator�򣬼���ζ�ű���ͬʱ���������������
-										 * ����ִ����������action�� */
+	unsigned char precedence;			/* 锟斤拷锟斤拷锟洁、锟脚讹拷&锟斤拷恰锟斤拷锟斤拷锟斤拷锟斤拷锟饺硷拷锟斤拷锟斤拷 */
+	unsigned char rule_len;				/* 锟斤拷锟斤拷某锟斤拷龋锟斤拷锟轿晃拷纸锟� */
+	unsigned char queue_mapped;			/* 锟斤拷媳锟斤拷锟斤拷锟斤拷锟斤拷太锟斤拷帧锟斤拷要映锟斤拷亩锟斤拷斜锟斤拷 */
+	unsigned char eth_pri_mark;			/* 锟皆凤拷媳锟斤拷锟斤拷锟斤拷锟斤拷太锟斤拷帧锟斤拷锟斤拷锟斤拷锟饺硷拷锟斤拷牵锟絀EEE 802.1D锟斤拷锟斤拷
+										 * 锟斤拷值为0x00锟斤拷0x07锟斤拷锟斤拷锟街斤拷缺省值为0x00锟斤拷锟界本锟街节碉拷值
+										 * 为0xFF锟斤拷锟斤拷锟斤拷味锟脚对凤拷细锟斤拷锟斤拷锟斤拷锟街★拷锟斤拷锟斤拷锟斤拷锟斤拷燃锟斤拷锟角★拷 */
+	unsigned char entry_num;			/* 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟絜ntries锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷卸锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
+										 * 为锟斤拷锟絝ield-value-operator锟津，硷拷锟斤拷味锟脚憋拷锟斤拷同时锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟�
+										 * 锟斤拷锟斤拷执锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷action锟斤拷 */
 	TLV_CLASSIFICATION_MARKING_ENTRY entry[1];
 } __attribute__ ((packed)) TLV_CLASSIFICATION_MARKING;
 
@@ -205,7 +216,9 @@ typedef struct Igmp_oam_req
 
 #define GWD_RETURN_OK 0
 #define GWD_RETURN_ERR -1
-
+#define GWD_YES 1
+#define GWD_NO 0
+#define IN_OUT      1
 #define GWD_OAM_THREAD_PRIORITY 22
 
 extern unsigned long   gulDebugOamRx;
@@ -222,8 +235,8 @@ extern unsigned long   gulDebugOamFileOp;
 #define OAM_DATA_LEN				65535
 #define OAM_OVERHEAD_LEN_STD		22	/* DA/SA/Len/Sub/Flag/Code/FCS */
 #define OAM_OVERHEAD_LEN_GW			22	/* OUI/Op/Ser/WLen/POff/PLen/SnID/ */
-#define OAM_MAX_FRAM_SIZE 			(106-22)	/*GW˽��֡���ɵ���󳤶� */
-#define OAM_MIN_FRAM_SIZE			20	/*GW˽��֡���ɵ���С���� */
+#define OAM_MAX_FRAM_SIZE 			(106-22)	/*GW私锟斤拷帧锟斤拷锟缴碉拷锟斤拷蟪ざ锟� */
+#define OAM_MIN_FRAM_SIZE			20	/*GW私锟斤拷帧锟斤拷锟缴碉拷锟斤拷小锟斤拷锟斤拷 */
 
 /* OAM opCode definations */
 #define EQU_DEVICE_INFO_REQ			0x01	/* Device information REQUEST */
@@ -320,29 +333,30 @@ extern unsigned long   gulDebugOamFileOp;
 #define DEVICE_CHIP_6301			0x6301
 #define DEVICE_CHIP_6201			0x6201
 
-#define ONU_TEMPRATURE_ALARM			2	/*ONU�¶ȸ澯 */
-#define ONU_ETH_PORT_STATE				10	/*ONU��̫��˿�״̬�澯 */
-#define ONU_ETH_PORT_ABILITY			20	/*ONU��̫��˿����ܸ澯 */
-#define ONU_ETH_WORK_STOP				21	/*ONU��̫��˿�ҵ���жϸ澯 */
-#define ONU_STP_EVENT					30	/*STP�¼� */
-#define ONU_DEVICE_INFO_CHANGE			100	/*ONU�豸��Ϣ�޸��¼� */
-#define ONU_FILE_DOWNLOAD				50	/*ONU��ݼ����¼� */
-#define ONU_DATAFILE_CHG				60	/*ONU����ļ��޸��¼� */
+#define ONU_TEMPRATURE_ALARM			2	/*ONU锟铰度告警 */
+#define ONU_ETH_PORT_STATE				10	/*ONU锟斤拷太锟斤拷丝锟阶刺拷婢� */
+#define ONU_ETH_PORT_ABILITY			20	/*ONU锟斤拷太锟斤拷丝锟斤拷锟斤拷芨婢� */
+#define ONU_ETH_WORK_STOP				21	/*ONU锟斤拷太锟斤拷丝锟揭碉拷锟斤拷卸细婢� */
+#define ONU_STP_EVENT					30	/*STP锟铰硷拷 */
+#define ONU_DEVICE_INFO_CHANGE			100	/*ONU锟借备锟斤拷息锟睫革拷锟铰硷拷 */
+#define ONU_FILE_DOWNLOAD				50	/*ONU锟斤拷菁锟斤拷锟斤拷录锟� */
+#define ONU_DATAFILE_CHG				60	/*ONU锟斤拷锟斤拷募锟斤拷薷锟斤拷录锟� */
 #define ONU_PORT_LOOP_ALARM      		11  /*ONU or Switch port loop alarm*/
-#define ONU_SWITCH_STATUS_CHANGE_ALARM  80  /*ONU�¹ҽ������ע�����߸澯*/
-#define ONU_SWITCH_STATUS_CHANGE_ALARM_LEN  14  /*ONU�¹ҽ������ע�����߸澯��Ϣ����*/
+#define ONU_SWITCH_STATUS_CHANGE_ALARM  80  /*ONU锟铰挂斤拷锟斤拷锟斤拷锟阶拷锟斤拷锟斤拷吒婢�*/
+#define ONU_SWITCH_STATUS_CHANGE_ALARM_LEN  14  /*ONU锟铰挂斤拷锟斤拷锟斤拷锟阶拷锟斤拷锟斤拷吒婢拷锟较拷锟斤拷锟�*/
 
-#define ONU_INFOR_GET				1	/*ONU�豸��Ϣ��ѯ */
-#define ONU_INFOR_SET				2	/*ONU�豸��Ϣ���� */
-#define ONU_REALTIME_SYNC			3	/*ONUϵͳʱ��ͬ�� */
+#define ONU_INFOR_GET				1	/*ONU锟借备锟斤拷息锟斤拷询 */
+#define ONU_INFOR_SET				2	/*ONU锟借备锟斤拷息锟斤拷锟斤拷 */
+#define ONU_REALTIME_SYNC			3	/*ONU系统时锟斤拷同锟斤拷 */
 /*begin:
 added by wangxiaoyu 2008-05-05
 */
-#define ONU_LPB_DETECT					4	/*ONU���ؼ��*/
+#define ONU_LPB_DETECT					4	/*ONU锟斤拷锟截硷拷锟�*/
+#define ONU_FAST_STATISTIC				201
 /*end*/
 #define ONU_BOARD_GET					5	/*ONU board info get*/
 
-#define ACCESS_IDENTIFIER     8/*ONU�û�������·��ʶ*/
+#define ACCESS_IDENTIFIER     8/*ONU锟矫伙拷锟斤拷锟斤拷锟斤拷路锟斤拷识*/
 
 #define ONU_BOARD_GET_RESP_SUCCESS		1
 #define ONU_BOARD_GET_RESP_FAIL			2
@@ -366,12 +380,12 @@ modified by wangxiaoyu 2008-12-25 IP_RESOURCE_ALLOC value 10-->12
 #define IP_RESOURCE_FREE				11
 //#endif
 
-#define ONU_IGMP_REGISTER			1	/*ONUע�ᱨ�� */
-#define ONU_IGMP_UNREGISTER			2	/*ONUע���� */
-#define ONU_IGMP_LEAVE_REQ			3	/*ONUǿ���뿪���� */
-#define ONU_IGMP_REGISTER_ACK		11	/*ONUע��Ӧ���� */
-#define ONU_IGMP_UNREGISTER_ACK		12	/*ONUע��Ӧ���� */
-#define ONU_IGMP_LEAVE_ACK			13	/*ONUǿ���뿪Ӧ���� */
+#define ONU_IGMP_REGISTER			1	/*ONU注锟结报锟斤拷 */
+#define ONU_IGMP_UNREGISTER			2	/*ONU注锟斤拷锟斤拷 */
+#define ONU_IGMP_LEAVE_REQ			3	/*ONU强锟斤拷锟诫开锟斤拷锟斤拷 */
+#define ONU_IGMP_REGISTER_ACK		11	/*ONU注锟斤拷应锟斤拷锟斤拷 */
+#define ONU_IGMP_UNREGISTER_ACK		12	/*ONU注锟斤拷应锟斤拷锟斤拷 */
+#define ONU_IGMP_LEAVE_ACK			13	/*ONU强锟斤拷锟诫开应锟斤拷锟斤拷 */
 
 #if(RPU_MODULE_VOICE == RPU_YES)		/* VM = Voice Module */
 #define ONU_VM_BASIC_SET			100	/*ONU Voice module chip-enable, DA, SA set*/
@@ -498,27 +512,27 @@ modified by wangxiaoyu 2008-12-25 IP_RESOURCE_ALLOC value 10-->12
 #define OAM_DATA_MTU	OAM_MAX_FRAM_SIZE
 #define OAM_FILE_OP_BASE_TIME		1000 	/* MS */
 /* ACK Codes */
-#define READ_DENY           0x100		/*  ���ܾ� */
-#define READ_ACCEPT	    	0x101		/*  ������ */
-#define WRITE_DENY         0x200		/*  д�ܾ� */
-#define WRITE_ACCEPT     	0x201		/*  д���� */
-#define TRANS_ERROR       	0x300		/*  ���ʹ��� */
-#define TRANS_START      	0x301		/*  ���Ϳ�ʼ�����͹�̿���Ӧ��Ҳ��ʾ������ */
-#define TRANS_DOING      	0x302		/*  �����У����͹�̿���Ӧ��Ҳ��ʾ������ */
-#define TRANS_DONE        	0x303		/*  ���ͽ����͹�̿���Ӧ��Ҳ��ʾ������ */
+#define READ_DENY           0x100		/*  锟斤拷锟杰撅拷 */
+#define READ_ACCEPT	    	0x101		/*  锟斤拷锟斤拷锟斤拷 */
+#define WRITE_DENY         0x200		/*  写锟杰撅拷 */
+#define WRITE_ACCEPT     	0x201		/*  写锟斤拷锟斤拷 */
+#define TRANS_ERROR       	0x300		/*  锟斤拷锟酵达拷锟斤拷 */
+#define TRANS_START      	0x301		/*  锟斤拷锟酵匡拷始锟斤拷锟斤拷锟酵癸拷炭锟斤拷锟接︼拷锟揭诧拷锟绞撅拷锟斤拷锟斤拷锟� */
+#define TRANS_DOING      	0x302		/*  锟斤拷锟斤拷锟叫ｏ拷锟斤拷锟酵癸拷炭锟斤拷锟接︼拷锟揭诧拷锟绞撅拷锟斤拷锟斤拷锟� */
+#define TRANS_DONE        	0x303		/*  锟斤拷锟酵斤拷锟斤拷锟酵癸拷炭锟斤拷锟接︼拷锟揭诧拷锟绞撅拷锟斤拷锟斤拷锟� */
 
 /* ACK ERROR Codes */
-#define SYS_NOERROR			0x00		/*  �޴��� */
-#define SYS_BUSY			0x01		/*  ϵͳæ */
-#define SYS_NORESOURCE 	0x02			/*  ϵͳ��Դ���� */
-#define SYS_PROCESSERR		0x03		/*  ϵͳ������� */
-#define SYS_PROTOERR		0x04		/*  ���̴��� */
-#define SYS_NOSUCHFILE		0x05		/*  �ļ������� */
-#define SYS_FILETOOLONG	0x06			/*  �ļ�̫�� */
-#define SYS_FILETOOSHORT	0x07		/*  �ļ�̫�� */
-#define SYS_FILEOPERR		0x08		/*  ���Ȼ�ƫ��ƥ����� */
-#define SYS_FILECKERR		0x09		/*  ���У����� */
-#define SYS_FILESAVEERR		0x0A		/*  �ļ�������� */
+#define SYS_NOERROR			0x00		/*  锟睫达拷锟斤拷 */
+#define SYS_BUSY			0x01		/*  系统忙 */
+#define SYS_NORESOURCE 	0x02			/*  系统锟斤拷源锟斤拷锟斤拷 */
+#define SYS_PROCESSERR		0x03		/*  系统锟斤拷锟斤拷锟斤拷锟� */
+#define SYS_PROTOERR		0x04		/*  锟斤拷锟教达拷锟斤拷 */
+#define SYS_NOSUCHFILE		0x05		/*  锟侥硷拷锟斤拷锟斤拷锟斤拷 */
+#define SYS_FILETOOLONG	0x06			/*  锟侥硷拷太锟斤拷 */
+#define SYS_FILETOOSHORT	0x07		/*  锟侥硷拷太锟斤拷 */
+#define SYS_FILEOPERR		0x08		/*  锟斤拷锟饺伙拷偏锟斤拷匹锟斤拷锟斤拷锟� */
+#define SYS_FILECKERR		0x09		/*  锟斤拷锟叫ｏ拷锟斤拷锟斤拷 */
+#define SYS_FILESAVEERR		0x0A		/*  锟侥硷拷锟斤拷锟斤拷锟斤拷锟� */
 
 #define FILE_OP_PACKET		0x01
 #define FILE_OP_COMMAND		0x02
@@ -568,7 +582,7 @@ typedef struct _file_op_session_ctl_block
 	int     nextstate;					/* next state of the state machine */
 	int     timer0;						/* 2s timer */
 	int     timer1;						/* 15s timer */
-	int     AlarmRetran;				/*�����ļ�������Alarm�ش� ���� */
+	int     AlarmRetran;				/*锟斤拷锟斤拷锟侥硷拷锟斤拷锟斤拷锟斤拷Alarm锟截达拷 锟斤拷锟斤拷 */
 	unsigned long senderSerNo;		/* Sender's serial no, we used when we response */
 	char   *rcv_pkt;					/* received packet */
 	char   *retrans;					/* the packet waitting for retransmit */
@@ -594,66 +608,66 @@ typedef struct _file_op_session_ctl_block
 }
 
 /* Op-Code for CTC extend OAM */
-#define Extended_Variable_Request		0x1	/* ����OLT ��ONU ��ѯ��չ���� */
-#define Extended_Variable_Response		0x2	/* ����ONU��OLT ������չ���� */
-#define Extended_Variable_Set_Request	0x3	/* ����OLT ��ONU ������չ����/���� */
-#define Extended_Variable_Set_Response	0x4	/* ����ONU��OLT���ض���չ����/�������õ�ȷ�� */
-#define Extended_Variable_Churning		0x5	/* ��Triply-Churning ��ص���Կ���� */
-#define Extended_Variable_DBA			0x6	/* DBA �����������ѯ */
+#define Extended_Variable_Request		0x1	/* 锟斤拷锟斤拷OLT 锟斤拷ONU 锟斤拷询锟斤拷展锟斤拷锟斤拷 */
+#define Extended_Variable_Response		0x2	/* 锟斤拷锟斤拷ONU锟斤拷OLT 锟斤拷锟斤拷锟斤拷展锟斤拷锟斤拷 */
+#define Extended_Variable_Set_Request	0x3	/* 锟斤拷锟斤拷OLT 锟斤拷ONU 锟斤拷锟斤拷锟斤拷展锟斤拷锟斤拷/锟斤拷锟斤拷 */
+#define Extended_Variable_Set_Response	0x4	/* 锟斤拷锟斤拷ONU锟斤拷OLT锟斤拷锟截讹拷锟斤拷展锟斤拷锟斤拷/锟斤拷锟斤拷锟斤拷锟矫碉拷确锟斤拷 */
+#define Extended_Variable_Churning		0x5	/* 锟斤拷Triply-Churning 锟斤拷氐锟斤拷锟皆匡拷锟斤拷锟� */
+#define Extended_Variable_DBA			0x6	/* DBA 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟窖� */
 
 /* Branch ID for CTC */
-#define Branch_Standard_Attribute1		0x07	/* IEEE 802.3 Clause 30�涨�ı�׼���� */
-#define Branch_Standard_Attribute2		0x09	/* IEEE 802.3 Clause 30�涨�Ĳ������� */
-#define Branch_Ctc_Extended_Attribute1	0xc7	/* CTC��չ�����ԣ�����ִ��Get��(��)Set���� */
-#define Branch_Ctc_Extended_Attribute2	0xc9	/* CTC��չ�Ĳ��� */
-#define Branch_Instance_Index			0x36	/* ʵ���������Ϊʵ������ */
+#define Branch_Standard_Attribute1		0x07	/* IEEE 802.3 Clause 30锟芥定锟侥憋拷准锟斤拷锟斤拷 */
+#define Branch_Standard_Attribute2		0x09	/* IEEE 802.3 Clause 30锟芥定锟侥诧拷锟斤拷锟斤拷锟斤拷 */
+#define Branch_Ctc_Extended_Attribute1	0xc7	/* CTC锟斤拷展锟斤拷锟斤拷锟皆ｏ拷锟斤拷锟斤拷执锟斤拷Get锟斤拷(锟斤拷)Set锟斤拷锟斤拷 */
+#define Branch_Ctc_Extended_Attribute2	0xc9	/* CTC锟斤拷展锟侥诧拷锟斤拷 */
+#define Branch_Instance_Index			0x36	/* 实锟斤拷锟斤拷锟斤拷锟斤拷锟轿碉拷锟斤拷锟斤拷锟� */
 
 /* Leaf */
-#define Leaf_Index_Port			0x0001	/* �˿�ʵ�������leafֵ */
-#define Leaf_ONU_SN				0x0001	/* ONU�ı�ʶ�� */
-#define Leaf_FirmwareVer		0x0002	/* ONU�Ĺ̼��汾 */
-#define Leaf_ChipsetID			0x0003	/* ONU��PONоƬ���̺Ͱ汾 */
-#define Leaf_ONU_Capabilities		0x0004	/* ONU�Ķ˿ڡ����� */
+#define Leaf_Index_Port			0x0001	/* 锟剿匡拷实锟斤拷锟斤拷锟斤拷锟絣eaf值 */
+#define Leaf_ONU_SN				0x0001	/* ONU锟侥憋拷识锟斤拷 */
+#define Leaf_FirmwareVer		0x0002	/* ONU锟侥固硷拷锟芥本 */
+#define Leaf_ChipsetID			0x0003	/* ONU锟斤拷PON芯片锟斤拷锟教和版本 */
+#define Leaf_ONU_Capabilities		0x0004	/* ONU锟侥端口★拷锟斤拷锟斤拷 */
 
-#define Leaf_EthLinkState			0x0011	/* ��̫���û��˿ڵ���·״̬ */
-#define Leaf_EthPortPause		0x0012	/* ��̫��˿ڵ����ع��ܼ����� */
-#define Leaf_EthPortPolicing		0x0013	/* ��̫��˿ڵ����ٹ��ܣ����У� */
-#define Leaf_VoIP_Port			0x0014	/* VoIP�˿ڹ��� */
+#define Leaf_EthLinkState			0x0011	/* 锟斤拷太锟斤拷锟矫伙拷锟剿口碉拷锟斤拷路状态 */
+#define Leaf_EthPortPause		0x0012	/* 锟斤拷太锟斤拷丝诘锟斤拷锟斤拷毓锟斤拷芗锟斤拷锟斤拷锟� */
+#define Leaf_EthPortPolicing		0x0013	/* 锟斤拷太锟斤拷丝诘锟斤拷锟斤拷俟锟斤拷埽锟斤拷锟斤拷校锟� */
+#define Leaf_VoIP_Port			0x0014	/* VoIP锟剿口癸拷锟斤拷 */
 
-#define Leaf_VLAN				0x0021	/* ONU��VLAN���� */
+#define Leaf_VLAN				0x0021	/* ONU锟斤拷VLAN锟斤拷锟斤拷 */
 
-#define Leaf_ClassMarking		0x0031	/* ҵ������������ */
+#define Leaf_ClassMarking		0x0031	/* 业锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷 */
 
-#define Leaf_Add_Del_Multicast_VLAN	0x0041	/* ONU����̫��˿ڵ��鲥VLAN���� */
-#define Leaf_MulticastTagStripe	0x0042	/* ONU������Multicast��ݱ��ĵ�VLAN TAG���� */
-#define Leaf_MulticastSwitch		0x0043	/* �鲥Э�鿪�� */
-#define Leaf_MulticastControl		0x0044	/* ����Ƶ�����鲥ҵ����� */
-#define Leaf_Group_Num_Max		0x0045	/* ONU��˿�ͬʱ֧�ֵ��鲥������ */
+#define Leaf_Add_Del_Multicast_VLAN	0x0041	/* ONU锟斤拷锟斤拷太锟斤拷丝诘锟斤拷椴LAN锟斤拷锟斤拷 */
+#define Leaf_MulticastTagStripe	0x0042	/* ONU锟斤拷锟斤拷锟斤拷Multicast锟斤拷荼锟斤拷牡锟絍LAN TAG锟斤拷锟斤拷 */
+#define Leaf_MulticastSwitch		0x0043	/* 锟介播协锟介开锟斤拷 */
+#define Leaf_MulticastControl		0x0044	/* 锟斤拷锟斤拷频锟斤拷锟斤拷锟介播业锟斤拷锟斤拷锟� */
+#define Leaf_Group_Num_Max		0x0045	/* ONU锟斤拷丝锟酵敝э拷值锟斤拷椴ワ拷锟斤拷锟斤拷锟� */
 
 /* Leaf,  branch 0x07/0x09 */
-#define Leaf_aPhyAdminState		0x0025	/* ��ѯ��̫��˿ڵ�״̬, 0x07 */
-#define Leaf_acPhyAdminControl	0x0005	/* ���û�����̫������˿ڵ�״̬, 0x09 */
-#define Leaf_aAutoNegAdminState	0x004f	/* ��̫��˿ڵ�״̬����Э�̣�, 0x07 */
+#define Leaf_aPhyAdminState		0x0025	/* 锟斤拷询锟斤拷太锟斤拷丝诘锟阶刺�, 0x07 */
+#define Leaf_acPhyAdminControl	0x0005	/* 锟斤拷锟矫伙拷锟斤拷锟斤拷太锟斤拷锟斤拷锟斤拷丝诘锟阶刺�, 0x09 */
+#define Leaf_aAutoNegAdminState	0x004f	/* 锟斤拷太锟斤拷丝诘锟阶刺拷锟斤拷锟叫拷蹋锟�, 0x07 */
 #define Leaf_aAutoNegLocalTechnologyAbility	0x0052	/* actual port capabilities, 0x07 */
-#define Leaf_aAutoNegAdvertisedTechnologyAbility	0x0053	/* �˿���Э������ͨ��, 0x07 */
-#define Leaf_acAutoNegRestartAutoConfig	0x000b	/* ǿ����·����Э��, 0x09 */
-#define Leaf_acAutoNegAdminControl	0x000c	/* �򿪻��߹ر�PHY�˿ڵ���Э�̹���, 0x09 */
-#define Leaf_aFECAbility			0x0139	/* FEC������ѯ��IEEE 802.3-2005 Clause 30.5.1.1.13��, 0x07 */
-#define Leaf_aFECmode			0x013a	/* ˫��FEC���ܵĴ�/�رգ�IEEE 802.3-2005 Clause30.5.1.1.14��, 0x07 */
+#define Leaf_aAutoNegAdvertisedTechnologyAbility	0x0053	/* 锟剿匡拷锟斤拷协锟斤拷锟斤拷锟斤拷通锟斤拷, 0x07 */
+#define Leaf_acAutoNegRestartAutoConfig	0x000b	/* 强锟斤拷锟斤拷路锟斤拷锟斤拷协锟斤拷, 0x09 */
+#define Leaf_acAutoNegAdminControl	0x000c	/* 锟津开伙拷锟竭关憋拷PHY锟剿口碉拷锟斤拷协锟教癸拷锟斤拷, 0x09 */
+#define Leaf_aFECAbility			0x0139	/* FEC锟斤拷锟斤拷锟斤拷询锟斤拷IEEE 802.3-2005 Clause 30.5.1.1.13锟斤拷, 0x07 */
+#define Leaf_aFECmode			0x013a	/* 双锟斤拷FEC锟斤拷锟杰的达拷/锟截闭ｏ拷IEEE 802.3-2005 Clause30.5.1.1.14锟斤拷, 0x07 */
 
-#define TLV_SET_OK				0x80	/* ��set variable request�������Action����ȷ�� */
-#define TLV_SET_PARAM_ERR		0x86	/* ��������Set Request���������Action���Ĳ�����Ч */
-#define TLV_SET_ERR				0x87	/* ��������Set Request���������Action���Ĳ�����Ч����ONU�ĵ�ǰ״̬ʹ�ò����޷���� */
+#define TLV_SET_OK				0x80	/* 锟斤拷set variable request锟斤拷锟斤拷锟斤拷锟紸ction锟斤拷锟斤拷确锟斤拷 */
+#define TLV_SET_PARAM_ERR		0x86	/* 锟斤拷锟斤拷锟斤拷锟斤拷Set Request锟斤拷锟斤拷锟斤拷锟斤拷锟紸ction锟斤拷锟侥诧拷锟斤拷锟斤拷效 */
+#define TLV_SET_ERR				0x87	/* 锟斤拷锟斤拷锟斤拷锟斤拷Set Request锟斤拷锟斤拷锟斤拷锟斤拷锟紸ction锟斤拷锟侥诧拷锟斤拷锟斤拷效锟斤拷锟斤拷ONU锟侥碉拷前状态使锟矫诧拷锟斤拷锟睫凤拷锟斤拷锟� */
 
-#define CLASS_MARK_DEL			0x00	/* ɾ��������Classification��Queuing&Marking���ƹ�������Set Variable Request��Ϣ��*/
-#define CLASS_MARK_ADD			0x01	/* ����������Classification��Queuing&Marking���ƹ�������Set Variable Request��Ϣ��*/
-#define CLASS_MARK_CLR			0x02	/* ���ONU��Classification��Queuing&Marking���Ʊ?��ɾ���ONU����
-										    �ķ��ࡢ�ŶӺͱ�ǹ��򣩣��ò������ͽ�����Set Variable
-										    Request��Ϣ������containerΪ�˲�������ʱ�����ֽں���û���������*/
-#define CLASS_MARK_GET			0x03	/* �г���ONU���е�Classification��Queuing&Marking������Ŀ����
-										     ��Get Variable Request/Response��Ϣ)������container����Get Variable Requestʱ��
-										     ���ֽں���û��������ݣ�����container����Get Variable Responseʱ��
-										     ���ֽں���Ϊ�ö˿ڵ����з��ࡢ�ŶӺͱ�ǹ���*/
+#define CLASS_MARK_DEL			0x00	/* 删锟斤拷锟斤拷锟斤拷锟斤拷Classification锟斤拷Queuing&Marking锟斤拷锟狡癸拷锟斤拷锟斤拷锟斤拷Set Variable Request锟斤拷息锟斤拷*/
+#define CLASS_MARK_ADD			0x01	/* 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷Classification锟斤拷Queuing&Marking锟斤拷锟狡癸拷锟斤拷锟斤拷锟斤拷Set Variable Request锟斤拷息锟斤拷*/
+#define CLASS_MARK_CLR			0x02	/* 锟斤拷锟絆NU锟斤拷Classification锟斤拷Queuing&Marking锟斤拷锟狡�?锟斤拷删锟斤拷锟絆NU锟斤拷锟斤拷
+										    锟侥凤拷锟洁、锟脚队和憋拷枪锟斤拷颍锟斤拷貌锟斤拷锟斤拷锟斤拷徒锟斤拷锟斤拷锟絊et Variable
+										    Request锟斤拷息锟斤拷锟斤拷锟斤拷container为锟剿诧拷锟斤拷锟斤拷锟斤拷时锟斤拷锟斤拷锟街节猴拷锟斤拷没锟斤拷锟斤拷锟斤拷锟斤拷锟�*/
+#define CLASS_MARK_GET			0x03	/* 锟叫筹拷锟斤拷ONU锟斤拷锟叫碉拷Classification锟斤拷Queuing&Marking锟斤拷锟斤拷锟斤拷目锟斤拷锟斤拷
+										     锟斤拷Get Variable Request/Response锟斤拷息)锟斤拷锟斤拷锟斤拷container锟斤拷锟斤拷Get Variable Request时锟斤拷
+										     锟斤拷锟街节猴拷锟斤拷没锟斤拷锟斤拷锟斤拷锟斤拷荩锟斤拷锟斤拷锟絚ontainer锟斤拷锟斤拷Get Variable Response时锟斤拷
+										     锟斤拷锟街节猴拷锟斤拷为锟矫端口碉拷锟斤拷锟叫凤拷锟洁、锟脚队和憋拷枪锟斤拷锟�*/
 #define CTC_OAM_RESPONSE_COPY(dest, src, len, proclen)  \
 { \
 	CTC_OAM_MESSAGE_NODE *_resp ;  \
@@ -762,19 +776,19 @@ typedef struct Mulicast_Group_Entry
 
 /*begin:
 added by wangxiaoyu 2008-05-05
-���ز���OAM ��
+锟斤拷锟截诧拷锟斤拷OAM 锟斤拷
 */
 typedef struct Oam_Onu_Lpb_Detect_Frame{
-unsigned char	type;		//�������ͣ�4��ʾΪ���ؼ��
-unsigned char	result;		//���Խ����ONU�����
-unsigned char	enable;		//�Ƿ�ʹ�ܹ��ܣ���OLT�����
-unsigned short	vid;			//���в��Ե�VLAN, 0:ONU��������VLAN
-unsigned char	smac[6];	//�����õ�ԴMAC
-unsigned short	interval;		//OLT������֡�ļ��ʱ��s
-unsigned short	policy;		//���򣬼��Ƿ�رն˿�
+unsigned char	type;		//锟斤拷锟斤拷锟斤拷锟酵ｏ拷4锟斤拷示为锟斤拷锟截硷拷锟�
+unsigned char	result;		//锟斤拷锟皆斤拷锟斤拷锟絆NU锟斤拷锟斤拷锟�
+unsigned char	enable;		//锟角凤拷使锟杰癸拷锟杰ｏ拷锟斤拷OLT锟斤拷锟斤拷锟�
+unsigned short	vid;			//锟斤拷锟叫诧拷锟皆碉拷VLAN, 0:ONU锟斤拷锟斤拷锟斤拷锟斤拷VLAN
+unsigned char	smac[6];	//锟斤拷锟斤拷锟矫碉拷源MAC
+unsigned short	interval;		//OLT锟斤拷锟斤拷锟斤拷帧锟侥硷拷锟绞憋拷锟絪
+unsigned short	policy;		//锟斤拷锟津，硷拷锟角凤拷乇斩丝锟�
 /*added by wangxiaoyu 2009-03-11*/
-unsigned short  waitforwakeup; //�ȴ����ѵ����ڣ�Ϊ��ѯ���ڵı���
-unsigned short  maxwakeup;		//����������Դ���
+unsigned short  waitforwakeup; //锟饺达拷锟斤拷锟窖碉拷锟斤拷锟节ｏ拷为锟斤拷询锟斤拷锟节的憋拷锟斤拷
+unsigned short  maxwakeup;		//锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷源锟斤拷锟�
 }__attribute__((packed))OAM_ONU_LPB_DETECT_FRAME;
 /*end*/
 
@@ -834,12 +848,12 @@ typedef struct alarm_loop
 #define LOOP_DETECT_CHECK 0x0080
 
 typedef struct Oam_Onu_Lpb_Detect_Ctrl{
-unsigned short	vid;				//��һ�λ��ؼ��vlan
-unsigned char	lpbnum;			//��һ�β鵽�Ļ��ض˿���
-unsigned char	lpbmask[NUM_PORTS_PER_SYSTEM+1];			//��һ�εĻ��ض˿�״̬��¼(1~15bit�����15���˿ڵĻ���״̬
-unsigned char   lpbportdown[NUM_PORTS_PER_SYSTEM+1];	//�Ƿ�ر� 0:û�йر� 1:�Ѿ��ر�
-unsigned char	lpbStateChg[NUM_PORTS_PER_SYSTEM+1];	//�澯״̬�仯λ added by wangxiaoyu 2009-03-17
-unsigned char	lpbportwakeupcounter[NUM_PORTS_PER_SYSTEM+1];			//��һ�ε�OAM����ʹ��״̬
+unsigned short	vid;				//锟斤拷一锟轿伙拷锟截硷拷锟絭lan
+unsigned char	lpbnum;			//锟斤拷一锟轿查到锟侥伙拷锟截端匡拷锟斤拷
+unsigned char	lpbmask[NUM_PORTS_PER_SYSTEM+1];			//锟斤拷一锟轿的伙拷锟截端匡拷状态锟斤拷录(1~15bit锟斤拷锟斤拷锟�15锟斤拷锟剿口的伙拷锟斤拷状态
+unsigned char   lpbportdown[NUM_PORTS_PER_SYSTEM+1];	//锟角凤拷乇锟� 0:没锟叫关憋拷 1:锟窖撅拷锟截憋拷
+unsigned char	lpbStateChg[NUM_PORTS_PER_SYSTEM+1];	//锟芥警状态锟戒化位 added by wangxiaoyu 2009-03-17
+unsigned char	lpbportwakeupcounter[NUM_PORTS_PER_SYSTEM+1];			//锟斤拷一锟轿碉拷OAM锟斤拷锟斤拷使锟斤拷状态
 unsigned char   lpbClearCnt[NUM_PORTS_PER_SYSTEM+1];
 int				slpcounter[NUM_PORTS_PER_SYSTEM+1];
 ALARM_LOOP		alarmInfo[NUM_PORTS_PER_SYSTEM+1];

@@ -29,7 +29,7 @@ extern void cli_console_start();
 
 gw_uint8 gw_onu_read_port_num()
 {
-	gw_log(GW_LOG_LEVEL_DEBUG, "read onu port num: %d\r\n", g_uni_port_num);
+//	gw_log(GW_LOG_LEVEL_DEBUG, "read onu port num: %d\r\n", g_uni_port_num);
 	return g_uni_port_num;
 }
 

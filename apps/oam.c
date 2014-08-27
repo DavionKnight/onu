@@ -924,6 +924,145 @@ int GwGetPonSlotPort(unsigned char *mac, GWD_OLT_TYPE type, unsigned long *slot,
 
 	return GWD_RETURN_OK;
 }
+
+
+static int getBitValueFromArray(int bitNum, unsigned char array[], int *value)
+{
+	if((NULL == array)||(NULL == value))
+	{
+		return GWD_RETURN_ERR;
+	}
+
+	if (0 != ((array[bitNum/8])&(0x01<<(7-(bitNum%8)))))
+	{
+		*value = GWD_YES;
+	}
+	else
+	{
+		*value = GWD_NO;
+	}
+
+	 return GWD_RETURN_OK;
+}
+extern gw_uint8 gw_onu_read_port_num();
+static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *res, int *reslen)
+{
+	int ret = -1;
+	if(pReq && res && reslen)
+	{
+		unsigned short i=0;
+		unsigned short j=0;
+		unsigned int bitValue = GWD_NO;
+		unsigned long lPort = 0;
+		unsigned char *ptr = res;
+		unsigned char *rqs = pReq->pPayLoad;
+		unsigned char portInfo[4]={0};
+		unsigned char typeInfo[8]={0};
+
+		unsigned char testbuf[1600]={0};
+		unsigned int testlen=0;
+		unsigned long long Inval=0;
+		unsigned long long Outval=0;
+		unsigned int maxuniport=0;
+		gw_onu_port_counter_t data;
+		int statsdatalen = 0;
+		unsigned char sendheadbuf[14]={0x0f,0x0f,0x0f,0x0f,0x0f,0x0f,0x0d,0x0d,0x0d,0x0d,0x0d,0x0d,0x08,0x00};
+
+		statsdatalen= sizeof(gw_onu_port_counter_t);
+		maxuniport=gw_onu_read_port_num();
+		rqs++;
+		memcpy(typeInfo,rqs,sizeof(typeInfo));
+		rqs +=sizeof(typeInfo);
+		memcpy(portInfo,rqs,sizeof(portInfo));
+		rqs +=sizeof(portInfo);
+
+		*ptr++ = ONU_FAST_STATISTIC;
+		*ptr++ = 1;/*success*/
+		memcpy(ptr,pReq->pPayLoad+1,12);
+		ptr +=12;/*portinfo and typeinfo 4+8*/
+
+//		enum port for statistic data
+		for(i=0;i<pReq->RevPktLen;i++)
+		{
+			if(i%16==0)
+			{
+				gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+			}
+			gw_log(GW_LOG_LEVEL_DEBUG,"0x%02x ",pReq->pPayLoad[i]);
+		}
+		gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+		 for (i = 0; i < (sizeof(portInfo)*8); i++)
+		 {
+			 if (GWD_RETURN_OK != getBitValueFromArray(i, portInfo, &bitValue))
+				{
+					 gw_log(GW_LOG_LEVEL_DEBUG,"error! %s,%d\r\n", __FILE__, __LINE__);
+					 return GWD_RETURN_ERR;
+				}
+
+			 if (GWD_YES == bitValue)
+			 {
+				 lPort = i + 1;
+				 if (lPort > maxuniport)
+				 {
+					 gw_log(GW_LOG_LEVEL_DEBUG,"port too big(%d)!\r\n", lPort);
+					 break;
+				 }
+				 if(call_gwdonu_if_api(LIB_IF_PORT_STATISTIC_GET, 3, lPort, &data, &statsdatalen) == GW_OK)
+				 {
+						for (j = 0; j < (sizeof(typeInfo)*8); j++)
+						{
+							if (GWD_RETURN_OK != getBitValueFromArray(j, typeInfo, &bitValue))
+							{
+							 gw_log(GW_LOG_LEVEL_DEBUG,"error! %s,%d\r\n", __FILE__, __LINE__);
+							 return GWD_RETURN_ERR;
+							}
+
+							if (GWD_YES == bitValue)
+							{
+								gw_log(GW_LOG_LEVEL_DEBUG,"get port %d type %d!\r\n", lPort, j);
+								switch(j)
+								{
+									 case GWD_OAM_FAST_STATS_OCTECTS:
+										Inval=htonll(data.counter.RxOctetsOKLsb);
+										memcpy(ptr,&Inval,sizeof(Inval));
+										ptr += sizeof(Inval);
+										Outval=htonll(data.counter.TxOctetsOk);
+										memcpy(ptr,&Outval,sizeof(Outval));
+										ptr += sizeof(Outval);
+
+										gw_log(GW_LOG_LEVEL_DEBUG,"inval:%lld outval:%lld!\r\n", Inval, Outval);
+										break;
+								}
+							}
+						}
+				 }
+			 }
+		}
+
+//		caculate data length
+		ret = 0;
+		*reslen = ptr-res;
+		testlen=*reslen;
+		memset(testbuf,0,1600);
+		memcpy(testbuf,sendheadbuf,sizeof(sendheadbuf));
+		memcpy(&testbuf[14],res,testlen);
+#if 0
+		gw_log(GW_LOG_LEVEL_DEBUG,"RESPON:\r\b");
+		for(i=0;i < 30;i++)
+		{
+			if(i%16 == 0)
+				gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+			gw_log(GW_LOG_LEVEL_DEBUG,"0x%02x ",res[i]);
+		}
+		gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+//		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, 2, testbuf,14+testlen);
+#endif
+		gw_log(GW_LOG_LEVEL_DEBUG, "%s return reslen %d\n", __func__, *reslen);
+
+	}
+	return ret;
+}
+
 localtime_tm w_gw_tim;
 static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 {
@@ -1054,7 +1193,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			/*extension capality*/
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
-			*ptr ++= 0x80; /*added ctc statistic function surpport*/
+			*ptr ++= GWD_OAM_CAP_CTC_STATISTIC | GWD_OAM_CAP_CTC_FAST_STATISTIC; /*added ctc statistic function surpport*/
 			
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
@@ -1248,9 +1387,9 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
 #if (RPU_YES == RPU_MODULE_TIMING_PKT)
 
-            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*只锟斤拷使锟斤拷时锟斤拷锟斤拷一锟斤拷*/
+            if((0 == TimingPkt_TaskID)&&(TIMPKT_SEND_ENABLE == gulTimingPacket))/*只锟斤拷使锟斤拷时锟斤拷锟斤拷一锟斤�?*/
             {
-                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*锟斤拷锟斤拷锟斤拷锟饺硷拷= port monitor*/
+                TimingPkt_TaskID = VOS_TaskCreate("tEthTx", 220, (VOS_TASK_ENTRY) txEthTask, NULL);/*锟斤拷锟斤拷锟斤拷锟饺硷�?= port monitor*/
                 VOS_ASSERT(TimingPkt_TaskID != 0);
             }
 #endif
@@ -1294,7 +1433,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
             
-            if(PPPOE_RELAY_DISABLE == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
+            if(PPPOE_RELAY_DISABLE == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状�?*/
             {
                 if (PPPOE_RELAY_DISABLE == g_PPPOE_relay)
                 {
@@ -1429,7 +1568,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
         }
 #endif
 
-        if(RELAY_TYPE_DHCP == *pReq)/*锟斤拷锟斤拷pppoe_relay锟斤拷锟斤拷锟斤拷*/
+        if(RELAY_TYPE_DHCP == *pReq)/*锟斤拷锟斤拷pppoe_relay锟斤拷锟斤拷锟斤�?*/
         {
             DHCP_RELAY_PACKET_DEBUG(("\r\n received dhcp relay-OAM pkt!\r\n"));
             
@@ -1443,7 +1582,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
                 break;
             }
             
-            if(0 == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状态*/
+            if(0 == *pReq)/*锟斤拷锟轿�锟斤拷锟斤拷示锟斤拷止状�?*/
             {
                 if (0 == g_DHCP_OPTION82_Relay)
                 {
@@ -1516,8 +1655,15 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 #endif
         break;
     }      
-
-		case ONU_LPB_DETECT:
+    case ONU_FAST_STATISTIC:
+    {
+		if(GwdOamFastStatsReqHandle(pRequest, Response, &ResLen))
+		{
+			return GWD_RETURN_ERR;
+		}
+		break;
+    }
+	case ONU_LPB_DETECT:
 		{
 			int nv = 0;
 
@@ -2902,7 +3048,28 @@ int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
 
     return CLI_OK;
 }
+int cmd_dact_test_cli(struct cli_def *cli, char *command, char *argv[], int argc)
+{
 
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        	default:
+        		return gw_cli_arg_help(cli, argc > 0, NULL);
+        }
+    }
+    GWTT_OAM_MESSAGE_NODE pReq;
+    unsigned char respbuf[1600]={0};
+    unsigned long resplen=0;
+    unsigned char payload[13]={0xc9,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x40,0x00,0x00,0x00};
+    pReq.pPayLoad=payload;
+    pReq.RevPktLen=64;
+
+    GwdOamFastStatsReqHandle(&pReq,respbuf,&resplen);
+    gw_cli_print(cli,"test dact success now\r\n");
+	return CLI_OK;
+}
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
@@ -2924,6 +3091,7 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 /*	atu = gw_cli_register_command(cmd_root, NULL, "atu", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "fdb table operation");
 	gw_cli_register_command(cmd_root, atu, "show", cmd_show_fdb, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show information");*/
 
+	gw_cli_register_command(cmd_root, NULL, "dact", cmd_dact_test_cli, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
