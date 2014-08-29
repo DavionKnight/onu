@@ -924,6 +924,166 @@ int GwGetPonSlotPort(unsigned char *mac, GWD_OLT_TYPE type, unsigned long *slot,
 
 	return GWD_RETURN_OK;
 }
+
+static int setBitValueToArray(int bitNum,unsigned char array[])
+{
+	if(NULL ==  array)
+	{
+		return GWD_RETURN_ERR;
+	}
+
+	array[bitNum/8]|=(0x01<<(7-(bitNum%8)));
+
+	return GWD_RETURN_OK;
+}
+static int getBitValueFromArray(int bitNum, unsigned char array[], int *value)
+{
+	if((NULL == array)||(NULL == value))
+	{
+		return GWD_RETURN_ERR;
+	}
+
+	if (0 != ((array[bitNum/8])&(0x01<<(7-(bitNum%8)))))
+	{
+		*value = GWD_YES;
+	}
+	else
+	{
+		*value = GWD_NO;
+	}
+
+	 return GWD_RETURN_OK;
+}
+extern gw_uint8 gw_onu_read_port_num();
+static int GwdOamFastStatsReqHandle(GWTT_OAM_MESSAGE_NODE *pReq, unsigned char *res, int *reslen)
+{
+	int ret = -1;
+	if(pReq && res && reslen)
+	{
+		unsigned short i=0;
+		unsigned short j=0;
+		unsigned int bitValue = GWD_NO;
+		unsigned long lPort = 0;
+		unsigned char *ptr = res;
+		unsigned char *rqs = pReq->pPayLoad;
+		unsigned char reqsportInfo[4]={0};
+		unsigned char repsportInfo[4]={0};
+		unsigned char typeInfo[8]={0};
+		unsigned char *res_portmap=NULL;
+//		unsigned char testbuf[1600]={0};
+//		unsigned int testlen=0;
+		unsigned long long Inval=0;
+		unsigned long long Outval=0;
+		unsigned int maxuniport=0;
+		gw_onu_port_counter_t data;
+		int statsdatalen = 0;
+//		unsigned char sendheadbuf[14]={0x0f,0x0f,0x0f,0x0f,0x0f,0x0f,0x0d,0x0d,0x0d,0x0d,0x0d,0x0d,0x08,0x00};
+
+		statsdatalen= sizeof(gw_onu_port_counter_t);
+		maxuniport=gw_onu_read_port_num();
+		rqs++;
+		memcpy(typeInfo,rqs,sizeof(typeInfo));
+		rqs +=sizeof(typeInfo);
+		memcpy(reqsportInfo,rqs,sizeof(reqsportInfo));
+		rqs +=sizeof(reqsportInfo);
+
+		*ptr++ = ONU_FAST_STATISTIC;
+		*ptr++ = 1;/*success*/
+		memcpy(ptr,typeInfo,sizeof(typeInfo));
+		ptr +=sizeof(typeInfo);/*portinfo and typeinfo 4+8*/
+		res_portmap=ptr;
+		memcpy(ptr,reqsportInfo,sizeof(reqsportInfo));
+		ptr +=sizeof(reqsportInfo);
+//		enum port for statistic data
+		for(i=0;i<pReq->RevPktLen;i++)
+		{
+			if(i%16==0)
+			{
+				gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+			}
+			gw_log(GW_LOG_LEVEL_DEBUG,"0x%02x ",pReq->pPayLoad[i]);
+		}
+		gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+		 for (i = 0; i < (sizeof(reqsportInfo)*8); i++)
+		 {
+			 if (GWD_RETURN_OK != getBitValueFromArray(i, reqsportInfo, &bitValue))
+				{
+					 gw_log(GW_LOG_LEVEL_DEBUG,"error! %s,%d\r\n", __FILE__, __LINE__);
+					 return GWD_RETURN_ERR;
+				}
+
+			 if (GWD_YES == bitValue)
+			 {
+				 lPort = i + 1;
+				 if (lPort > maxuniport)
+				 {
+					 gw_log(GW_LOG_LEVEL_DEBUG,"port too big(%d)!\r\n", lPort);
+					 break;
+				 }
+				 if(GWD_RETURN_OK != setBitValueToArray(i,repsportInfo))
+				 {
+					 gw_log(GW_LOG_LEVEL_DEBUG,"error! %s,%d\r\n", __FILE__, __LINE__);
+					 return GWD_RETURN_ERR;
+				 }
+				 if(call_gwdonu_if_api(LIB_IF_PORT_STATISTIC_GET, 3, lPort, &data, &statsdatalen) == GW_OK)
+				 {
+						for (j = 0; j < (sizeof(typeInfo)*8); j++)
+						{
+							if (GWD_RETURN_OK != getBitValueFromArray(j, typeInfo, &bitValue))
+							{
+							 gw_log(GW_LOG_LEVEL_DEBUG,"error! %s,%d\r\n", __FILE__, __LINE__);
+							 return GWD_RETURN_ERR;
+							}
+
+							if (GWD_YES == bitValue)
+							{
+								gw_log(GW_LOG_LEVEL_DEBUG,"get port %d type %d!\r\n", lPort, j);
+								switch(j)
+								{
+									 case GWD_OAM_FAST_STATS_OCTECTS:
+										Inval=htonll(data.counter.RxOctetsOKLsb);
+										memcpy(ptr,&Inval,sizeof(Inval));
+										ptr += sizeof(Inval);
+										Outval=htonll(data.counter.TxOctetsOk);
+										memcpy(ptr,&Outval,sizeof(Outval));
+										ptr += sizeof(Outval);
+
+										gw_log(GW_LOG_LEVEL_DEBUG,"inval:%lld outval:%lld!\r\n", Inval, Outval);
+										break;
+								}
+							}
+						}
+				 }
+			 }
+		}
+		memset(res_portmap,0,sizeof(repsportInfo));
+		memcpy(res_portmap,repsportInfo,sizeof(repsportInfo));
+
+		gw_log(GW_LOG_LEVEL_DEBUG,"repsportInfo:%02x%02x%02x%02x\r\n",repsportInfo[0],repsportInfo[1],repsportInfo[2],repsportInfo[3]);
+		ret = 0;
+		*reslen = ptr-res;
+#if 0
+		testlen=*reslen;
+		memset(testbuf,0,1600);
+		memcpy(testbuf,sendheadbuf,sizeof(sendheadbuf));
+		memcpy(&testbuf[14],res,testlen);
+#endif
+#if 1
+		gw_log(GW_LOG_LEVEL_DEBUG,"RESPON:\r\b");
+		for(i=0;i < 30;i++)
+		{
+			if(i%16 == 0)
+				gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+			gw_log(GW_LOG_LEVEL_DEBUG,"0x%02x ",res[i]);
+		}
+		gw_log(GW_LOG_LEVEL_DEBUG,"\r\n");
+//		call_gwdonu_if_api(LIB_IF_PORTSEND, 3, 2, testbuf,14+testlen);
+#endif
+		gw_log(GW_LOG_LEVEL_DEBUG, "%s return reslen %d\n", __func__, *reslen);
+
+	}
+	return ret;
+}
 localtime_tm w_gw_tim;
 static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 {
@@ -1054,7 +1214,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			/*extension capality*/
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
-			*ptr ++= 0x80; /*added ctc statistic function surpport*/
+			*ptr ++= GWD_OAM_CAP_CTC_STATISTIC | GWD_OAM_CAP_CTC_FAST_STATISTIC; /*added ctc statistic function surpport*/
 			
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
@@ -1515,7 +1675,15 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
         *(ptr ++) = 1;
 #endif
         break;
-    }      
+    }
+		case ONU_FAST_STATISTIC:
+		{
+			if(GwdOamFastStatsReqHandle(pRequest, Response, &ResLen))
+			{
+				return GWD_RETURN_ERR;
+			}
+			break;
+		}
 
 		case ONU_LPB_DETECT:
 		{
@@ -2778,8 +2946,7 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
 	extern unsigned long   gulDebugRcp;
 	extern unsigned long   gulDebugLoopBackDetect;
 	extern unsigned long   g_onu_tx_policy;
-
-
+	extern unsigned long   switchlooopfloodenable;
     // deal with help
     if(CLI_HELP_REQUESTED)
     {
@@ -2787,7 +2954,7 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
         {
         case 1:
             return gw_cli_arg_help(cli, 0,
-                "{[rcp|loop|txrcp|all]}*1", "module indicator",
+                "{[rcp|loop|txrcp|rcpflood|all]}*1", "module indicator",
                  NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
@@ -2802,7 +2969,8 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
     		gulDebugLoopBackDetect = !gulDebugLoopBackDetect;
     	if(strcmp(argv[0], "txrcp") == 0)
     	    g_onu_tx_policy = ! g_onu_tx_policy;
-
+    	if(strcmp(argv[0],"rcpflood") == 0)
+    		switchlooopfloodenable =! switchlooopfloodenable;
     	if(strcmp(argv[0], "all") == 0)
     	{
     		gulDebugRcp = !gulDebugRcp;
@@ -2819,6 +2987,8 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
     		gw_cli_print(cli, "rcp ");
     	if(!g_onu_tx_policy)
     	    gw_cli_print(cli, "txpolicy");
+    	if(switchlooopfloodenable)
+    		gw_cli_print(cli,"rcpflood");
 
     	if(!gulDebugLoopBackDetect && !gulDebugRcp && g_onu_tx_policy)
     		gw_cli_print(cli, "none");

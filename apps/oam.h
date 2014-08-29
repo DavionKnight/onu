@@ -205,8 +205,18 @@ typedef struct Igmp_oam_req
 
 #define GWD_RETURN_OK 0
 #define GWD_RETURN_ERR -1
-
+#define GWD_YES 1
+#define GWD_NO 0
 #define GWD_OAM_THREAD_PRIORITY 22
+
+#define GWD_OAM_CAP_CTC_STATISTIC 		(0x80>>0)
+#define GWD_OAM_CAP_SNMP_TRANS			(0x80>>1)
+#define GWD_OAM_CAP_CTC_FAST_STATISTIC	(0x80>>2)
+
+typedef enum{
+	GWD_OAM_FAST_STATS_OCTECTS,
+	GWD_OAM_FAST_STATS_MAX
+}GWD_OAM_FAST_STATS_E;
 
 extern unsigned long   gulDebugOamRx;
 extern unsigned long   gulDebugOamTx;
@@ -338,6 +348,7 @@ extern unsigned long   gulDebugOamFileOp;
 /*begin:
 added by wangxiaoyu 2008-05-05
 */
+#define ONU_FAST_STATISTIC				201
 #define ONU_LPB_DETECT					4	/*ONU���ؼ��*/
 /*end*/
 #define ONU_BOARD_GET					5	/*ONU board info get*/
