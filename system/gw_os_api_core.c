@@ -1135,7 +1135,7 @@ int gw_semaphore_wait(unsigned int sem_id, int timeout)
         ret = sem_trywait(&(gw_osal_count_sem_table[sem_id].id));
     } else if (GW_OSAL_WAIT_FOREVER == timeout) {
     	do{
-    		ret = sem_trywait(&(gw_osal_count_sem_table[sem_id].id));
+    		ret = sem_wait(&(gw_osal_count_sem_table[sem_id].id));
     		if(ret != 0 && errno != EINTR && errno != EAGAIN)
     			gw_printf("semphore wait fail -- errno %d\n", errno);
     	}while(ret != 0 && (errno == EINTR || errno == EAGAIN));
