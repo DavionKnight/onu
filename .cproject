@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.cross.lib.debug.1130566954">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.lib.debug.1130566954" moduleId="org.eclipse.cdt.core.settings" name="Debug">
@@ -7,7 +9,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gwdonu"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gwdonu/Debug"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gwdonu" srcPrefixMapping="" srcRootPath=""/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gwdonu"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -23,7 +25,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.cross.lib.debug.1130566954." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.cross.lib.debug.1207512239" name="Cross GCC" superClass="cdt.managedbuild.toolchain.gnu.cross.lib.debug">
 							<option id="cdt.managedbuild.option.gnu.cross.prefix.1582505102" name="Prefix" superClass="cdt.managedbuild.option.gnu.cross.prefix" value="mips-linux-uclibc-" valueType="string"/>
-							<option id="cdt.managedbuild.option.gnu.cross.path.512335039" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="/opt/toolchains/uclibc-crosstools-gcc-4.4.2-1-voyager/usr/bin" valueType="string"/>
+							<option id="cdt.managedbuild.option.gnu.cross.path.512335039" name="Path" superClass="cdt.managedbuild.option.gnu.cross.path" value="/opt/openwrt/bin" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.495625035" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
 							<builder buildPath="${workspace_loc:/gwdonu/Debug}" id="cdt.managedbuild.builder.gnu.cross.169785420" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.2115347165" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
@@ -61,7 +63,7 @@
 					<externalSetting>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="includePath" name="/gwdonu"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="libraryPath" name="/gwdonu/Release"/>
-						<entry flags="RESOLVED" kind="libraryFile" name="gwdonu" srcPrefixMapping="" srcRootPath=""/>
+						<entry flags="RESOLVED" kind="libraryFile" name="gwdonu"/>
 					</externalSetting>
 				</externalSettings>
 				<extensions>
@@ -111,7 +113,7 @@
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-		<project id="gwdonu.cdt.managedbuild.target.gnu.cross.lib.165546098" name="Static Library" projectType="cdt.managedbuild.target.gnu.cross.lib"/>
+		<project id="gwdonu.cdt.managedbuild.target.gnu.cross.so.1228666842" name="Shared Library" projectType="cdt.managedbuild.target.gnu.cross.so"/>
 	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
