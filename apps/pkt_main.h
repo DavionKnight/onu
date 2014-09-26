@@ -12,6 +12,7 @@ typedef enum{
 	GW_PKT_OAM,
 	GW_PKT_LPB,
 	GW_PKT_RCP,
+	GW_PKT_DHCP,
 	GW_PKT_MAX
 }GW_PKT_TYPE;
 

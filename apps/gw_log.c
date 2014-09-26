@@ -8,10 +8,11 @@
 #include "../include/gw_os_api_core.h"
 #include "gw_log.h"
 #include "../include/gwdonuif.h"
-
+#include <unistd.h>
 static gw_int32 log_level = GW_LOG_LEVEL_CRI;
 static gw_int32 log_record_level = GW_LOG_LEVEL_MAJOR;
 static gw_int32 log_current_slot = 0;
+
 typedef struct{
 	gw_int8 valid;
 	gw_int8 text[1];
@@ -171,8 +172,11 @@ gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...)
     	ret = diag_vsprintf(buf, String, ap);
     	va_end(ap);
 
+    	{
     	if(level >= log_level)
     		diag_printf("%s",data);
+    		sleep(1);
+    	}
 
     	if(level >= log_record_level)
     		gw_log_add_record(data, (ret+strlen));

@@ -15,6 +15,7 @@
 void gwd_onu_init();
 extern void gwd_thread_init(void);
 extern void init_oam_pty();
+
 void plat_init()
 {
     unsigned int stat_val;
@@ -23,6 +24,7 @@ void plat_init()
     unsigned int stat = 0;
     
 	gw_osal_core_init();
+
 	if(gw_timer_init() == GW_OK)
 		gw_printf("gw timer init ok!\r\n");
 

@@ -33,6 +33,7 @@ static GW_PKT_PRI_MAP gw_pkt_pri_maps[GW_PKT_MAX] = {
 	{GW_PKT_OAM, 7},
 	{GW_PKT_LPB, 0},
 	{GW_PKT_RCP, 4},
+	{GW_PKT_DHCP, 6},
 	};
 
 
@@ -191,7 +192,6 @@ gw_int32 gwlib_sendPktToQueue(gw_int8 *pkt, const gw_int32 len, gw_int32 portid)
 	gw_int32 type = gw_pkt_parser_call(pkt, len);
 
 	gw_uint32 pri = gw_get_pkt_pri(type);
-
 
 	if(pri != GW_OSAL_MAX_QUEUE_PRI)
 	{

@@ -1,6 +1,6 @@
 #include <string.h>
 #include <math.h>
-
+#include <unistd.h>
 //#include "cli_common.h"
 #include "../include/gw_os_api_core.h"
 #include "../include/gw_timer.h"
@@ -13,6 +13,7 @@
 #include "oamsnmp.h"
 #include "gw_version.h"
 #include "rcp_gwd.h"
+#include "gw_access_identifier.h"
 
 #define GWD_OAM_CAP_CTC_STATISTIC 		(0x80>>0)
 #define GWD_OAM_CAP_SNMP_TRANS			(0x80>>1)
@@ -1407,6 +1408,54 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 
     case ACCESS_IDENTIFIER:
     {
+    	unsigned short pReqlen = 0;
+    	unsigned int ret = GW_ERROR;
+    	access_identifier_admin_t req_AdminInfoHead;
+    	access_identifier_admin_t *response_AdminInfoHead;
+
+    	ptr = Response;
+    	pReq= pRequest->pPayLoad;
+    	pReqlen = pRequest->RevPktLen;
+    	ResLen = pReqlen;
+    	response_AdminInfoHead = (access_identifier_admin_t*)Response;
+    	memcpy(Response,pRequest->pPayLoad,pReqlen);
+    	memset(&req_AdminInfoHead,0,sizeof(access_identifier_admin_t));
+    	memcpy(&req_AdminInfoHead,pReq,sizeof(access_identifier_admin_t));
+		if(GW_LOG_LEVEL_DEBUG >= getGwlogLevel())
+		{
+			unsigned int i=0;
+			printf("local dhcp admin rec %d:\r\n",pRequest->RevPktLen);
+			printf("----------------------------------------------------------------------------------------------\r\n");
+			for(i=0;i<pRequest->RevPktLen ;i++)
+			{
+				if(i%16 == 0)
+					printf("\r\n");
+				printf("0x%02x ",pReq[i]);
+			}
+			printf("\r\n");
+			printf("----------------------------------------------------------------------------------------------\r\n");
+		}
+    	switch(req_AdminInfoHead.identifiermode)
+    	{
+    		case PPPOE_IDENTIFIER_MODE:
+    			response_AdminInfoHead->returnstatus=ACCESS_IDENT_SET_FAIL;
+    			break;
+    		case DHCP_IDENTIFIER_MODE:
+    			ret = Gwd_Func_Dhcp_relay_Oam_Admin_Process(pReq,pRequest->RevPktLen);
+    			if(ret != GW_OK)
+    			{
+    				response_AdminInfoHead->returnstatus=ACCESS_IDENT_SET_FAIL;
+    			}
+    			else
+    			{
+    				response_AdminInfoHead->returnstatus=ACCESS_IDENT_SET_SUCCUSS;
+    			}
+    			response_AdminInfoHead->opcode=ACCESS_IDENTIFIER;
+    			break;
+    		default:
+    			response_AdminInfoHead->returnstatus=ACCESS_IDENT_SET_FAIL;
+    			break;
+    	}
 #if 0
         int iret;
         extern PASONU_flow_desc_t rxEthTaskfdHigh;
@@ -3566,6 +3615,7 @@ extern void gw_cli_debug_cmd(struct cli_command **cmd_root);
 #ifdef __IPCONFIG__
 extern void cli_reg_mgtif_cmd(struct cli_command **cmd_root);
 #endif
+extern int Gwd_func_dhcp_pkt_process_init();
 extern void init_oam_send_relay();
 #if(RPU_MODULE_POE == RPU_YES)
 unsigned stat_val;
@@ -3589,6 +3639,7 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
 	gw_reg_pkt_handler(GW_PKT_OAM, gw_oam_handler);
+	Gwd_func_dhcp_pkt_process_init();
 	gw_broadcast_storm_init();
 #if _cmd_line_
 
