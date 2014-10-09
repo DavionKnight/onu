@@ -304,6 +304,7 @@ int Gwd_func_dhcp_pkt_parser(unsigned char *dhcp_pkt,unsigned int dhcp_len)
   unsigned short dhcp_server_port = 0;
   unsigned short dhcp_client_port = 0;
   unsigned char ipverlen = 0;
+  unsigned char ipver = 0;
   gwd_dhcp_pkt_info_head_t* dhcphead = NULL;
 
   dhcpheadlen = sizeof(gwd_dhcp_pkt_info_head_t);
@@ -313,25 +314,22 @@ int Gwd_func_dhcp_pkt_parser(unsigned char *dhcp_pkt,unsigned int dhcp_len)
 	  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d  %d %d is NULL \r\n",__func__,__LINE__,dhcp_len,dhcpheadlen);
 	  return ret;
   }
-  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d\r\n",__func__,__LINE__);
 
   dhcphead = (gwd_dhcp_pkt_info_head_t*)dhcp_pkt;
   ipverlen = dhcphead->iphead.VerHeadLen;
-
-  ipverlen = (ipverlen >> 4);
-  if(ipverlen == IpV6Version)
+  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x 0x%x) \r\n",__func__,__LINE__,ipverlen,dhcphead->iphead.VerHeadLen);
+  ipver = ((ipverlen >> 4)&(0x0f));
+  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x 0x%x) \r\n",__func__,__LINE__,ipver,ipver);
+  if(ipver == IpV6Version)
   {
-	  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x %d) is ipv6 no proc\r\n",__func__,__LINE__,ipverlen,ipverlen);
+	  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x 0x%x) is ipv6 no proc\r\n",__func__,__LINE__,ipver,ipver);
 	  return ret;
   }
-  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x %d) \r\n",__func__,__LINE__,ipverlen,ipverlen);
-  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x %d) \r\n",__func__,__LINE__,ipverlen,ipverlen);
-  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x %d) \r\n",__func__,__LINE__,ipverlen,ipverlen);
+
+
   ethertype = ntohs(dhcphead->ethhead.ethtype);
   dhcp_server_port = ntohs(dhcphead->udphead.destUdpPort);
-  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x %d) \r\n",__func__,__LINE__,ipverlen,ipverlen);
   dhcp_client_port = ntohs(dhcphead->udphead.srcUdpPort);
-  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipverlen:(0x%02x %d) \r\n",__func__,__LINE__,ipverlen,ipverlen);
 
   if((ethertype != ETH_TYPE_IP) || (dhcp_server_port != DhcpSvrPortNum) || (dhcp_client_port != DhcpCliPortNum))
   {
@@ -344,11 +342,6 @@ int Gwd_func_dhcp_pkt_parser(unsigned char *dhcp_pkt,unsigned int dhcp_len)
 }
 #if 0
 static unsigned int crc_table[256];
-/*
-**³õÊ¼»¯crc±í,Éú³É32Î»´óÐ¡µÄcrc±í
-**Ò²¿ÉÒÔÖ±½Ó¶¨Òå³öcrc±í,Ö±½Ó²é±í,
-**µ«×Ü¹²ÓÐ256¸ö,¿´×ÅÑÛ»¨,ÓÃÉú³ÉµÄ±È½Ï·½±ã.
-*/
 static void init_crc_table(void)
 {
     unsigned int c;
@@ -366,7 +359,6 @@ static void init_crc_table(void)
     }
 }
 
-/*¼ÆËãbufferµÄcrcÐ£ÑéÂë*/
 static unsigned int crc32(unsigned int crc,unsigned char *buffer, unsigned int size)
 {
     unsigned int i;
@@ -387,15 +379,15 @@ unsigned short Gwd_func_checksum_get(unsigned short *buf,unsigned int nword)
 		return ret;
 	}
 
-	for(cksum = 0;nword < 0;cksum--)
+	for(cksum = 0;nword > 0;nword--)
 	{
-		cksum = *buf++;
+		cksum += *buf++;
 	}
     cksum = (cksum >> 16) + (cksum & 0xffff);
 
     cksum += (cksum >>16);
-
-    return (short)(~cksum);
+    gw_log(GW_LOG_LEVEL_DEBUG,"%s %d cksum:0x%04x\r\n",__func__,__LINE__,cksum);
+    return (~cksum);
 }
 unsigned int Gwd_func_ip_header_checksum_process(unsigned char *response_dhcp_pkt,unsigned int responselen)
 {
@@ -411,10 +403,10 @@ unsigned int Gwd_func_ip_header_checksum_process(unsigned char *response_dhcp_pk
 	}
 	response_head = (gwd_dhcp_pkt_info_head_t*)response_dhcp_pkt;
 	ipheader=(eth_iphead_info_t*)&response_head->iphead;
-	/*Çå¿ÕÐ£ÑéÎ» 2¸ö×Ö½Ú*/
+	/*æŠŠIPå¤´çš„æ ¡éªŒå’Œæ¸…ç©º*/
 	ipheader->Checksum = 0;
-	/*ÖØÐÂÐ£ÑéTOT_LENTH³¤¶È*/
-	/*responselen = ÒÔÌ«ÍøÍ·+IPÍ·+UDPÍ·+PAYLOAD+FCS*/
+	/*ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½TOT_LENTHï¿½ï¿½ï¿½ï¿½*/
+	/*responselen = ETHLEN+IPLEN+UDPLEN+PAYLOAD+FCS*/
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipheader->Totlength:%d  \r\n",__func__,__LINE__,ipheader->Totlength);
 	ipheader->Totlength = (responselen-EtherHeadLen-ETHFCSLEN);
 	nword = (IPHEADERLEN/2);
@@ -451,14 +443,14 @@ unsigned int Gwd_func_udp_header_checksum_process(unsigned char *response_dhcp_p
 	ptr = udpchecksumbuf;
 	phead = response_dhcp_pkt;
 	response_head = (gwd_dhcp_pkt_info_head_t*)response_dhcp_pkt;
-	ipheader = (eth_iphead_info_t*)&response_head->udphead;
+	ipheader = (eth_iphead_info_t*)&response_head->ethhead;
 	udpheader=(udp_head_info_t*)&response_head->udphead;
 	payload = (phead+EtherHeadLen+IPHEADERLEN+UDPHEADERLEN);
-	/*Çå¿ÕÐ£ÑéÎ» 2¸ö×Ö½Ú*/
+	/*ï¿½ï¿½ï¿½Ð£ï¿½ï¿½Î» 2ï¿½ï¿½ï¿½Ö½ï¿½*/
 	udpheader->checkSum = 0;
-	/*ÖØÐÂÐ£ÑéUDP³¤¶È*/
+	/*ï¿½ï¿½ï¿½ï¿½Ð£ï¿½ï¿½UDPï¿½ï¿½ï¿½ï¿½*/
 	udpheader->length = (responselen-EtherHeadLen-IPHEADERLEN-ETHFCSLEN);
-    /*Ìî³äÎ±Ê×²¿*/
+    /*ï¿½ï¿½ï¿½Î±ï¿½×²ï¿½*/
 	memset(&tsdheader,0,sizeof(tsd_header_t));
 	tsdheader.destip = htonl(ipheader->DestIP);
 	tsdheader.sourceip = htonl(ipheader->SourceIP);
@@ -468,16 +460,17 @@ unsigned int Gwd_func_udp_header_checksum_process(unsigned char *response_dhcp_p
 	memcpy(ptr,&tsdheader,sizeof(tsd_header_t));
 	ptr +=sizeof(tsd_header_t);
 	checknumber +=sizeof(tsd_header_t);
-	/*Ìî³äUDPÍ·*/
+	/*ï¿½ï¿½ï¿½UDPÍ·*/
 	memcpy(ptr,&udpheader,sizeof(udp_head_info_t));
 	ptr +=sizeof(udp_head_info_t);
 	checknumber +=sizeof(udp_head_info_t);
-	/*Ìî³äÊý¾ÝÇø*/
+	/*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
 	payloadlen = (responselen-EtherHeadLen-IPHEADERLEN-UDPHEADERLEN-ETHFCSLEN);
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d payloadlen:%d\r\n",__func__,__LINE__,payloadlen);
 	memcpy(ptr,payload,payloadlen);
-	ptr +=sizeof(udp_head_info_t);
-	checknumber +=sizeof(udp_head_info_t);
+	ptr +=payloadlen;
+	checknumber +=payloadlen;
+	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d [ checknumber:%d]\r\n",__func__,__LINE__,checknumber);
 	if((checknumber%2) != 0)
 	{
 		nword = ((checknumber/2) +1);
@@ -486,7 +479,9 @@ unsigned int Gwd_func_udp_header_checksum_process(unsigned char *response_dhcp_p
 	{
 		nword = (checknumber/2);
 	}
+	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d [ nword:%d]\r\n",__func__,__LINE__,nword);
 	udpheader->checkSum = Gwd_func_checksum_get((unsigned short*)udpchecksumbuf,nword);
+	free(udpchecksumbuf);
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d udpheader->checkSum:0x%04x nword:%d\r\n",__func__,__LINE__,udpheader->checkSum,nword);
 	return GW_OK;
 }
@@ -513,9 +508,9 @@ unsigned int Gwd_func_eth_pkt_checksum_process(unsigned char *response_dhcp_pkt,
 	  return ret;
     }
 	response_head = (gwd_dhcp_pkt_info_head_t*)response_dhcp_pkt;
-    ethfcs =gwd_crc32(ethfcs,response_dhcp_pkt,responselen);
-	gw_printf("%s %d pktlen:0x%08x  len:%d\r\n",__func__,__LINE__,ethfcs,responselen);
-	memcpy(&response_dhcp_pkt[responselen],&ethfcs,ETHFCSLEN);
+    ethfcs =gwd_crc32(ethfcs,response_dhcp_pkt,(responselen-ETHFCSLEN));
+    gw_log(GW_LOG_LEVEL_DEBUG,"%s %d pktlen:0x%08x  len:%d\r\n",__func__,__LINE__,ethfcs,responselen);
+	memcpy(&response_dhcp_pkt[responselen-ETHFCSLEN],&ethfcs,ETHFCSLEN);
 	return GW_OK;
 }
 unsigned int Gwd_func_dhcp_pkt_handler(unsigned char *dhcp_pkt,unsigned int dhcp_len,int ulport)
@@ -577,7 +572,7 @@ unsigned int Gwd_func_dhcp_pkt_handler(unsigned char *dhcp_pkt,unsigned int dhcp
 				free(response_dhcp_pkt);
 				return ret;
 			}
-			ret = call_gwdonu_if_api(LIB_IF_PORTSEND, 3,11, response_dhcp_pkt,response_len);
+			ret = call_gwdonu_if_api(LIB_IF_PORTSEND, 3,GW_PON_PORT_ID, response_dhcp_pkt,response_len);
 			FUNC_RETURN_VALUE_CHECK(ret)
 			{
 				gw_printf("%s %d return error\r\n",__func__,__LINE__);

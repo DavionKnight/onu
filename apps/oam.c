@@ -3615,7 +3615,7 @@ extern void gw_cli_debug_cmd(struct cli_command **cmd_root);
 #ifdef __IPCONFIG__
 extern void cli_reg_mgtif_cmd(struct cli_command **cmd_root);
 #endif
-extern int Gwd_func_dhcp_pkt_process_init();
+
 extern void init_oam_send_relay();
 #if(RPU_MODULE_POE == RPU_YES)
 unsigned stat_val;
@@ -3639,7 +3639,6 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 
 	gw_reg_pkt_parse(GW_PKT_OAM, gw_oam_parser);
 	gw_reg_pkt_handler(GW_PKT_OAM, gw_oam_handler);
-	Gwd_func_dhcp_pkt_process_init();
 	gw_broadcast_storm_init();
 #if _cmd_line_
 

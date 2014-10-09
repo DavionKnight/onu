@@ -15,7 +15,7 @@
 void gwd_onu_init();
 extern void gwd_thread_init(void);
 extern void init_oam_pty();
-
+extern int Gwd_func_dhcp_pkt_process_init();
 void plat_init()
 {
     unsigned int stat_val;
@@ -55,4 +55,5 @@ void plat_init()
 	init_pkt_proc();
 	gwd_onu_init();
 	gwd_thread_init();
+	Gwd_func_dhcp_pkt_process_init();
 }

@@ -175,7 +175,7 @@ gw_int32 gw_syslog(gw_int32 level, const gw_int8 *String, ...)
     	{
     	if(level >= log_level)
     		diag_printf("%s",data);
-    		sleep(1);
+//    		sleep(1);
     	}
 
     	if(level >= log_record_level)

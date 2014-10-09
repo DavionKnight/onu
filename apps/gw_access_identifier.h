@@ -24,10 +24,11 @@
 #define DHCP_PKT_DEF_LEN 312
 #define IpV4Version      4
 #define IpV6Version      6
-#define EtherHeadLen 14
+#define EtherHeadLen 18
 #define IPHEADERLEN 20
 #define UDPHEADERLEN 8
 #define ETHFCSLEN 4
+#define ETHVLANLEN 4
 #define Option82HeadLen 2
 #define SubOptionHeadLen 2
 #define EndOpion 0xff
@@ -82,45 +83,49 @@ typedef struct tsd_header_s{
 	unsigned char mzero;
 	unsigned char ptcl;
 	unsigned short udplen;
-}tsd_header_t;
+}__attribute__((packed))tsd_header_t;
+
 typedef struct access_identifier_admin_s
 {
 	unsigned char opcode;
 	unsigned char returnstatus;
 	unsigned char identifiermode;
 	unsigned char proxymode;
-}access_identifier_admin_t;
+}__attribute__((packed))access_identifier_admin_t;
+
 typedef struct dhcp_option82_data_info_s
 {
 	unsigned int datalen;
 	unsigned char dhcprelayidentifierinfo[DHCPDATALEN];
-}dhcp_option82_data_info_t;
+}__attribute__((packed))dhcp_option82_data_info_t;
+
 typedef struct eth_head_info_s{
 	unsigned char dstmac[ETH_IPV4_MAC_LEN];
 	unsigned char srcmac[ETH_IPV4_MAC_LEN];
 	unsigned short flag;
 	unsigned short cvlan;
 	unsigned short ethtype;
-}eth_head_info_t;
+}__attribute__((packed))eth_head_info_t;
+
 typedef struct eth_iphead_info_s{
-    unsigned char  	 VerHeadLen;                    //°æ±¾ºÅºÍÍ·³¤¶È
-    unsigned char      TOS;                        //·þÎñÀàÐÍ
-    unsigned short     Totlength;                //IP°ü×Ü³¤¶È
-    unsigned short     ID;                            //IP°üÎ¨Ò»±êÊ¶
-    unsigned short     Flags;                        //±êÖ¾
-    unsigned char      TTL;                        //Éú´æÊ±¼ä
-    unsigned char      Protocol;                    //Ð­Òé
-    unsigned short     Checksum;                    //Ð£ÑéºÍ
-    IpAddr               SourceIP;                    //Ô´IPµØÖ·
-    IpAddr               DestIP;                        //Ä¿±êIP
-}eth_iphead_info_t;
+    unsigned char  	 VerHeadLen;                    //ï¿½æ±¾ï¿½Åºï¿½Í·ï¿½ï¿½ï¿½ï¿½
+    unsigned char      TOS;                        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    unsigned short     Totlength;                //IPï¿½ï¿½ï¿½Ü³ï¿½ï¿½ï¿½
+    unsigned short     ID;                            //IPï¿½ï¿½Î¨Ò»ï¿½ï¿½Ê¶
+    unsigned short     Flags;                        //ï¿½ï¿½Ö¾
+    unsigned char      TTL;                        //ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    unsigned char      Protocol;                    //Ð­ï¿½ï¿½
+    unsigned short     Checksum;                    //Ð£ï¿½ï¿½ï¿½
+    IpAddr               SourceIP;                    //Ô´IPï¿½ï¿½Ö·
+    IpAddr               DestIP;                        //Ä¿ï¿½ï¿½IP
+}__attribute__((packed))eth_iphead_info_t;
 
 typedef struct udp_head_info_s{
 	unsigned short srcUdpPort;
 	unsigned short destUdpPort;
 	unsigned short	 length;
 	unsigned short checkSum;
-}udp_head_info_t;
+}__attribute__((packed))udp_head_info_t;
 
 typedef struct gwd_dhcp_pkt_head_info_s{
 	eth_head_info_t ethhead;
@@ -130,22 +135,24 @@ typedef struct gwd_dhcp_pkt_head_info_s{
 	unsigned char Htype;
 	unsigned char Hlen;
 	unsigned char hops;
-	unsigned char xip[4]; /*ÊÂ¼þÐòÁÐ*/
+	unsigned char xip[4]; /*ï¿½Â¼ï¿½ï¿½ï¿½ï¿½ï¿½*/
 	unsigned short second;
 	unsigned short flag;
-	IpAddr ciaddr; /*¿Í»§»úµØÖ·*/
-	IpAddr yiaddr; /*ÄãµÄIP*/
-	IpAddr siaddr; /*·þÎñÆ÷IP*/
-	IpAddr giaddr; /*ÖÐ¼Ì´úÀíµØÖ·*/
-	unsigned char chaddr[16]; /*¿Í»§»úÓ²¼þµØÖ·*/
-	unsigned char sname[64]; /*·þÎñÖ÷»úÃû*/
-	unsigned char filename[128]; /*Æô¶¯ÎÄ¼þÃû*/
+	IpAddr ciaddr; /*ï¿½Í»ï¿½ï¿½ï¿½ï¿½Ö·*/
+	IpAddr yiaddr; /*ï¿½ï¿½ï¿½IP*/
+	IpAddr siaddr; /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IP*/
+	IpAddr giaddr; /*ï¿½Ð¼Ì´ï¿½ï¿½ï¿½ï¿½Ö·*/
+	unsigned char chaddr[16]; /*ï¿½Í»ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½ï¿½Ö·*/
+	unsigned char sname[64]; /*ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*/
+	unsigned char filename[128]; /*ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½*/
 	unsigned char magic[4];
-}gwd_dhcp_pkt_info_head_t;
+}__attribute__((packed))gwd_dhcp_pkt_info_head_t;
+
 typedef struct dhcp_option82_s{
 	unsigned char option_code;
 	unsigned char option_len;
-}dhcp_option82_t;
+}__attribute__((packed))dhcp_option82_t;
+
 typedef struct dhcpOption82_ctc_str_s{
 	dhcp_option82_t option82;
 	struct  circuit_id_ctc_str
@@ -154,7 +161,7 @@ typedef struct dhcpOption82_ctc_str_s{
 		unsigned char len;
 		unsigned char str_info[100];
 	} cir_id;
-} dhcpOption82_ctc_str_t;
+} __attribute__((packed))dhcpOption82_ctc_str_t;
 
 extern unsigned int Gwd_Func_Dhcp_relay_Oam_Admin_Process(unsigned char *pReq,unsigned int len);
 #endif /* GW_ACCESS_IDENTIFIER_H_ */
