@@ -33,6 +33,9 @@
 #define SubOptionHeadLen 2
 #define EndOpion 0xff
 #define Padding 0x00
+#define ONU_SLOT_NUM 1
+#define ONU_SUBSLOT_NUM 0
+#define DEFAULT_SWITCH_VLAN 1
 
 typedef unsigned long IpAddr;
 enum{
@@ -164,4 +167,5 @@ typedef struct dhcpOption82_ctc_str_s{
 } __attribute__((packed))dhcpOption82_ctc_str_t;
 
 extern unsigned int Gwd_Func_Dhcp_relay_Oam_Admin_Process(unsigned char *pReq,unsigned int len);
+extern unsigned int Gwd_func_switch_info_get(unsigned int ulport,unsigned char *swmac);
 #endif /* GW_ACCESS_IDENTIFIER_H_ */

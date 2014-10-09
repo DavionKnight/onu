@@ -5627,6 +5627,29 @@ void rcp_rcv_handll_thread(void * data)
     }
 }
 
+unsigned int Gwd_func_switch_info_get(unsigned int ulport,unsigned char *swmac)
+{
+	unsigned int ret =GW_ERROR;
+	unsigned long slot,mgtPort;
+	if(swmac == NULL)
+	{
+		gw_printf("%s %d is null error\r\n",__func__,__LINE__);
+		return ret;
+	}
+	if(RCP_Dev_Is_Valid(ulport))
+	{
+		if(1 == RCP_Dev_Is_Exist(ulport))
+		{
+			rcpDevList[ulport]->frcpPort2LPort(rcpDevList[ulport], &slot, &mgtPort, 0, rcpDevList[ulport]->upLinkPort);
+			gw_printf("%02x%02x.%02x%02x.%02x%02x",
+				rcpDevList[ulport]->switchMac[0], rcpDevList[ulport]->switchMac[1], rcpDevList[ulport]->switchMac[2],
+				rcpDevList[ulport]->switchMac[3], rcpDevList[ulport]->switchMac[4], rcpDevList[ulport]->switchMac[5]);
+			memcpy(swmac,rcpDevList[ulport]->switchMac,RCP_MAC_SIZE);
+		}
+		gw_printf("rcpDevList[ulport]->upLinkPort[%d] mgtPort:[%lu]\r\n",rcpDevList[ulport]->upLinkPort,mgtPort);
+	}
+	return GW_OK;
+}
 /*
  ** Tasks
  */

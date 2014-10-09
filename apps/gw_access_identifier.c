@@ -12,6 +12,7 @@
 #include "../include/gw_types.h"
 #include "gw_access_identifier.h"
 #include "pkt_main.h"
+#include "rcp_gwd.h"
 #include <stdio.h>
 #include <unistd.h>
 static unsigned int DhcpProxyMode = 0;
@@ -69,7 +70,7 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_get(unsigned int *mode)
 	*mode = DhcpProxyMode;
 	return GW_OK;
 }
-unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsigned int proxy_mode,unsigned int *option82len)
+unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsigned int proxy_mode,unsigned int *option82len,int ulport)
 {
 	unsigned int ret =GW_ERROR;
 	unsigned int i =0;
@@ -81,6 +82,9 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsign
 	unsigned char cumulative_len = 0;
 	unsigned char dhcp_discover_pkt_flag = 0;
 	unsigned char dhcpmessagetype = 0;
+	unsigned int g_uni_port_num = 0;
+	gw_macaddr_t g_sys_mac;
+	unsigned char swichmac[RCP_MAC_SIZE] = {0};
 	dhcp_option82_data_info_t local_option82_data;
 	dhcp_option82_t *clv = NULL;
 	dhcpOption82_ctc_str_t *option82_str = NULL;
@@ -156,9 +160,36 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsign
 	}
 	else
 	{
+#if 0
 		unsigned char mac[6]={0x00,0x0f,0xe9,0x01,0x02,0x03};
 		len = sprintf(&option82_str->cir_id.str_info[re_len],"%02X%02X%02X%02X%02X%02X 1/0/1/O00000000000:1 EP",mac[0],mac[1],mac[2],mac[3],mac[4],mac[5],24);
 		re_len +=len;
+#else
+		ret = call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2, g_sys_mac, &g_uni_port_num);
+		FUNC_RETURN_VALUE_CHECK(ret)
+		{
+			gw_printf("%s %d return error\r\n",__func__,__LINE__);
+			return ret;
+		}
+		len = sprintf(&option82_str->cir_id.str_info[re_len],"%02X%02X%02X%02X%02X%02X ",g_sys_mac[0],g_sys_mac[1],g_sys_mac[2],g_sys_mac[3],g_sys_mac[4],g_sys_mac[5]);
+		re_len +=len;
+		len = sprintf(&option82_str->cir_id.str_info[re_len],"%d/%d/",ONU_SLOT_NUM,ONU_SUBSLOT_NUM);
+		re_len +=len;
+		len = sprintf(&option82_str->cir_id.str_info[re_len],"%d/",ulport);
+		re_len +=len;
+		ret = Gwd_func_switch_info_get(ulport,swichmac);
+		FUNC_RETURN_VALUE_CHECK(ret)
+		{
+			gw_printf("%s %d return error\r\n",__func__,__LINE__);
+			return ret;
+		}
+		len = sprintf(&option82_str->cir_id.str_info[re_len],"%02x%02x%02x%02x%02x%02x/",swichmac[0],swichmac[1],swichmac[2],swichmac[3],swichmac[4],swichmac[5]);
+		re_len +=len;
+		len = sprintf(&option82_str->cir_id.str_info[re_len],"1:");
+		re_len +=len;
+		len = sprintf(&option82_str->cir_id.str_info[re_len],"%d EP",DEFAULT_SWITCH_VLAN);
+		re_len +=len;
+#endif
 	}
 	option82_str->cir_id.len=re_len;
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d option82_str->cir_id.len:%d",__func__,__LINE__,option82_str->cir_id.len);
@@ -556,7 +587,7 @@ unsigned int Gwd_func_dhcp_pkt_handler(unsigned char *dhcp_pkt,unsigned int dhcp
 			break;
 		case DHCP_RELAY_GWD_MODE:
 		case DHCP_RELAY_CTC_MODE:
-			ret = Gwd_Func_Dhcp_Proxy_Mode_Process(option82,dhcp_proxy_mode,&option82_len);
+			ret = Gwd_Func_Dhcp_Proxy_Mode_Process(option82,dhcp_proxy_mode,&option82_len,ulport);
 			FUNC_RETURN_VALUE_CHECK(ret)
 			{
 				gw_printf("%s %d return error\r\n",__func__,__LINE__);
