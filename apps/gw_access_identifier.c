@@ -405,7 +405,7 @@ unsigned int Gwd_func_ip_header_checksum_process(unsigned char *response_dhcp_pk
 	ipheader=(eth_iphead_info_t*)&response_head->iphead;
 	/*把IP头的校验和清空*/
 	ipheader->Checksum = 0;
-	/*����У��TOT_LENTH����*/
+	/*IP TOT_LENTH*/
 	/*responselen = ETHLEN+IPLEN+UDPLEN+PAYLOAD+FCS*/
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipheader->Totlength:%d  \r\n",__func__,__LINE__,ipheader->Totlength);
 	ipheader->Totlength = (responselen-EtherHeadLen-ETHFCSLEN);
@@ -446,11 +446,11 @@ unsigned int Gwd_func_udp_header_checksum_process(unsigned char *response_dhcp_p
 	ipheader = (eth_iphead_info_t*)&response_head->ethhead;
 	udpheader=(udp_head_info_t*)&response_head->udphead;
 	payload = (phead+EtherHeadLen+IPHEADERLEN+UDPHEADERLEN);
-	/*���У��λ 2���ֽ�*/
+	/*清空UDP 校验和*/
 	udpheader->checkSum = 0;
-	/*����У��UDP����*/
+	/*UDP LENGTH*/
 	udpheader->length = (responselen-EtherHeadLen-IPHEADERLEN-ETHFCSLEN);
-    /*���α�ײ�*/
+    /*UDP 校验伪头部*/
 	memset(&tsdheader,0,sizeof(tsd_header_t));
 	tsdheader.destip = htonl(ipheader->DestIP);
 	tsdheader.sourceip = htonl(ipheader->SourceIP);
@@ -460,11 +460,11 @@ unsigned int Gwd_func_udp_header_checksum_process(unsigned char *response_dhcp_p
 	memcpy(ptr,&tsdheader,sizeof(tsd_header_t));
 	ptr +=sizeof(tsd_header_t);
 	checknumber +=sizeof(tsd_header_t);
-	/*���UDPͷ*/
+	/*UDP头长度*/
 	memcpy(ptr,&udpheader,sizeof(udp_head_info_t));
 	ptr +=sizeof(udp_head_info_t);
 	checknumber +=sizeof(udp_head_info_t);
-	/*��������*/
+	/*数据长度*/
 	payloadlen = (responselen-EtherHeadLen-IPHEADERLEN-UDPHEADERLEN-ETHFCSLEN);
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d payloadlen:%d\r\n",__func__,__LINE__,payloadlen);
 	memcpy(ptr,payload,payloadlen);

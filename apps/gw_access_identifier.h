@@ -108,16 +108,16 @@ typedef struct eth_head_info_s{
 }__attribute__((packed))eth_head_info_t;
 
 typedef struct eth_iphead_info_s{
-    unsigned char  	 VerHeadLen;                    //�汾�ź�ͷ����
-    unsigned char      TOS;                        //��������
-    unsigned short     Totlength;                //IP���ܳ���
-    unsigned short     ID;                            //IP��Ψһ��ʶ
-    unsigned short     Flags;                        //��־
-    unsigned char      TTL;                        //���ʱ��
-    unsigned char      Protocol;                    //Э��
-    unsigned short     Checksum;                    //У���
-    IpAddr               SourceIP;                    //ԴIP��ַ
-    IpAddr               DestIP;                        //Ŀ��IP
+    unsigned char  	 VerHeadLen;
+    unsigned char      TOS;
+    unsigned short     Totlength;
+    unsigned short     ID;
+    unsigned short     Flags;
+    unsigned char      TTL;
+    unsigned char      Protocol;
+    unsigned short     Checksum;
+    IpAddr               SourceIP;
+    IpAddr               DestIP;
 }__attribute__((packed))eth_iphead_info_t;
 
 typedef struct udp_head_info_s{
@@ -135,16 +135,16 @@ typedef struct gwd_dhcp_pkt_head_info_s{
 	unsigned char Htype;
 	unsigned char Hlen;
 	unsigned char hops;
-	unsigned char xip[4]; /*�¼�����*/
+	unsigned char xip[4]; /*帧序列*/
 	unsigned short second;
 	unsigned short flag;
-	IpAddr ciaddr; /*�ͻ����ַ*/
-	IpAddr yiaddr; /*���IP*/
-	IpAddr siaddr; /*������IP*/
-	IpAddr giaddr; /*�м̴����ַ*/
-	unsigned char chaddr[16]; /*�ͻ���Ӳ����ַ*/
-	unsigned char sname[64]; /*����������*/
-	unsigned char filename[128]; /*�����ļ���*/
+	IpAddr ciaddr; /*客户机IP*/
+	IpAddr yiaddr; /*你的IP*/
+	IpAddr siaddr; /*服务器的IP*/
+	IpAddr giaddr; /*中继代理IP*/
+	unsigned char chaddr[16]; /*客户机硬件地址*/
+	unsigned char sname[64]; /*服务器主机名*/
+	unsigned char filename[128]; /*启动文件名*/
 	unsigned char magic[4];
 }__attribute__((packed))gwd_dhcp_pkt_info_head_t;
 
