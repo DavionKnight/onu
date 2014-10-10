@@ -205,8 +205,8 @@ gw_int32 gw_poe_config_restore(gw_int32 len, gw_uint8 * pv)
 
 int gw_poe_config_init()
 {
-    memset(gucPoeDisablePerPort,1,(NUM_PORTS_PER_SYSTEM-1));
-    memset(gucPoedefaultconfig,1,(NUM_PORTS_PER_SYSTEM-1));
+    memset(gucPoeDisablePerPort,0,(NUM_PORTS_PER_SYSTEM-1));
+    memset(gucPoedefaultconfig,0,(NUM_PORTS_PER_SYSTEM-1));
 
     gw_register_conf_handlers(GW_CONF_TYPE_POE_CONFIG, gw_poe_config_showrun, gw_poe_config_restore);
 
