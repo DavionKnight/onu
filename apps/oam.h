@@ -12,6 +12,7 @@
 
 #include "plat_common.h"
 #endif
+#include "gw_port.h"
 typedef gw_uint32 epon_port_id_t;
 
 /* This struct should be moved to a header file */
@@ -305,9 +306,11 @@ extern unsigned long   gulDebugOamFileOp;
 #define DEVICE_TYPE_GT811_C			0x0030
 #define DEVICE_TYPE_GT872_A			0x0031
 #define DEVICE_TYPE_GT873_A			0x0032
+#define DEVICE_TYPE_GT813C_B 		0x0033
+#define DEVICE_TYPE_GT815C_B		0X0034
 #define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT873_A
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
-#define PRODUCT_TYPE    DEVICE_TYPE_GT813_C
+#define PRODUCT_TYPE    DEVICE_TYPE_GT815_C
 
 
 
@@ -947,6 +950,7 @@ typedef union tagIFM_ETH_IfIndex
 #define ONU_ALM_E1_CRC3		0x0002
 #define ONU_ALM_E1_CRC6		0x0001
 
+#if 0
 #define NUM_UNITS_PER_SYSTEM    5
 #define PHY_PORT_MAX 			26//11
 
@@ -957,6 +961,7 @@ typedef struct log_phy_map_s {
     unsigned char physical_port;
 } log_phy_map_t;
 
+#endif
 /*begin: added by wangxiaoyu 2008-12-26*/
 enum{
 	NO_UPDATE_SESSION,

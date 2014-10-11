@@ -32,7 +32,7 @@ void plat_init()
 	gw_conf_file_init();
 
 #if(RPU_MODULE_POE == RPU_YES)
-    gwd_onu_poe_cpld_check(); 
+    gwd_onu_poe_cpld_cheak();
     Gwd_onu_poe_exist_stat_get(&stat_val);
     if(stat_val)
     {

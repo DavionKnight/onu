@@ -140,35 +140,6 @@ int gw_lpb_sem_give( )
 	return gw_semaphore_post(gw_lpb_sem);
 }
 
-int boards_logical_to_physical(unsigned long lport, unsigned long *unit, unsigned long *pport)
-{
-    int lport_0 = (lport-1);
-
-    /* check whether logical port number is legal or not */
-    if ((lport_0 < 0) || (lport_0 >= NUM_PORTS_PER_SYSTEM)) {
-        return 0;
-    }
-    *unit = log_phy_map[lport_0].unit;
-    *pport = log_phy_map[lport_0].physical_port;
-
-    return 1;
-}
-
-int boards_physical_to_logical(unsigned long unit, unsigned long pport, unsigned long *lport)
-{
-    /* check whether logical port number is legal or not */
-    if ((unit >= NUM_UNITS_PER_SYSTEM) || (pport > PHY_PORT_MAX)) {
-        return 0;
-    }
-
-    *lport = phy_log_map[unit][pport];
-    if ( *lport == 0xFF ) {
-        return 0;
-    }
-
-    return 1;
-}
-
 #if 0
 int gtGetSrcPortForMac(char *mac, unsigned short vid, unsigned long *pLogicPort)
 {
@@ -462,6 +433,10 @@ char* onu_product_name_get(unsigned short int productID)
 			return "GT812_C";
 		case DEVICE_TYPE_GT815_C:
 			return "GT815_C";
+		case DEVICE_TYPE_GT815C_B:
+			return "GT815C_B";
+		case DEVICE_TYPE_GT813C_B:
+			return "GT813C_B";
 
 		case DEVICE_TYPE_GT873_A:
 			return "GT873_A";
