@@ -2610,6 +2610,7 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 	}
 	else
 	{
+        
 		gw_cli_print(cli,  "\n  Product information as following--");
 		gw_cli_print(cli,  "    ONU type         : %s", "GT873_A");
 		gw_cli_print(cli,  "    DeiveName        : %s", gw_onu_system_info_total.device_name);
@@ -3248,6 +3249,7 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void init_oam_send_relay();
+extern void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root);
 
 #if(RPU_MODULE_POE == RPU_YES)
 unsigned stat_val;

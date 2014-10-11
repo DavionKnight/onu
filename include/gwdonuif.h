@@ -8,6 +8,7 @@
 #ifndef GWDONUIF_H_
 #define GWDONUIF_H_
 
+
 typedef enum{
     GWD_ETH_PORT_LOOP_ALARM=1,
     GWD_ETH_PORT_LOOP_ALARM_CLEAR,
@@ -210,6 +211,9 @@ typedef gw_int32 (*libgwdonu_cpld_register_read)(gw_uint32 reg,gw_uint8 * date);
 typedef gw_int32 (*libgwdonu_poe_port_operation_set)(gw_int32 port,gw_int32 stat);
 
 
+typedef gw_int32 (*libgwdonu_cpld_register_write)(gw_uint32 reg,gw_uint32 date);
+typedef gw_int32 (*libgwdonu_cpld_register_read)(gw_uint32 reg,gw_uint8 * date);
+
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -262,7 +266,6 @@ typedef struct gwdonu_im_if_s{
 #ifndef CYG_LINUX
 	libgwdonu_onu_reset onureset;
 #endif
-
 	libgwdonu_onu_set_loopalm_led startloopled;
 	libgwdonu_onu_set_loopalm_led stoploopled;
 
@@ -280,6 +283,7 @@ typedef struct gwdonu_im_if_s{
 	libgwdonu_cpld_register_read	cpldread;
     libgwdonu_cpld_register_write cpldwrite;
     libgwdonu_poe_port_operation_set poeportoperation;
+
 }gwdonu_im_if_t;
 
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size);

@@ -560,6 +560,7 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
                 printf("gwdonu set poe port operation is NULL\n");
             break;
 #endif
+
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

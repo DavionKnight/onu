@@ -11,7 +11,7 @@
 #include "../include/gwdonuif.h"
 #include "../include/gw_os_api_core.h"
 
-enum{
+enum{    
 	LIB_IF_ONU_LLID_GET,
 	LIB_IF_SYSINFO_GET,
 	LIB_IF_SYSCONF_SAVE,
@@ -78,6 +78,9 @@ enum{
     LIB_IF_CPLD_REGISTER_WRITE,
     LIB_IF_POE_PORT_OPERATION_SET,
 #endif
+
+    LIB_IF_CPLD_REGISTER_READ,
+    LIB_IF_CPLD_REGISTER_WRITE,
 
 };
 
