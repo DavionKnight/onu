@@ -55,7 +55,7 @@ int onu_bitport_phyport_get(unsigned int egports,unsigned char phyportmember[PHY
 		return GW_ERROR;
 	}
 	
-	for ( phyport = 0; phyport < PHY_PORT_MAX; phyport++)
+	for ( phyport = 0; phyport <= PHY_PORT_MAX; phyport++)
 	{
 		if (egports & ONU_BITPORT_TO_PHYPORT(phyport))/*转换为物理地址*/
 		{

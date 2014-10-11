@@ -219,6 +219,7 @@ void gwd_onu_poe_cpld_cheak()
     unsigned int cpld_stat = 0;
     unsigned int ret = 0;
     unsigned int i = 0;
+
     if(gw_onu_poe_api_register_check() != EPON_RETURN_SUCCESS)
     {
         Gwd_onu_poe_exist_stat_set(cpld_stat);

@@ -2625,7 +2625,6 @@ int cmd_show_system_information_local(struct cli_def *cli, char *command, char *
 		return CLI_OK;
 	}
 }
-
 int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	long lRet = GWD_RETURN_OK;
@@ -2793,9 +2792,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     gw_uint32 retv=0;
     gw_uint32 logport=0;
 	gw_uint32 phyport = 0;
-	
-
-	unsigned char phyportmember[PHY_PORT_MAX ]={0};
+	unsigned char phyportmember[PHY_PORT_MAX + 1]={0};
 
     if(CLI_HELP_REQUESTED)
     {
@@ -2819,7 +2816,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 			continue;
 		}
 		
-		for(phyport = 0; phyport < PHY_PORT_MAX; phyport++)
+		for(phyport = 0; phyport <= PHY_PORT_MAX; phyport++)
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{
@@ -2840,6 +2837,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 					}
 				}
 			}
+
 		}
         gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],

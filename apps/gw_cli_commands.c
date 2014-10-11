@@ -665,13 +665,7 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
     #endif
 
+
     return;
-}
-
-void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root)
-{
-	struct cli_command * stat = NULL;
-
-	gw_cli_register_command(cmd_root, NULL, "igmp-mode",  cmd_igmp_mode,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "IGMP mode get/set");
 }
 
