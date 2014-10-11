@@ -2794,8 +2794,9 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     gw_uint32 logport=0;
 	gw_uint32 phyport = 0;
 	
-	
+
 	unsigned char phyportmember[PHY_PORT_MAX ]={0};
+
     if(CLI_HELP_REQUESTED)
     {
         switch(argc)
@@ -2839,7 +2840,6 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 					}
 				}
 			}
-
 		}
         gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],
