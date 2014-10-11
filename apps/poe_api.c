@@ -21,12 +21,12 @@ epon_return_code_t Gwd_onu_poe_exist_stat_set(unsigned int poe_stat)
     gulPoeEnable = poe_stat;
     return EPON_RETURN_SUCCESS;
 }
-
 epon_return_code_t Gwd_onu_poe_exist_stat_get(unsigned int *poe_stat)
 {
     *poe_stat = gulPoeEnable;
     return EPON_RETURN_SUCCESS;
 }
+
 
 epon_return_code_t Gwd_onu_cpld_exist_get(unsigned int *stat)
 {
@@ -212,7 +212,9 @@ int gw_poe_config_init()
 
     return GW_OK;
 }
-void gwd_onu_poe_cpld_check()
+
+
+void gwd_onu_poe_cpld_cheak()
 {
     unsigned int cpld_stat = 0;
     unsigned int ret = 0;
@@ -262,7 +264,7 @@ void gwd_onu_poe_thread_hander()
     }
 
     uni_port_num = gw_onu_read_port_num();
-        
+
     while(TRUE)
     {
         for(ulport = 1;ulport <= uni_port_num; ulport++)

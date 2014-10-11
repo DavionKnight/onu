@@ -15,6 +15,7 @@ typedef enum {
     EPON_RETURN_EXIST_ERROR
 } epon_return_code_t;
 
+
 typedef enum{
     GWD_CPLD_VERSION_REG = 0x00,
     GWD_CPLD_RESERVED_REG = 0x01,
