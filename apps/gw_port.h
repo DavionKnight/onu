@@ -7,15 +7,10 @@
 #define NUM_PORTS_MINIMUM_SYSYTEM 1
 #define NUM_UNITS_PER_SYSTEM    5
 
-
+#define PHY_ERROR 0
+#define PHY_OK 1
 #define PHY_PORT_MAX 	26		
 #define PHY_PORT_FE0 0
-
-typedef struct log_phy_map_s {
-    unsigned char unit;
-    unsigned char physical_port;
-} log_phy_map_t;
-
 extern unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num);
 #define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(portlist, ifindex,devonuport_num) \
 {\
@@ -38,8 +33,6 @@ extern unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_por
     }\
 }
 
-extern unsigned char phy_log_map[NUM_UNITS_PER_SYSTEM][PHY_PORT_MAX+1];
-extern log_phy_map_t log_phy_map[NUM_PORTS_PER_SYSTEM];
 
 int onu_bitport_phyport_get(unsigned int egports,unsigned char phyportmember[NUM_PORTS_PER_SYSTEM - 1]);
 int boards_physical_to_logical(unsigned long unit, unsigned long pport, unsigned long *lport);

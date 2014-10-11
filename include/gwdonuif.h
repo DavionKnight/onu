@@ -210,13 +210,6 @@ typedef gw_int32 (*libgwdonu_cpld_register_read)(gw_uint32 reg,gw_uint8 * date);
 
 typedef gw_int32 (*libgwdonu_poe_port_operation_set)(gw_int32 port,gw_int32 stat);
 
-
-typedef gw_int32 (*libgwdonu_cpld_register_write)(gw_uint32 reg,gw_uint32 date);
-typedef gw_int32 (*libgwdonu_cpld_register_read)(gw_uint32 reg,gw_uint8 * date);
-
-typedef gw_int32 (*libgwdonu_poe_port_operation_set)(gw_int32 port,gw_int32 stat);
-
-
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;

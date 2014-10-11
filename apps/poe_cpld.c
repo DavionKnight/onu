@@ -1,8 +1,5 @@
 #include "poe_cpld.h"
 #include "gw_log.h"
-
-#if(RPU_MODULE_POE == RPU_YES)
-extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc);
 #include "poe_api.h"
 #include "gw_port.h"
 #include "gwdonuif_interval.h"
@@ -11,9 +8,9 @@ extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *ar
 #include "gw_conf_file.h"
 
 #if(RPU_MODULE_POE == RPU_YES)
-unsigned int gulPoeEnabl = 0;
-unsigned char gucPoeDisablePerPort[NUM_PORTS_PER_SYSTEM - 1] = {0};
-unsigned char gucPoedefaultconfig[NUM_PORTS_PER_SYSTEM - 1] = {0};
+ unsigned int gulPoeEnabl;
+ unsigned char gucPoeDisablePerPort[NUM_PORTS_PER_SYSTEM - 1];
+unsigned char gucPoedefaultconfig[NUM_PORTS_PER_SYSTEM - 1];
 extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc);
 
 int onu_cpld_read_register(unsigned int type,unsigned char* val)
@@ -58,7 +55,7 @@ int onu_cpld_read_register(unsigned int type,unsigned char* val)
 int onu_cpld_write_register(unsigned int type,unsigned int val)
 {
     unsigned int reg = 0;
-    int ret = EPON_RETURN_SUCCESS
+    int ret = EPON_RETURN_SUCCESS;
     switch(type)
     {
         case GWD_CPLD_VERSION_REG:
@@ -285,7 +282,6 @@ gw_int32 gw_poe_config_showrun(gw_int32* len,gw_uint8**pv)
 
 gw_int32 gw_poe_config_restore(gw_int32 len, gw_uint8 * pv)
 {
-    int i = 0;
     memcpy(gucPoeDisablePerPort,pv,len);
 #if 0
     gw_log(GW_LOG_LEVEL_MINOR,"\r\n-----------------------------------------------------------------\r\n");
@@ -374,6 +370,7 @@ int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], i
        {
             gw_cli_print(cli,"input command %s not found\n",argv[0]);
        }
+    }
    else if(argc == 3)
     {
         if(strcmp(argv[0],"write") == 0)

@@ -2,7 +2,6 @@
 #include "../include/gw_types.h"
 #include "oam.h"
 #include "rcp_gwd.h"
-#include "gw_usermac.h"
 #include "gwdonuif_interval.h"
 #include "gw_port.h"
 
@@ -57,7 +56,7 @@ int onu_bitport_phyport_get(unsigned int egports,unsigned char phyportmember[PHY
 	
 	for ( phyport = 0; phyport <= PHY_PORT_MAX; phyport++)
 	{
-		if (egports & ONU_BITPORT_TO_PHYPORT(phyport))/*×ª»»ÎªÎïÀíµØÖ·*/
+		if (egports & ONU_BITPORT_TO_PHYPORT(phyport))/*×ªï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Ö·*/
 		{
 			phyportmember[phyport] = PHY_OK;
 			phynum++;

@@ -79,10 +79,6 @@ enum{
     LIB_IF_POE_PORT_OPERATION_SET,
 #endif
 
-    LIB_IF_CPLD_REGISTER_READ,
-    LIB_IF_CPLD_REGISTER_WRITE,
-    LIB_IF_POE_PORT_OPERATION_SET,
-
 };
 
 gw_status init_im_interfaces();

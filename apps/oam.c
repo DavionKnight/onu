@@ -11,6 +11,7 @@
 #include "gwdonuif_interval.h"
 #include "pkt_main.h"
 #include "oamsnmp.h"
+#include "gw_port.h"
 
 
 //#include "sdl_api.h"

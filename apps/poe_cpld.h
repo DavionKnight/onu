@@ -7,15 +7,13 @@
 #define PORTECT_REG_NUM(port,reg_num) reg_num = (port - 1)/8 
 #define PORT_TO_CPLDPORT(port)  port = ((port-1)%8)
 #define PORT_POWER_STAT(power_stat,port) power_stat &=(1 << port)
-
+#define CPLD_ENABLE 1
 typedef enum {
     EPON_RETURN_SUCCESS = 0,
     EPON_RETURN_FAIL,
     EPON_RETURN_EXIST_OK,
     EPON_RETURN_EXIST_ERROR
 } epon_return_code_t;
-
-
 typedef enum{
     GWD_CPLD_VERSION_REG = 0x00,
     GWD_CPLD_RESERVED_REG = 0x01,
