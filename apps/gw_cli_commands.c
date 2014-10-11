@@ -315,13 +315,31 @@ int curr_time_cheak_and_get(localtime_tm olt_time,localtime_tm *onu_time)
 	return 1;
 		
 }
+
+#if (RPU_MODULE_NOT_USE == RPU_YES)
 int cmd_timer_show(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	
-	
+	if (CLI_HELP_REQUESTED)
+    {
+
+        switch (argc)
+        {
+
+            default:
+                return gw_cli_arg_help(cli, argc > 1, NULL );
+        }
+
+    }
 	gw_cli_print(cli,"======================================================================\n");
+
+    gw_thread_delay(1000);
 	localtime_tm tm;
+    gw_thread_delay(1000);
+    gw_cli_print(cli,"time show \r\n");
 	memcpy(&tm,&w_gw_tim,sizeof(localtime_tm));
+
+    gw_thread_delay(1000);
 	gw_cli_print(cli, "one:%.4d-%.2d-%.2d %.2d:%.2d:%.2d \n",
     tm.tm_year, tm.tm_mon+1, tm.tm_mday,tm.tm_hour, tm.tm_min, tm.tm_sec);
 	call_gwdonu_if_api(LIB_IF_LOCALTIME_GET, 1, &tm);
@@ -334,6 +352,7 @@ int cmd_timer_show(struct cli_def *cli, char *command, char *argv[], int argc)
     return 1;
 	
 }
+#endif
 
 int cmd_qos_vlan_queue_map(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -494,6 +513,132 @@ int gw_time_get(localtime_tm *tm)
 	return 0;
 }
 
+int igmp_mode_show(struct cli_def *cli,mc_mode_t mc_mode)
+{
+	int ret = 0;
+	char mode[15] = {0};
+
+	switch(mc_mode)
+	{
+        case MC_SNOOPING:
+            strncpy(mode, "snooping", sizeof("snooping"));
+            break;
+
+        case MC_MANUAL:
+            strncpy(mode, "manual", sizeof("manual"));
+            break;
+
+		case MC_PROXY:
+            strncpy(mode, "proxy", sizeof("proxy"));
+            break;
+
+		case MC_DISABLE:
+            strncpy(mode, "transparent", sizeof("transparent"));
+            break;
+
+        default:
+            strncpy(mode, "unknown", sizeof("unknown"));
+            break;
+	}
+	gw_cli_print(cli,"igmp %s mode\n", mode);
+
+	return ret;
+}
+
+int cmd_igmp_mode(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+
+	unsigned char en;
+
+	if(CLI_HELP_REQUESTED)
+	{
+		switch(argc)
+		{
+			case 1:
+				gw_cli_arg_help(cli, 0,
+				"<cr>", "just enter to execuse command. (show igmp mode)",
+				NULL);
+				gw_cli_arg_help(cli, 0,
+				"0", "set igmp snooping mode",
+				NULL);
+				gw_cli_arg_help(cli, 0,
+				"1", "set igmp auth mode",
+				NULL);
+				gw_cli_arg_help(cli, 0,
+				"2", "set igmp proxy mode",
+				NULL);
+				gw_cli_arg_help(cli, 0,
+				"3", "set igmp disable mode",
+				NULL);
+				return CLI_OK;
+			case 2:
+				return gw_cli_arg_help(cli, 0,
+				"<cr>", "just enter to execuse command. (show igmp mode)",
+				NULL);
+			default:
+				return gw_cli_arg_help(cli, argc > 1, NULL);
+		}
+	}
+	if(argc > 1)
+	{
+		gw_cli_print(cli, "%% Invalid input.");
+		return CLI_OK;
+	}
+	else
+	{
+		//do nothing
+	}
+
+	if(0 == argc)
+	{
+		mc_mode_t mc_mode;
+
+		if(call_gwdonu_if_api(LIB_IF_MULTICAST_MODE_GET, 1, &mc_mode) != GW_OK)
+			gw_cli_print(cli, "Get multicast mode fail!\r\n");
+		else
+			igmp_mode_show(cli,mc_mode);
+	}
+	else if(1 == argc)
+	{
+		unsigned char ret = 0;
+		int mode = 0;
+		mc_mode_t mc_mode;
+		mode = atoi(argv[0]);
+		switch(mode)
+		{
+			case 0:
+				mc_mode = MC_SNOOPING;
+				break;
+			case 1:
+				mc_mode = MC_MANUAL;
+				break;
+			case 2:
+				mc_mode = MC_PROXY;
+				break;
+			case 3:
+				mc_mode = MC_DISABLE;
+				break;
+			default:
+				mc_mode = MC_SNOOPING;
+				break;
+		}
+
+		if(call_gwdonu_if_api(LIB_IF_MULTICAST_MODE_SET, 1,mc_mode) != GW_OK)
+			gw_cli_print(cli, "mc_mode_set failed\n");
+		else
+		{
+			gw_cli_print(cli,"mode :0x%x\n", mode);
+			gw_cli_print(cli,"mc_mode_set success\n");
+		}
+	}
+	else
+	{
+		//do nothing
+	}
+
+	return CLI_OK;
+
+}
 
 void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 {
@@ -515,8 +660,18 @@ void gw_cli_reg_native_cmd(struct cli_command **cmd_root)
 	gw_cli_register_command(cmd_root, cp, "show-vid-queue-map", cmd_qos_vlan_queue_map_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show vlan queue map cmd");
 	gw_cli_register_command(cmd_root, cp, "apply-vid-queue-map", cmd_qos_vlan_queue_map_apply, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "apply vlan queue map cmd");
 	//	gw_cli_register_command(cmd_root, cp, "threshold_get", cmd_bsctrl_threshold_get, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "threshold config get");
-//	time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
-//	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+	#if (RPU_MODULE_NOT_USE == RPU_YES)
+	time_get = gw_cli_register_command(cmd_root, NULL, "gwd", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+	gw_cli_register_command(cmd_root, time_get, "time_get", cmd_timer_show, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "show port statistics");
+    #endif
 
     return;
 }
+
+void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root)
+{
+	struct cli_command * stat = NULL;
+
+	gw_cli_register_command(cmd_root, NULL, "igmp-mode",  cmd_igmp_mode,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "IGMP mode get/set");
+}
+

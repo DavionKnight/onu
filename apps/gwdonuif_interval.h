@@ -9,6 +9,7 @@
 #define GWDONUIF_INTERVAL_H_
 
 #include "../include/gwdonuif.h"
+#include "../include/gw_os_api_core.h"
 
 enum{
 	LIB_IF_ONU_LLID_GET,
@@ -71,6 +72,12 @@ enum{
 	LIB_IF_VFILE_CLOSE,
 	LIB_IF_QOS_VLAN_QUEUE_MAP,
 	LIB_IF_CONF_WR_FLASH,
+
+#if(RPU_MODULE_POE == RPU_YES)
+    LIB_IF_CPLD_REGISTER_READ,
+    LIB_IF_CPLD_REGISTER_WRITE,
+    LIB_IF_POE_PORT_OPERATION_SET,
+#endif
 
 };
 

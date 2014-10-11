@@ -43,6 +43,7 @@ extern  "C"
 #include "rcp_gwd.h"
 #include "oam.h"
 #include "gw_log.h"
+#include "gw_port.h"
 
 #include "gwdonuif_interval.h"
 #if 0
@@ -65,28 +66,6 @@ unsigned long int g_onu_tx_policy = 1; //onu comm msg tx ctrl policy, 1:enable a
 static unsigned long int get_onuport_from_cli_index(struct cli_def * cli)
 {
     return ETH_SLOTPORT_TO_PORTNO(cli->index.port_u.slot, cli->index.port_u.port);
-}
-
-unsigned long * ETH_ParsePortList(char * argv,unsigned long onu_roter_port_num);
-#define BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(portlist, ifindex,devonuport_num) \
-{\
-    gw_uint32 * _pulIfArray;\
-    gw_uint32 _i = 0;\
-    _pulIfArray = (gw_uint32*)ETH_ParsePortList(portlist,devonuport_num);\
-    if(!_pulIfArray)\
-    	{\
-    		ifindex = 0;\
-    	}\
-    if(_pulIfArray != NULL)\
-    {\
-        for(_i=0;_pulIfArray[_i]!=0;_i++)\
-        {\
-            ifindex = _pulIfArray[_i];\
-
-#define END_PARSE_PORT_LIST_TO_PORT_NO_CHECK() \
-        }\
-        free(_pulIfArray);\
-    }\
 }
 
 #if 0
@@ -6101,22 +6080,7 @@ void start_rcp_device_monitor(void)
  */
 
 
-int gw_cli_int_configure_terminal(struct cli_def *cli, char *command, char *argv[], int argc)
-{
-	
-    if (CLI_HELP_REQUESTED)
-        return CLI_HELP_NO_ARGS;
 
-    if(argc > 0)
-    {
-        gw_cli_print(cli, "%% Invalid input.");
-        return CLI_OK;
-    }
-
-    gw_cli_set_configmode(cli, MODE_CONFIG, NULL);
-    gw_cli_set_privilege(cli, PRIVILEGE_PRIVILEGED);
-    return CLI_OK;
-}
 
 void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
 {
@@ -6132,7 +6096,7 @@ void gw_cli_switch_gwd_cmd(struct cli_command **cmd_root)
         gw_cli_register_command(cmd_root, c, "terminal", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
 #endif
 	//c = gw_cli_register_command(cmd_root, 0, "configure", NULL,                         PRIVILEGE_PRIVILEGED, MODE_EXEC, "Enter configuration mode");
-        gw_cli_register_command(cmd_root, NULL, "enable", gw_cli_int_configure_terminal,    PRIVILEGE_PRIVILEGED, MODE_EXEC, "Configure from the terminal");
+        
 inter = gw_cli_register_command(cmd_root, NULL, "interface",    NULL,     PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Select an interface to configure");
 //		gw_cli_register_command(cmd_root, inter, "IFNAME",   cmd_config_int ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Interface name");
 		gw_cli_register_command(cmd_root, inter, "switch",   cli_int_interface_switch ,PRIVILEGE_PRIVILEGED, MODE_CONFIG, "Config switch connected to the interface");

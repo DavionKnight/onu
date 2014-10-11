@@ -12,6 +12,7 @@
 #include "pkt_main.h"
 #include "oamsnmp.h"
 
+
 //#include "sdl_api.h"
 
 #define OAMDBGERR               diag_printf
@@ -282,9 +283,11 @@ void GwOamMessageListNodeFree(GWTT_OAM_MESSAGE_NODE *pNode)
 //		IROS_LOG_CRI(IROS_MID_OAM, "GwOamMessageListNodeFree::GwOamMessageListNodeRem failed\n");
 	}
 	if(NULL != pNode->pPayLoad)
+	{
 //		iros_free(pNode->pPayLoad);
 		free(pNode->pPayLoad);
-//	iros_free(pNode);
+	}
+    //	iros_free(pNode);
 	free(pNode);
 
 	return;
@@ -2634,7 +2637,7 @@ int cmd_show_system_information(struct cli_def *cli, char *command, char *argv[]
     		strMac[1],strMac[2],strMac[3],strMac[4],strMac[5]);
         
 	lRet = GW_Onu_Sysinfo_Get();
-		if (lRet != GWD_RETURN_OK)
+	if (lRet != GWD_RETURN_OK)
 	{
 		gw_cli_print(cli, "  Get product information from flash with error.\r\n");
 		return CLI_OK;
@@ -2785,7 +2788,13 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     gw_uint32 vid = 0, egports = 0, idx = 0;
 	gw_uint8 mac[GW_MACADDR_LEN]={0,0,0,0,0,0};
 	gw_uint32 statics=0;
-    // deal with help
+
+    gw_uint32 retv=0;
+    gw_uint32 logport=0;
+	gw_uint32 phyport = 0;
+	
+	
+	unsigned char phyportmember[PHY_PORT_MAX ]={0};
     if(CLI_HELP_REQUESTED)
     {
         switch(argc)
@@ -2800,7 +2809,37 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 
     while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
+        
+		retv = onu_bitport_phyport_get(egports,phyportmember);/*bitλת��Ϊ�����ַ*/
+		
+		if(GW_ERROR == retv)/*���Ϸ�������˿�*/
+		{
+			continue;
+		}
+		
+		for(phyport = 0; phyport < PHY_PORT_MAX; phyport++)
+		{
+			if(PHY_OK == phyportmember[phyport])
+			{
+				if(!boards_physical_to_logical(0, phyport, &logport))/*�����ַת��Ϊ�߼���ַ*/
+				{
+					continue;
+				}
+				else
+				{
+					if(logport > NUM_PORTS_PER_SYSTEM || logport < NUM_PORTS_MINIMUM_SYSYTEM)
+					{
+						continue;
+					}
+					else
+					{
+						egports = logport;
+						break;
+					}
+				}
+			}
 
+		}
         gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],
             mac[1],
@@ -3072,7 +3111,32 @@ int cmd_dbg_lvl_man(struct cli_def *cli, char *command, char *argv[], int argc)
 
     return CLI_OK;
 }
+#if (RPU_MODULE_NOT_USE == RPU_YES)
 
+int cmd_malloc_space(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int *buf = NULL;
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+            default:
+                return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+    gw_cli_print(cli,"---------------------malloc test-------------------------\r\n");
+
+    buf = malloc(200);
+
+    if(buf == NULL)
+        gw_cli_print(cli,"malloc error\r\n");
+
+
+    return CLI_OK;
+    
+}
+
+#endif
 void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 {
 	//extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
@@ -3097,6 +3161,9 @@ void cli_reg_gwd_cmd(struct cli_command **cmd_root)
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
+#if (RPU_MODULE_NOT_USE == RPU_YES)
+        gw_cli_register_command(cmd_root, NULL, "malloc",cmd_malloc_space, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "malloc test");
+#endif
 
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
@@ -3127,7 +3194,7 @@ void cli_reg_gwd_cmd_local(struct cli_command **cmd_root)
 	dbg = gw_cli_register_command(cmd_root, NULL, "dbg", NULL, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "debug switch");
 		gw_cli_register_command(cmd_root, dbg, "module", cmd_dbg_mod_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug module");
 		gw_cli_register_command(cmd_root, dbg, "level", cmd_dbg_lvl_man, PRIVILEGE_UNPRIVILEGED, MODE_ANY, "management of debug level");
-
+    
     // RCP switch cmds in config mode
 //	cli_reg_rcp_cmd(cmd_root);
     return;
@@ -3182,6 +3249,10 @@ extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void init_oam_send_relay();
 
+#if(RPU_MODULE_POE == RPU_YES)
+unsigned stat_val;
+extern void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root);
+#endif
 	gw_semaphore_init(&g_pkt_send_sem, g_pkt_send_sem_name, 1, 0);
 
 	gw_lpb_detect_init();
@@ -3215,8 +3286,6 @@ extern void init_oam_send_relay();
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
-
-
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 
@@ -3232,6 +3301,14 @@ extern void init_oam_send_relay();
 	if(registerUserCmdInitHandler("native_mgt", gw_cli_reg_native_cmd) != GW_OK)
 		gw_printf("regist native cmds fail!\r\n");
 
+#if(RPU_MODULE_POE == RPU_YES)
+    Gwd_onu_poe_exist_stat_get(&stat_val);
+    if(stat_val)
+    {
+	    if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
+		    gw_printf("regist gwd poe cmds fail!\r\n");
+    }
+#endif
 	oam_cli_start();
 
 //	ctc_onu_stats_monitor_init();

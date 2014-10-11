@@ -15,7 +15,7 @@
 #include "../include/gwdonuif.h"
 #include "../cli_lib/cli_common.h"
 #include "oam.h"
-
+#include "../include/gw_os_api_core.h"
 static gwdonu_im_if_t * g_im_ifs = NULL;
 
 gw_uint32 g_uni_port_num = 0;
@@ -27,6 +27,16 @@ extern gw_uint32 g_pkt_send_sem;
 extern int GW_Onu_Sysinfo_Get();
 extern void cli_console_start();
 
+
+gw_int32 gw_onu_poe_api_register_check()
+{
+    if((g_im_ifs->cpldread == NULL) || (g_im_ifs->cpldwrite == NULL) || (g_im_ifs->poeportoperation == NULL))
+    {
+        return GW_ERROR;
+    }
+
+    return GW_OK;
+}
 gw_uint8 gw_onu_read_port_num()
 {
 	gw_log(GW_LOG_LEVEL_DEBUG, "read onu port num: %d\r\n", g_uni_port_num);
@@ -527,6 +537,29 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
 			else
 				printf("gwdonu write flash is NULL\n");
 			break;
+
+#if(RPU_MODULE_POE == RPU_YES)
+        case LIB_IF_CPLD_REGISTER_READ:
+            if(g_im_ifs->cpldread)
+                ret = (*g_im_ifs->cpldread)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint8*));
+            else
+                printf("gwdonu read cpld register is NULL\n");
+            break;
+
+        case LIB_IF_CPLD_REGISTER_WRITE:
+            if(g_im_ifs->cpldwrite)
+                ret = (*g_im_ifs->cpldwrite)(va_arg(ap,gw_uint32),va_arg(ap,gw_uint32));
+            else
+                printf("gwdonu write cpld register is NULL\n");
+            break;
+
+        case LIB_IF_POE_PORT_OPERATION_SET:
+            if(g_im_ifs->poeportoperation)
+                ret = (*g_im_ifs->poeportoperation)(va_arg(ap,gw_int32),va_arg(ap,gw_int32));
+            else
+                printf("gwdonu set poe port operation is NULL\n");
+            break;
+#endif
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

@@ -5,6 +5,7 @@
 #include "gw_log.h"
 #include "oam.h"
 #include "gwdonuif_interval.h"
+#include "gw_port.h"
 
 
 #define GW_VLAN_MAX 4094
@@ -17,6 +18,20 @@
 #define GW_PORT_PRI_LAS 0
 
 extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
+
+extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
+#if (RPU_MODULE_NOT_USE == RPU_YES)
+int cmd_oam_port_kill_thread_test(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+    int ret;
+    char buf[10]={0};
+
+    memset(&ret,0,10000);
+    
+    return ret;
+}
+#endif
+
 
 int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc)
 {
@@ -122,12 +137,8 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 
 	return CLI_OK;
 }
-
-
 int cmd_oam_port_mirror_src(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-
-
 	if(CLI_HELP_REQUESTED)
 	{
 		switch (argc)
@@ -149,8 +160,6 @@ int cmd_oam_port_mirror_src(struct cli_def *cli, char *command, char *argv[], in
 				break;
 		}
 	}
-
-
 	return CLI_OK;
 }
 
