@@ -3288,6 +3288,15 @@ extern void cli_reg_gwd_poe_cmd(struct cli_command **cmd_root);
 
 	if(registerUserCmdInitHandler("gwd", cli_reg_gwd_cmd) != GW_OK)
 		gw_printf("regist gwd cmds fail!\r\n");
+#if(RPU_MODULE_POE == RPU_YES)
+gw_printf("----------------------------------------------------------------------------------------->\n");
+    Gwd_onu_poe_exist_stat_get(&stat_val);
+    if(stat_val)
+    {
+	    if(registerUserCmdInitHandler("gwd", cli_reg_gwd_poe_cmd) != GW_OK)
+		    gw_printf("regist gwd poe cmds fail!\r\n");
+    }
+#endif
 	if(registerUserCmdInitHandler("rcp-switch", gw_cli_switch_gwd_cmd) != GW_OK)
 		gw_printf("regist rcp  switch cmds fail!\r\n");
 

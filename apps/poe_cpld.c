@@ -11,10 +11,10 @@ extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *ar
 #include "gw_conf_file.h"
 
 #if(RPU_MODULE_POE == RPU_YES)
-
 unsigned int gulPoeEnabl = 0;
 unsigned char gucPoeDisablePerPort[NUM_PORTS_PER_SYSTEM - 1] = {0};
 unsigned char gucPoedefaultconfig[NUM_PORTS_PER_SYSTEM - 1] = {0};
+extern int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], int argc);
 
 int onu_cpld_read_register(unsigned int type,unsigned char* val)
 {
@@ -313,6 +313,7 @@ int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], i
 {
     unsigned int poeexiststat = 0;
     unsigned int poe_stat = 0;
+
     unsigned int regaddr = 0;
     unsigned char readval = 0;
     unsigned char writeval = 0;
@@ -374,7 +375,6 @@ int cmd_onu_cpld_reg_cfg_set(struct cli_def *cli, char *command, char *argv[], i
             gw_cli_print(cli,"input command %s not found\n",argv[0]);
        }
    else if(argc == 3)
-
     {
         if(strcmp(argv[0],"write") == 0)
        {
