@@ -16,11 +16,5 @@ extern gw_int32 gw_onu_poe_api_register_check();
 
 extern gw_uint8 gw_onu_read_port_num();
 
-
-typedef enum __bool { 
-    false = 0,
-    true = 1 
- } bool;
-
 #endif
 
