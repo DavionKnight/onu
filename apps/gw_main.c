@@ -11,7 +11,7 @@
 
 #include "gw_conf_file.h"
 #include "../qos/qos.h"
-
+#include <stdio.h>
 void gwd_onu_init();
 extern void gwd_thread_init(void);
 
@@ -21,14 +21,15 @@ void plat_init()
     unsigned int uni_port_num = 0;
     unsigned int lport = 0;
     unsigned int stat = 0;
-    
+	printf("%s %d [1]\r\n",__func__,__LINE__);
 	gw_osal_core_init();
+	printf("%s %d [2]\r\n",__func__,__LINE__);
 
 	if(gw_timer_init() == GW_OK)
 		gw_printf("gw timer init ok!\r\n");
 
 	init_im_interfaces();
-
+	printf("%s %d [3]\r\n",__func__,__LINE__);
 	gw_conf_file_init();
 
 #if(RPU_MODULE_POE == RPU_YES)
@@ -46,10 +47,16 @@ void plat_init()
     }
 #endif
 
+	printf("%s %d [4]\r\n",__func__,__LINE__);
 	gw_qos_init();
+	printf("%s %d [5]\r\n",__func__,__LINE__);
 	gw_conf_restore();
+	printf("%s %d [6]\r\n",__func__,__LINE__);
 	init_pkt_proc();
+	printf("%s %d [7]\r\n",__func__,__LINE__);
 	gwd_onu_init();
+	printf("%s %d [8]\r\n",__func__,__LINE__);
 	gwd_thread_init();
+	printf("%s %d [9]\r\n",__func__,__LINE__);
 
 }

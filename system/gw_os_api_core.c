@@ -335,11 +335,13 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 
     if ((thread_name == NULL) || (function_pointer == NULL) || (thread_id == NULL)) {
         osal_printf("\r\n thread create failed , cause some parameter is NULL");
+        printf("\r\n thread create failed , cause some parameter is NULL");
         return GW_E_OSAL_INVALID_POINTER;
     }
 
     if (strlen(thread_name) >= GW_OSAL_MAX_API_NAME) {
         osal_printf("\r\n thread name is too long");
+        printf("\r\n thread name is too long");
         return GW_E_OSAL_ERR_NAME_TOO_LONG;
     }
 
@@ -347,6 +349,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 
     if (priority > GW_OSAL_MAX_PRI) {
         osal_printf("\r\n thread priority is out of range");
+        printf("\r\n thread priority is out of range");
         return GW_E_OSAL_ERR_INVALID_PRIORITY;
     }
 
@@ -356,6 +359,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
     stack_buf = (gw_uint8*)malloc(stack_size);
     if (stack_buf == NULL) {
         osal_printf("\r\n Allocate thread's stack space failed");
+        printf("\r\n Allocate thread's stack space failed");
         return GW_E_OSAL_ERR;
     }
 
@@ -380,6 +384,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 //        iros_free(stack_buf);
         free(stack_buf);
         osal_printf("\r\n no free thread can be allocate");
+        printf("\r\n no free thread can be allocate");
         return GW_E_OSAL_ERR_NO_FREE_IDS;
     }
 
@@ -413,8 +418,9 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 
 	attr_param.sched_priority = (int)priority;	
 	pthread_attr_setschedparam (&p_attr, &attr_param);
-	
+	printf("%s %d  [%s]\r\n",__func__,__LINE__,thread_name);
     pthread_create(&threadid, &p_attr, function_pointer, param);
+    printf("%s %d  [%s]\r\n",__func__,__LINE__,thread_name);
     gw_osal_thread_table[possible_taskid].id = (gw_uint32)threadid;
 #endif
 
@@ -1042,7 +1048,7 @@ int gw_semaphore_init
         return GW_E_OSAL_ERR_NO_FREE_IDS;
     }
 #if 0
-// ȥ������ж�?���ڴ����ź�����ʱ������жϲ��Ϸ�?   2013-03-21
+// ȥ������ж�?���ڴ����ź�����ʱ������жϲ��Ϸ�?   2013-03-21
     for (i = 0; i < GW_OSAL_MAX_COUNT_SEM; i++) {
         if (gw_osal_count_sem_table[i].free == FALSE) {
             pthread_mutex_unlock(&gw_osal_count_sem_table_mut);
