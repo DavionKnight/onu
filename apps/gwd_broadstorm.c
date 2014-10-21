@@ -183,6 +183,23 @@ gw_return_code_t gwd_port_rate_update(gw_uint32 port)
 	return GW_RETURN_SUCCESS;
 
 }
+unsigned int GwdOnuPlantInitFlag = 0;
+unsigned int Gwd_func_plant_init_flag_get(unsigned int *flag)
+{
+	unsigned int ret =GW_ERROR;
+	if(flag == NULL)
+	{
+		gw_printf("%s %d is NULL\r\n",__func__,__LINE__);
+		return ret;
+	}
+	*flag = GwdOnuPlantInitFlag;
+	return GW_OK;
+}
+unsigned int Gwd_func_plant_init_flag_set(unsigned int flag)
+{
+	GwdOnuPlantInitFlag = flag;
+	return GW_OK;
+}
 void broad_storm_thread(void* data)
 {
     gw_uint32 logical_port;
@@ -190,6 +207,7 @@ void broad_storm_thread(void* data)
     gwd_port_admin_t port_status;
     gw_return_code_t ret;
     gw_uint32 slot = 1;
+    unsigned int Flag = 1;
     gw_uint8 OAMsession[8] = "";
     gw_uint16 ulBcStormEventCnt[NUM_PORTS_PER_SYSTEM - 1] =
         { 0 };
@@ -206,6 +224,7 @@ void broad_storm_thread(void* data)
     call_gwdonu_if_api(LIB_IF_SYSINFO_GET, 2, g_sys_mac, &g_uni_port_num);
     while (GW_TRUE)
     {
+    	Gwd_func_plant_init_flag_set(Flag);
         for (logical_port = 1; logical_port <= gw_onu_read_port_num(); logical_port++)
         {
             if (gwd_logical_to_physical(logical_port, &physical_port))

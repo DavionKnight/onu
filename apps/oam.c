@@ -2940,8 +2940,10 @@ int cmd_set_onu_mac(struct cli_def *cli, char *command, char *argv[], int argc)
     return CLI_OK;
 }
 
+extern unsigned int Gwd_func_plant_init_flag_get(unsigned int *flag);
 int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
 {
+	unsigned int flag = 0;
 
 	extern unsigned long   gulDebugRcp;
 	extern unsigned long   gulDebugLoopBackDetect;
@@ -2980,6 +2982,7 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
     }
     else
     {
+    	Gwd_func_plant_init_flag_get(&flag);
     	gw_cli_print(cli, "debug flag: ");
     	if(gulDebugLoopBackDetect)
     		gw_cli_print(cli, "loop ");
@@ -2989,7 +2992,14 @@ int cmd_dbg_mod_man(struct cli_def *cli, char *command, char *argv[], int argc)
     	    gw_cli_print(cli, "txpolicy");
     	if(switchlooopfloodenable)
     		gw_cli_print(cli,"rcpflood");
-
+    	if(flag)
+    	{
+    		gw_cli_print(cli,"gwd onu plat init success now");
+    	}
+    	else
+    	{
+    		gw_cli_print(cli,"gwd onu plat init fail");
+    	}
     	if(!gulDebugLoopBackDetect && !gulDebugRcp && g_onu_tx_policy)
     		gw_cli_print(cli, "none");
     }
