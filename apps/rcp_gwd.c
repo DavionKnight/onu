@@ -166,6 +166,8 @@ long glSwitchCfgFileSizeMaxInFlash;
 
 
 unsigned char gucTxRcpPktBuf[RCP_PKT_MAX_LENGTH];
+unsigned char gucTxWrRcpPktBuf[RCP_PKT_MAX_LENGTH];
+unsigned char gucTx32bRcpPktBuf[RCP_PKT_MAX_LENGTH];
 unsigned char gucRxRcpPktBuf[RCP_PKT_MAX_LENGTH];
 //extern long device_conf_write_switch_conf_to_flash( char * conf_file, long * conf_len );
 //extern long device_conf_read_switch_conf_from_flash( char * conf_file, long * conf_len );
@@ -193,24 +195,26 @@ unsigned long   gulDebugRcp = 0;
 	}
 #endif
 
-void gw_rcp_sem_create(unsigned int * semid, unsigned char *name,unsigned int initval)
+int gw_rcp_sem_create(unsigned int * semid, unsigned char *name,unsigned int initval)
 {
 	int ret;
 	if(semid)
 		ret = gw_semaphore_init(semid, name, initval, 0);
 	if(ret)
 		gw_printf("%s create fail (line: %d)(sem_id:%d)\n",__func__,__LINE__,semid);
+	return ret;
 }
 
-void gw_rcp_sem_delete(unsigned int semid)
+int gw_rcp_sem_delete(unsigned int semid)
 {
 	int ret;
 	ret = gw_semaphore_destroy(semid);
 	if(ret)
 		gw_printf("%s faile (line:%d)(semid:%d)\n",__func__,__LINE__,semid);
+	return ret;
 }
 
-int gw_rcp_sem_take(unsigned int semid, unsigned int timeout)
+int gw_rcp_sem_take(unsigned int semid, int timeout)
 {
 	return gw_semaphore_wait(semid, timeout);
 }
@@ -777,7 +781,7 @@ int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 	{
 		return RCP_NO_MEM;
 	}*/
-	rcpPktBuf = gucTxRcpPktBuf;
+	rcpPktBuf = gucTxWrRcpPktBuf;
 	memset(rcpPktBuf, 0, RCP_PKT_MAX_LENGTH);
 	memcpy(rcpPktBuf, dev->switchMac, 6);
 	memcpy(rcpPktBuf + 6, dev->parentMac, 6);
@@ -6471,7 +6475,7 @@ int ereaseRcpDevCfgInFlash(RCP_DEV  *rcpDev, int allDev)
 	//	device_conf_erase_switch_conf_from_flash();
 		memset(gpusSwitchCfgFileBuf, 0, glSwitchCfgFileSizeMaxInFlash);
     /***********************************************************************
-    Ìí¼ÓÏÂÃæAPI:µ±Çå³ý½»»»»úµÄËùÓÐÅäÖÃ(all ports)£¬Ã»ÓÐÇå¿Õflash¿Õ¼ä
+    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½API:ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(all ports)ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½flashï¿½Õ¼ï¿½
     ************************************************************************/
         return device_conf_write_switch_conf_to_flash((char *)gpusSwitchCfgFileBuf, fileLen);
 	}
