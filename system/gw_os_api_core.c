@@ -9,7 +9,8 @@
 
 #include <unistd.h>
 #include <stdio.h>
-
+#include <errno.h>
+#include <bits/local_lim.h>
 #ifdef CYG_LINUX
 
 #include <cyg/kernel/kapi.h>
@@ -349,7 +350,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
         osal_printf("\r\n thread priority is out of range");
         return GW_E_OSAL_ERR_INVALID_PRIORITY;
     }
-
+    stack_size += PTHREAD_STACK_MIN;
     /* Check Parameters */
 //    stack_buf = (gw_uint8 *)iros_malloc(IROS_MID_OSAL , stack_size);
     stack_buf = (gw_uint8*)malloc(stack_size);
@@ -1184,7 +1185,11 @@ int gw_semaphore_wait(unsigned int sem_id, int timeout)
     if (GW_OSAL_NO_WAIT == timeout) {
         ret = sem_trywait(&(gw_osal_count_sem_table[sem_id].id));
     } else if (GW_OSAL_WAIT_FOREVER == timeout) {
-        ret = sem_wait(&(gw_osal_count_sem_table[sem_id].id));
+    	do{
+    		ret = sem_wait(&(gw_osal_count_sem_table[sem_id].id));
+    		if(ret != 0 && errno != EINTR && errno != EAGAIN)
+    			gw_printf("semphore wait fail -- errno %d\n", errno);
+    	}while(ret != 0 && (errno == EINTR || errno == EAGAIN));
     } else {
         for (timeloop = timeout; timeloop > 0; timeloop -= 100) {
             if (timeloop >= 100) {
