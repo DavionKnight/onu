@@ -5681,6 +5681,7 @@ void rcp_dev_monitor(void * data)
 			iDiscovreyPeriod--;
 			if(iDiscovreyPeriod <= 0)
 			{
+#if 0
 				for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
 				{
 					if(RCP_Dev_Is_Valid(i))
@@ -5702,6 +5703,7 @@ void rcp_dev_monitor(void * data)
 						}
 				    }
 				}
+#endif
 				RCP_Say_Hello(-1,vid);
 				iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
 			}
@@ -5714,6 +5716,7 @@ void rcp_dev_monitor(void * data)
 		{
 			rcp_dev_status_check();	
 		}
+		gw_thread_delay(20000);
     }
 	return;
 }
@@ -5914,6 +5917,7 @@ int rcp_dev_status_check(void)
 						if(counter >= 3)
 							gw_log(GW_LOG_LEVEL_CRI, "Interface  eth1/%d RCP switch port_isolate reset failed.(%d)\n", i, ret);
 					}
+#if 0
 					error=0;
 					for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
 					{
@@ -5924,6 +5928,7 @@ int rcp_dev_status_check(void)
 					}
 					if(error != 0)
 						gw_printf("rcp_dev_status_check: updata vlan failed(%d,%d)\r\n", ret, error);
+#endif
 					rcpDevList[i]->previousUplinkPort = rcpDevList[i]->upLinkPort;
 				}
 			}

@@ -901,7 +901,7 @@ int RCP_Read_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short *data)
 		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
 		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
 	}
-
+	gw_thread_delay(5);
 	if(0 != call_gwdonu_if_api ( LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64))
 	{
 		iRet = RCP_FAIL;
@@ -993,7 +993,7 @@ int RCP_Read_32bit_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned long *data
 		SET_SHORT_TO_RCP_PKT(rcpRegAddr, regAddr);
 		memcpy(rcpPktBuf + 18, rcpRegAddr, 2);
 	}
-
+	gw_thread_delay(5);
 	if( 0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64) )
 	{
 		gw_printf("send fail.............\n");
@@ -1094,6 +1094,7 @@ int RCP_Write_Reg(RCP_DEV *dev, unsigned short regAddr, unsigned short data)
 		return RCP_FAIL;
 	}
 	#else
+	gw_thread_delay(5);
 	if(0 != call_gwdonu_if_api(LIB_IF_PORTSEND, 3, dev->paPort, rcpPktBuf, 64) )
 	{
 		gw_printf("send fail.............\n");
