@@ -17,7 +17,8 @@
 #define GW_PORT_PRI_MAX 7
 #define GW_PORT_PRI_LAS 0
 
-
+extern int GwdPortIoslationSave;
+extern int gw_port_ioslation_status_set(int status);
 extern int cmd_show_fdb(struct cli_def *, char *, char *[], int );
 #if (RPU_MODULE_NOT_USE == RPU_YES)
 int cmd_oam_port_kill_thread_test(struct cli_def *cli, char *command, char *argv[], int argc)
@@ -460,9 +461,15 @@ int cmd_oam_port_isolate(struct cli_def *cli, char *command, char *argv[], int a
 		else
 			{
 				if(en)
+				{
+					gw_port_ioslation_status_set(en);
 					gw_cli_print(cli,"set all port isolate enable success\n");
+				}
 				else
+				{
+					gw_port_ioslation_status_set(en);
 					gw_cli_print(cli,"set all port isolate disable success\n");
+				}
 			}
 	}
 	else

@@ -14,7 +14,10 @@
 
 void gwd_onu_init();
 extern void gwd_thread_init(void);
-
+extern int gw_port_ioslation_init();
+extern int gw_poe_config_init();
+extern gw_uint8 gw_onu_read_port_num();
+extern void gwd_onu_poe_cpld_check();
 void plat_init()
 {
     unsigned int stat_val;
@@ -44,6 +47,7 @@ void plat_init()
     }
 #endif
 	gw_qos_init();
+	gw_port_ioslation_init();
 	gw_conf_restore();
 	init_pkt_proc();
 	gwd_onu_init();
