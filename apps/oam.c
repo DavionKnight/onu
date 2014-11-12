@@ -3612,6 +3612,7 @@ extern void cli_reg_rcp_cmd(struct cli_command **cmd_root);
 extern void gw_cli_reg_oam_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_reg_native_cmd(struct cli_command ** cmd_root);
 extern void gw_cli_debug_cmd(struct cli_command **cmd_root);
+extern void cli_reg_gwd_dhcp_relay_cmd(struct cli_command **cmd_root);
 #ifdef __IPCONFIG__
 extern void cli_reg_mgtif_cmd(struct cli_command **cmd_root);
 #endif
@@ -3686,6 +3687,8 @@ extern void gw_cli_multicast_gwd_cmd(struct cli_command **cmd_root);
 #endif
 	if(registerUserCmdInitHandler("multicast", gw_cli_multicast_gwd_cmd) != GW_OK)
 		gw_printf("regist multicast cmds fail!\r\n");
+	if(registerUserCmdInitHandler("dhcprelay", cli_reg_gwd_dhcp_relay_cmd) != GW_OK)
+		gw_printf("regist dhcp_relay cmds fail!\r\n");
 #ifdef __IPCONFIG__
 	if(registerUserCmdInitHandler("mgtifconfig", cli_reg_mgtif_cmd) != GW_OK)
 		gw_printf("regist multicast cmds fail!\r\n");    

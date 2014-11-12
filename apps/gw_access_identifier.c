@@ -21,6 +21,27 @@ dhcp_option82_data_info_t option82info;
 
 #define DHCP_PROXY_MODE_CHACK(mode) if(mode > DHCP_RELAY_GWD_MODE)
 #define FUNC_RETURN_VALUE_CHECK(ret) if(ret != GW_OK)
+static unsigned int DhcpRelayRcpFlag = 1;
+int Gwd_func_dhcp_relay_rcp_status_get(unsigned int *status)
+{
+	int ret = GW_ERROR;
+	if(status == NULL)
+	{
+		return ret;
+	}
+	*status = DhcpRelayRcpFlag;
+	return GW_OK;
+}
+int Gwd_func_dhcp_relay_rcp_status_set(unsigned int status)
+{
+	int ret =GW_ERROR;
+	if((status != 0) && (status !=1))
+	{
+		return ret;
+	}
+	DhcpRelayRcpFlag = status;
+	return GW_OK;
+}
 unsigned int Gwd_func_dhcp_local_option82_data_info_init()
 {
 	memset(&option82info,0,sizeof(dhcp_option82_data_info_t));
@@ -75,6 +96,7 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsign
 	unsigned int ret =GW_ERROR;
 	unsigned int i =0;
 	unsigned int len = 0;
+	unsigned int switchdhcpstatus = 0;
 	unsigned char *ptr_front=NULL;
 	unsigned char clv_code=0;
 	unsigned char clv_len = 0;
@@ -108,20 +130,19 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsign
 		if(clv_code == DHCP_MESSAGE_TYPE)
 		{
 			dhcpmessagetype = *option82_data;
-			if(dhcpmessagetype != DHCPDISCOVER)
+			if(dhcpmessagetype == DHCPDISCOVER)
 			{
-				gw_log(GW_LOG_LEVEL_DEBUG,"%s %d dhcpmessagetype:0x%02x is not dhcp discover pkt drop\r\n",__func__,__LINE__,dhcpmessagetype);
-				goto FUNC_END;
+				dhcp_discover_pkt_flag = DHCP_PKT_FLAG;
 			}
-			dhcp_discover_pkt_flag = DHCP_PKT_FLAG;
+
 			gw_log(GW_LOG_LEVEL_DEBUG,"%s %d dhcp_discover_pkt_flag:%d clv_len:%d\r\n",__func__,__LINE__,dhcp_discover_pkt_flag,clv_len);
 		}
 		else
 		{
 			if(clv_code == DHCP_OPTION82_TYPE)
 			{
+				dhcp_discover_pkt_flag = 0;
 				gw_log(GW_LOG_LEVEL_DEBUG,"%s %d rcv dhcp pkt is have DHCP_OPTION82_TYPE\r\n",__func__,__LINE__);
-				goto FUNC_END;
 			}
 		}
 		option82_data += clv_len;
@@ -153,7 +174,6 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsign
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d dhcp_discover_pkt_flag:0x%02x datalen:%d\r\n",__func__,__LINE__,dhcp_discover_pkt_flag,local_option82_data.datalen);
 
 	re_len += (local_option82_data.datalen-1);
-
 	if(proxy_mode == DHCP_RELAY_GWD_MODE)
 	{
 
@@ -175,33 +195,45 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsign
 		re_len +=len;
 		len = sprintf(&option82_str->cir_id.str_info[re_len],"%d/%d/",ONU_SLOT_NUM,ONU_SUBSLOT_NUM);
 		re_len +=len;
-		len = sprintf(&option82_str->cir_id.str_info[re_len],"%d/",ulport);
+		len = sprintf(&option82_str->cir_id.str_info[re_len],"%d",ulport);
 		re_len +=len;
-		ret = Gwd_func_switch_info_get(ulport,swichmac);
+		ret = Gwd_func_dhcp_relay_rcp_status_get(&switchdhcpstatus);
 		FUNC_RETURN_VALUE_CHECK(ret)
 		{
 			gw_printf("%s %d return error\r\n",__func__,__LINE__);
 			return ret;
 		}
-		len = sprintf(&option82_str->cir_id.str_info[re_len],"%02x%02x%02x%02x%02x%02x/",swichmac[0],swichmac[1],swichmac[2],swichmac[3],swichmac[4],swichmac[5]);
-		re_len +=len;
-		len = sprintf(&option82_str->cir_id.str_info[re_len],"1:");
-		re_len +=len;
-		len = sprintf(&option82_str->cir_id.str_info[re_len],"%d EP",DEFAULT_SWITCH_VLAN);
+		if(switchdhcpstatus)
+		{
+			ret = Gwd_func_switch_info_get(ulport,swichmac);
+
+			FUNC_RETURN_VALUE_CHECK(ret)
+			{
+				gw_printf("%s %d return error\r\n",__func__,__LINE__);
+				return ret;
+			}
+//			printf("%02x%02x%02x%02x%02x%02x\r\n",swichmac[0],swichmac[1],swichmac[2],swichmac[3],swichmac[4],swichmac[5]);
+			len = sprintf(&option82_str->cir_id.str_info[re_len],"/%02x%02x%02x%02x%02x%02x",swichmac[0],swichmac[1],swichmac[2],swichmac[3],swichmac[4],swichmac[5]);
+			re_len +=len;
+		}
+//		len = sprintf(&option82_str->cir_id.str_info[re_len],"1:");
+//		re_len +=len;
+		len = sprintf(&option82_str->cir_id.str_info[re_len],":%d EP",DEFAULT_SWITCH_VLAN);
 		re_len +=len;
 #endif
 	}
 	option82_str->cir_id.len=re_len;
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d option82_str->cir_id.len:%d",__func__,__LINE__,option82_str->cir_id.len);
 
-    option82_str->option82.option_len=(option82_str->cir_id.len+Option82HeadLen);
+    option82_str->option82.option_len=(option82_str->cir_id.len+SubOptionHeadLen);
     ptr_front += (option82_str->cir_id.len+Option82HeadLen+SubOptionHeadLen);
+    cumulative_len +=(option82_str->cir_id.len+Option82HeadLen+SubOptionHeadLen);
     *ptr_front =EndOpion;
     ptr_front++;
     *ptr_front =Padding;
     ptr_front++;
 	FUNC_END:
-	*option82len = (option82_str->cir_id.len+Option82HeadLen+SubOptionHeadLen+cumulative_len);
+	*option82len =cumulative_len;
 	if(GW_LOG_LEVEL_DEBUG >= getGwlogLevel())
 	{
 		printf("local dhcp info:\r\n");
@@ -474,7 +506,7 @@ unsigned int Gwd_func_udp_header_checksum_process(unsigned char *response_dhcp_p
 	ptr = udpchecksumbuf;
 	phead = response_dhcp_pkt;
 	response_head = (gwd_dhcp_pkt_info_head_t*)response_dhcp_pkt;
-	ipheader = (eth_iphead_info_t*)&response_head->ethhead;
+	ipheader = (eth_iphead_info_t*)&response_head->iphead;
 	udpheader=(udp_head_info_t*)&response_head->udphead;
 	payload = (phead+EtherHeadLen+IPHEADERLEN+UDPHEADERLEN);
 	/*清空UDP 校验和*/
@@ -636,3 +668,57 @@ int Gwd_func_dhcp_pkt_process_init()
 	}
 	return GW_OK;
 }
+
+int cmd_onu_rcp_dhcp_relay_set(struct cli_def *cli, char *command, char *argv[], int argc)
+{
+	int ret = GW_ERROR;
+    if(CLI_HELP_REQUESTED)
+    {
+        switch(argc)
+        {
+        case 1:
+            return gw_cli_arg_help(cli, 0,
+                "<enable/disable>", "enable poe,disable poe\n",
+                 NULL);
+        default:
+            return gw_cli_arg_help(cli, argc > 1, NULL);
+        }
+    }
+
+    if(argc == 1)
+    {
+    	if(strcmp(argv[0],"enable") == 0)
+    	{
+    		ret = Gwd_func_dhcp_relay_rcp_status_set(1);
+    		FUNC_RETURN_VALUE_CHECK(ret)
+    		{
+    			gw_cli_print(cli,"%s %d return error\r\n",__func__,__LINE__);
+    			return ret;
+    		}
+    	}else if(strcmp(argv[0],"disable") == 0)
+    	{
+    		ret = Gwd_func_dhcp_relay_rcp_status_set(0);
+    		FUNC_RETURN_VALUE_CHECK(ret)
+    		{
+    			gw_cli_print(cli,"%s %d return error\r\n",__func__,__LINE__);
+    			return ret;
+    		}
+    	}
+    	else
+    	{
+    		gw_cli_print(cli,"%%input error\r\n");
+    		return ret;
+    	}
+    }
+    gw_cli_print(cli,"dhcp_relay rcp status %s\r\n",DhcpRelayRcpFlag? "enable":"disable");
+    return GW_OK;
+}
+void cli_reg_gwd_dhcp_relay_cmd(struct cli_command **cmd_root)
+{
+    struct cli_command *reg;
+
+    reg = gw_cli_register_command(cmd_root, NULL, "dhcp_relay", NULL, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "DHCP relay switch info admin");
+    gw_cli_register_command(cmd_root, reg, "rcp", cmd_onu_rcp_dhcp_relay_set, PRIVILEGE_UNPRIVILEGED, MODE_CONFIG, "set switch info status");
+    return;
+}
+
