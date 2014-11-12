@@ -5653,6 +5653,7 @@ unsigned int Gwd_func_switch_info_get(unsigned int ulport,unsigned char *swmac)
 /*
  ** Tasks
  */
+#if 0
 void rcp_update_vlan_and_say_hello(void *data)
 {
 	unsigned int i = 0, ret = 0,error = 0;
@@ -5690,6 +5691,7 @@ void rcp_update_vlan_and_say_hello(void *data)
 	}
 	gw_thread_exit();
 }
+
 void rcp_dev_status_get()
 {
 	RCP_DEV *pRcpDev;
@@ -5728,8 +5730,10 @@ void rcp_dev_status_get()
 
 	}
 }
+#endif
 void rcp_dev_monitor(void * data)
 {
+#if 0
 	int ret = GW_ERROR;
 	unsigned int policystate=1;
 	gw_uint32 rcp_status_timer=0;
@@ -5775,6 +5779,112 @@ void rcp_dev_monitor(void * data)
     }
 	gw_timer_del(rcp_status_timer);
 	return;
+#else
+	int i, ret, error;
+	unsigned int iKeepAliveTimeout, iDiscovreyPeriod;
+	RCP_DEV *pRcpDev;
+	unsigned short vlanum;
+	unsigned short vid =0;
+	#define RCP_DISCOVERY_PERIOD_DEF	    5
+	#define RCP_KEEP_ALIVE_TIMEOUT_DEF		2
+
+	iKeepAliveTimeout = RCP_KEEP_ALIVE_TIMEOUT_DEF;
+	iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
+
+	while(1)
+	{
+		//added by wangxy 2013-04-19 for onu tx ctrl policy, default is set, while it is clr, all onu msg
+		//can't send out, and pty transmission is the exception
+		if(g_onu_tx_policy == 0)
+		{
+			gw_thread_delay(200);
+			continue;
+		}
+
+		if(gulEnableEpswitchMgt)
+		{
+			for(i=1; i< MAX_RRCP_SWITCH_TO_MANAGE; i++)
+			{
+			#if 0
+			for(port=1; port < MAX_RRCP_SWITCH_TO_MANAGE; port++)
+				{
+					call_gwdonu_if_api(LIB_IF_PORT_OPER_STATUS_GET, 2, port, &port_opr_status);
+					if(port_opr_status != PORT_OPER_STATUS_UP)
+						{
+							if(rcpDevList[port] != NULL)
+								rcpDevList[port]->onlineStatus = 0;
+
+						}
+				}
+			#endif
+				if(RCP_Dev_Is_Valid(i))
+				{
+					RCP_Say_Hello(i,vid);
+					pRcpDev = RCP_Get_Dev_Ptr(i);
+					if(pRcpDev->timeoutCounter < iKeepAliveTimeout)
+					{
+						pRcpDev->timeoutCounter++;
+					}
+					else
+					{
+						pRcpDev->timeoutFlag = 1;
+					}
+					pRcpDev->previousOnlineStatus = pRcpDev->onlineStatus;
+					if(1 == pRcpDev->timeoutFlag)
+					{
+						pRcpDev->onlineStatus = 0;
+					}
+					else
+					{
+						pRcpDev->onlineStatus = 1;
+					}
+				}
+			}
+#if 0/* Say broadcast hello with new authenKey will no replay */
+			RCP_Say_Hello(0,vid);
+#endif
+			iDiscovreyPeriod--;
+			if(iDiscovreyPeriod <= 0)
+			{
+#if 0
+				for(i=1; i<MAX_RRCP_SWITCH_TO_MANAGE; i++)
+				{
+					if(RCP_Dev_Is_Valid(i))
+					{
+						if(1 == RCP_Dev_Is_Exist(i))
+						{
+							error=0;
+							for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
+							{
+								if(RCP_OK != (ret = RCP_GetVlanVID(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanVid[vlanum]))))
+									error++;
+								if(RCP_OK != (ret = RCP_GetVlanPort(rcpDevList[i], vlanum, &(rcpDevList[i]->vlanPort[vlanum]))))
+									error++;
+							}
+							if(error != 0)
+								{
+									//gw_printf("updata vlan task failed.(%d,%d)\r\n", ret, error);
+								}
+						}
+					}
+				}
+#endif
+				RCP_Say_Hello(-1,vid);
+				iDiscovreyPeriod = RCP_DISCOVERY_PERIOD_DEF;
+			}
+		}
+
+		//cyg_thread_delay(2 * IROS_TICK_PER_SECOND);
+		gw_thread_delay(2000);
+
+		if(gulEnableEpswitchMgt)
+		{
+			rcp_dev_status_check();
+		}
+		gw_thread_delay(20000);
+	}
+	return;
+#endif
 }
 
 int rcp_dev_status_check(void) 
@@ -5973,6 +6083,7 @@ int rcp_dev_status_check(void)
 						if(counter >= 3)
 							gw_log(GW_LOG_LEVEL_CRI, "Interface  eth1/%d RCP switch port_isolate reset failed.(%d)\n", i, ret);
 					}
+#if 0
 					error=0;
 					for(vlanum = 0;vlanum<MAX_RCP_VLAN_NUM;vlanum++)
 					{
@@ -5983,6 +6094,7 @@ int rcp_dev_status_check(void)
 					}
 					if(error != 0)
 						gw_printf("rcp_dev_status_check: updata vlan failed(%d,%d)\r\n", ret, error);
+#endif
 					rcpDevList[i]->previousUplinkPort = rcpDevList[i]->upLinkPort;
 				}
 			}
