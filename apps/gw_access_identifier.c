@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <unistd.h>
 static unsigned int DhcpProxyMode = 0;
-
+unsigned int  DhcpRelaySem;
 dhcp_option82_data_info_t option82info;
 
 #define DHCP_PROXY_MODE_CHACK(mode) if(mode > DHCP_RELAY_GWD_MODE)
@@ -55,7 +55,9 @@ unsigned int Gwd_func_dhcp_local_option82_data_info_get(dhcp_option82_data_info_
     	gw_printf("%s %d is NULL \r\n",__func__,__LINE__);
     	return ret;
     }
+    gw_semaphore_wait(DhcpRelaySem, GW_OSAL_WAIT_FOREVER);
     memcpy(local_option82_data,&option82info,sizeof(dhcp_option82_data_info_t));
+    gw_semaphore_post(DhcpRelaySem);
 	return GW_OK;
 }
 unsigned int Gwd_func_dhcp_local_option82_data_info_set(dhcp_option82_data_info_t *local_option82_data)
@@ -66,7 +68,9 @@ unsigned int Gwd_func_dhcp_local_option82_data_info_set(dhcp_option82_data_info_
     	gw_printf("%s %d is NULL \r\n",__func__,__LINE__);
     	return ret;
     }
+    gw_semaphore_wait(DhcpRelaySem, GW_OSAL_WAIT_FOREVER);
     memcpy(&option82info,local_option82_data,sizeof(dhcp_option82_data_info_t));
+    gw_semaphore_post(DhcpRelaySem);
 	return GW_OK;
 }
 unsigned int Gwd_Func_Dhcp_Proxy_Mode_set(unsigned int mode)
@@ -77,7 +81,9 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_set(unsigned int mode)
 		gw_printf("%s %d is error\r\n",__func__,__LINE__);
 		return ret;
 	}
+	gw_semaphore_wait(DhcpRelaySem, GW_OSAL_WAIT_FOREVER);
 	DhcpProxyMode = mode;
+	gw_semaphore_post(DhcpRelaySem);
 	return GW_OK;
 }
 unsigned int Gwd_Func_Dhcp_Proxy_Mode_get(unsigned int *mode)
@@ -88,7 +94,9 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_get(unsigned int *mode)
 		gw_printf("%s %d is NULL \r\n",__func__,__LINE__);
 		return ret;
 	}
+	gw_semaphore_wait(DhcpRelaySem, GW_OSAL_WAIT_FOREVER);
 	*mode = DhcpProxyMode;
+	gw_semaphore_post(DhcpRelaySem);
 	return GW_OK;
 }
 unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsigned int proxy_mode,unsigned int *option82len,int ulport)
@@ -112,7 +120,7 @@ unsigned int Gwd_Func_Dhcp_Proxy_Mode_Process(unsigned char*option82_data,unsign
 	dhcpOption82_ctc_str_t *option82_str = NULL;
 
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d 0x%02x\r\n",__func__,__LINE__,*option82_data);
-	if((option82_data == NULL) || (proxy_mode > DHCP_RELAY_CTC_MODE))
+	if((option82_data == NULL) || (proxy_mode >=DHCP_RELAY_GWD_MAX))
 	{
 		gw_printf("%s %d is NULL\r\n",__func__,__LINE__);
 		return ret;
@@ -265,7 +273,7 @@ unsigned int GwdDhcpRelayAdmnSet(unsigned char *data,unsigned int len,unsigned i
 	unsigned char *ptr = NULL;
 	unsigned int i =0;
 	dhcp_option82_data_info_t gw_option82info;
-	if((data == NULL) || (mode > DHCP_RELAY_GWD_MODE))
+	if((data == NULL) || (mode >= DHCP_RELAY_GWD_MAX))
 	{
 		gw_printf("%s %d is NULL\r\n",__func__,__LINE__);
 		return ret;
@@ -432,16 +440,17 @@ static unsigned int crc32(unsigned int crc,unsigned char *buffer, unsigned int s
 }
 #endif
 extern unsigned int gwd_crc32(unsigned int crc,  const unsigned char *buf, unsigned int len);
-unsigned short Gwd_func_checksum_get(unsigned short *buf,unsigned int nword)
+unsigned short Gwd_func_checksum_get(unsigned short *buf,unsigned int len)
 {
 	unsigned int ret = GW_ERROR;
 	unsigned long cksum = 0;
-	if((buf == NULL) || (nword < 1))
+	unsigned int nword = 0;
+	if((buf == NULL) || (len < 1))
 	{
 		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d buflen:%d  is null error\r\n",__func__,__LINE__,nword);
 		return ret;
 	}
-
+	nword = ((len+1)/2);
 	for(cksum = 0;nword > 0;nword--)
 	{
 		cksum += *buf++;
@@ -472,8 +481,7 @@ unsigned int Gwd_func_ip_header_checksum_process(unsigned char *response_dhcp_pk
 	/*responselen = ETHLEN+IPLEN+UDPLEN+PAYLOAD+FCS*/
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipheader->Totlength:%d  \r\n",__func__,__LINE__,ipheader->Totlength);
 	ipheader->Totlength = (responselen-EtherHeadLen-ETHFCSLEN);
-	nword = (IPHEADERLEN/2);
-	ipheader->Checksum = Gwd_func_checksum_get((unsigned short*)ipheader,nword);
+	ipheader->Checksum = Gwd_func_checksum_get((unsigned short*)ipheader,IPHEADERLEN);
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ipheader->Totlength:0x%04x ipheader->Checksum:0x%04x nword:%d\r\n",
 			__func__,__LINE__,ipheader->Totlength,ipheader->Checksum,nword);
 	return GW_OK;
@@ -534,16 +542,8 @@ unsigned int Gwd_func_udp_header_checksum_process(unsigned char *response_dhcp_p
 	ptr +=payloadlen;
 	checknumber +=payloadlen;
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d [ checknumber:%d]\r\n",__func__,__LINE__,checknumber);
-	if((checknumber%2) != 0)
-	{
-		nword = ((checknumber/2) +1);
-	}
-	else
-	{
-		nword = (checknumber/2);
-	}
-	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d [ nword:%d]\r\n",__func__,__LINE__,nword);
-	udpheader->checkSum = Gwd_func_checksum_get((unsigned short*)udpchecksumbuf,nword);
+
+	udpheader->checkSum = Gwd_func_checksum_get((unsigned short*)udpchecksumbuf,checknumber);
 	free(udpchecksumbuf);
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d udpheader->checkSum:0x%04x nword:%d\r\n",__func__,__LINE__,udpheader->checkSum,nword);
 	return GW_OK;
@@ -589,7 +589,7 @@ unsigned int Gwd_func_dhcp_pkt_handler(unsigned char *dhcp_pkt,unsigned int dhcp
 
   dhcpheadlen = sizeof(gwd_dhcp_pkt_info_head_t);
   gw_log(GW_LOG_LEVEL_DEBUG,"%s %d dhcp rec:dhcp_len:%d ulport:%d\r\n",__func__,__LINE__,dhcp_len,ulport);
-  if((dhcp_pkt == NULL)|| (dhcp_len < dhcpheadlen))
+  if((dhcp_pkt == NULL)|| (dhcp_len < dhcpheadlen) || (dhcp_len > DHCP_MALLOC_RESPONSE_LEN))
   {
 	  gw_printf("%s %d  %d %d is NULL \r\n",__func__,__LINE__,dhcp_len,dhcpheadlen);
 	  return ret;
@@ -654,6 +654,7 @@ int Gwd_func_dhcp_pkt_process_init()
 {
 	int ret = GW_ERROR;
 //	init_crc_table();
+	gw_semaphore_init(&DhcpRelaySem, "DhcpRelaySem", 1, 0);
 	ret = gw_reg_pkt_parse(GW_PKT_DHCP, Gwd_func_dhcp_pkt_parser);
 	FUNC_RETURN_VALUE_CHECK(ret)
 	{
