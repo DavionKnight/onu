@@ -1116,9 +1116,9 @@ extern unsigned char rrcpSWPortID[33];
 #define RCP_LPORT_2_PORT(_lport)       (rrcpHWPortID[_lport])
 #define RCP_PORT_2_LPORT(_port)        (rrcpSWPortID[_port])
 
-void gw_rcp_sem_create(unsigned int * semid, unsigned char * name ,unsigned int initval);
-void gw_rcp_sem_delete(unsigned int semid);
-int gw_rcp_sem_take(unsigned int semid, unsigned int timeout);
+int gw_rcp_sem_create(unsigned int * semid, unsigned char * name ,unsigned int initval);
+int gw_rcp_sem_delete(unsigned int semid);
+int gw_rcp_sem_take(unsigned int semid, int timeout);
 void gw_rcp_sem_give(unsigned int semid);
 
 
