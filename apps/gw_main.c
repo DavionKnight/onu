@@ -45,15 +45,17 @@ void plat_init()
         }
     }
 #endif
+
+	init_oam_pty();
+	init_pkt_proc();
+	gwd_onu_init();
 	gw_qos_init();
     gw_port_ioslation_init();
 #ifdef __IPCONFIG__
     gw_onu_ifconfig_init();
 #endif
 	gw_conf_restore();
-	init_oam_pty();
-	init_pkt_proc();
-	gwd_onu_init();
-	gwd_thread_init();
 	Gwd_func_dhcp_pkt_process_init();
+	gwd_thread_init();
+
 }
