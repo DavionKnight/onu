@@ -756,6 +756,8 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 	gw_uint32 gw_port;
 	gw_uint16 gw_vlan;
 	gw_uint32 gw_pri;
+    unsigned int tag_ports=0;
+    unsigned int untag_ports=0;
 	if (CLI_HELP_REQUESTED) {
 		switch (argc) {
 		case 1:
@@ -789,7 +791,12 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 				{
 					gw_cli_print(cli,"vlan error\n");
 					return -1;
-				}	
+				}
+			if(call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GET, 3, gw_vlan, &tag_ports, &untag_ports) != GW_OK)
+			{
+				gw_cli_print(cli,"onu local not vlan %d\n",gw_vlan);
+				return -1;
+			}
 			gw_pri = strtol(argv[3], NULL, 10);
 			if(gw_pri < GW_PORT_PRI_LAS || gw_pri > GW_PORT_PRI_MAX)
 				{
