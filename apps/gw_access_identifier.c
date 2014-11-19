@@ -404,7 +404,7 @@ int Gwd_func_dhcp_pkt_parser(unsigned char *dhcp_pkt,unsigned int dhcp_len)
 
   if((ethertype != ETH_TYPE_IP) || (dhcp_server_port != DhcpSvrPortNum) || (dhcp_client_port != DhcpCliPortNum))
   {
-	  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ethertype:%0x04x dhcp_server_port:%d dhcp_client_port:%d\r\n",ethertype,dhcp_server_port,dhcp_client_port);
+	  gw_log(GW_LOG_LEVEL_DEBUG,"%s %d ethertype:0x%04x dhcp_server_port:%d dhcp_client_port:%d\r\n",__func__,__LINE__,ethertype,dhcp_server_port,dhcp_client_port);
 	  return ret;
   }
 
