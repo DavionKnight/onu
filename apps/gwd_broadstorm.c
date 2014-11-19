@@ -286,7 +286,7 @@ void broad_storm_thread(void* data)
                     }
                     else
                     {
-                        printf("input port limit speed\n");
+//                        printf("input port limit speed\n");
                         if (call_gwdonu_if_api(LIB_IF_BROADCAST_SPEED_LIMIT, 3, logical_port, 3, 64))
                             gw_printf("Broadcast storm speed limit failure\n");
 #ifdef __NOT_USE__
