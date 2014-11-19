@@ -20,7 +20,8 @@ typedef gw_int32 (*func_conf_restore)(gw_int32 len, gw_uint8 *pv);
 	GW_CONF_TYPE_POE_CONFIG = 2,
 	GW_CONF_TYPE_PORT_IOSLATION = 3,
 	GW_CONF_TYPE_MGTIF_CONFIG = 4,
-	GW_CONF_TYPE_MAX
+	GW_CONF_TYPE_STATIC_MAC = 5,
+	GW_CONF_TYPE_MAX=0Xffffffff,
 };
 
 gw_int32 gw_register_conf_handlers(gw_int32 type, func_conf_save s, func_conf_restore r);

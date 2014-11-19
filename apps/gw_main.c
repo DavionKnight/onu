@@ -16,6 +16,7 @@ void gwd_onu_init();
 extern void gwd_thread_init(void);
 extern void init_oam_pty();
 extern int Gwd_func_dhcp_pkt_process_init();
+extern int Gwd_func_tlv_static_mac_init();
 void plat_init()
 {
     unsigned int stat_val;
@@ -51,6 +52,7 @@ void plat_init()
 	gwd_onu_init();
 	gw_qos_init();
     gw_port_ioslation_init();
+    Gwd_func_tlv_static_mac_init();
 #ifdef __IPCONFIG__
     gw_onu_ifconfig_init();
 #endif

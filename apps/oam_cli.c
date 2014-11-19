@@ -6,7 +6,7 @@
 #include "oam.h"
 #include "gwdonuif_interval.h"
 #include "gw_port.h"
-
+#include "gw_conf_file.h"
 
 #define GW_VLAN_MAX 4094
 #define GW_VLAN_LAS 1
@@ -750,7 +750,203 @@ int cmd_gw_conf(struct cli_def *cli, char *command, char *argv[], int argc)
 
 	return ret;
 }
+typedef struct Local_static_mac_cfg_s{
+	unsigned int port;
+	unsigned short vlan;
+	unsigned int pri;
+	unsigned char staticmac[20];
+	struct Local_static_mac_cfg_s *next;
+}__attribute__((packed))Local_static_mac_cfg_t;
 
+Local_static_mac_cfg_t *StaticMacCfgHead = NULL;
+int Gwd_func_static_mac_cfg_add(Local_static_mac_cfg_t *StaticCfg)
+{
+	int ret =GW_ERROR;
+	Local_static_mac_cfg_t **ptr =NULL;
+	Local_static_mac_cfg_t *current =NULL;
+	Local_static_mac_cfg_t *new =NULL;
+	Local_static_mac_cfg_t *showptr =NULL;
+	if(NULL == StaticCfg)
+	{
+		gw_printf("%s %d is null ERROR\r\n",__func__,__LINE__);
+		return ret;
+	}
+	ptr = &StaticMacCfgHead;
+	while((current = *ptr) != NULL)
+	{
+		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d countentry:%d\r\n",__func__,__LINE__);
+		ptr=&current->next;
+	}
+	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d countentry:%d\r\n",__func__,__LINE__);
+	new = (Local_static_mac_cfg_t *)malloc(sizeof(struct Local_static_mac_cfg_s));
+	if(new == NULL)
+	{
+		gw_printf("%s %d is malloc error\r\n",__func__,__LINE__);
+		return ret;
+	}
+	memset(new,0,sizeof(struct Local_static_mac_cfg_s));
+	memcpy(new,StaticCfg,sizeof(struct Local_static_mac_cfg_s));
+	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d countentry:%d\r\n",__func__,__LINE__);
+	*ptr = new;
+	new->next =current;
+
+	showptr=StaticMacCfgHead;
+	while(showptr)
+	{
+		gw_log(GW_LOG_LEVEL_DEBUG,"port:%d vlan:%d pri:%d  mac:%s\r\n",showptr->port,showptr->vlan,showptr->pri,showptr->staticmac);
+		showptr=showptr->next;
+	}
+	return GW_OK;
+}
+int Gwd_func_static_mac_cfg_del(Local_static_mac_cfg_t *StaticCfg)
+{
+	int ret =GW_ERROR;
+	Local_static_mac_cfg_t **ptr =NULL;
+	Local_static_mac_cfg_t *current=NULL;
+	if(NULL == StaticCfg)
+	{
+		gw_printf("%s %d is null ERROR\r\n",__func__,__LINE__);
+		return ret;
+	}
+	ptr = &StaticMacCfgHead;
+	while((current =*ptr)!=NULL)
+	{
+		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d \r\n",__func__,__LINE__);
+		if(strcmp((char*)current->staticmac,(char*)StaticCfg->staticmac) == 0)
+		{
+			gw_log(GW_LOG_LEVEL_DEBUG,"%s %d \r\n",__func__,__LINE__);
+			*ptr=current->next;
+			free(current);
+			break;
+		}
+		ptr=&current->next;
+	}
+	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d \r\n",__func__,__LINE__);
+	return GW_OK;
+}
+#if 1
+gw_int32 Gwd_func_tlv_static_mac_cfg_showrun(gw_int32* len,gw_uint8**pv)
+{
+	int ret=GW_ERROR;
+	Local_static_mac_cfg_t *current =NULL;
+	Local_static_mac_cfg_t *ptr =NULL;
+	unsigned int countentry = 0;
+	unsigned char* p=NULL;
+	unsigned char* mheap=NULL;
+
+	current = StaticMacCfgHead;
+	ptr=StaticMacCfgHead;
+	if((len == NULL) || (pv == NULL))
+	{
+		gw_printf("%s %d is NULL \r\n",__func__,__LINE__);
+		return ret;
+	}
+	while(current)
+	{
+		countentry++;
+		current=current->next;
+	}
+	if(countentry ==0)
+	{
+		gw_printf("%s %d is NULL \r\n",__func__,__LINE__);
+		return ret;
+	}
+	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d countentry:%d\r\n",__func__,__LINE__,countentry);
+	mheap = (unsigned char*)malloc(sizeof(Local_static_mac_cfg_t)*(countentry+1));
+	if(mheap == NULL)
+	{
+		gw_printf("%s %d is malloc error\r\n",__func__,__LINE__);
+		return ret;
+	}
+	memset(mheap,0,(sizeof(Local_static_mac_cfg_t)*(countentry+1)));
+
+	*len=(sizeof(Local_static_mac_cfg_t)*countentry);
+	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d LEN:%d\r\n",__func__,__LINE__,*len);
+	p=mheap;
+	while(ptr)
+	{
+		memcpy(p,ptr,sizeof(Local_static_mac_cfg_t));
+		p += sizeof(Local_static_mac_cfg_t);
+		ptr=ptr->next;
+		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d countentry:%d\r\n",__func__,__LINE__,countentry);
+	}
+
+	*pv=mheap;
+	return GW_OK;
+}
+gw_int32 Gwd_func_tlv_static_mac_cfg_restore(gw_int32 len, gw_uint8 *pv)
+{
+	int ret=GW_ERROR;
+	gw_uint32 gw_port;
+	gw_uint16 gw_vlan;
+	gw_uint32 gw_pri;
+	unsigned int strlen = 0;
+    unsigned int tag_ports=0;
+    unsigned int untag_ports=0;
+    Local_static_mac_cfg_t *current =NULL;
+    Local_static_mac_cfg_t StaticCfg;
+    strlen = sizeof(Local_static_mac_cfg_t);
+    if(pv == NULL)
+    {
+    	 gw_log(GW_LOG_LEVEL_DEBUG,"%s %d \r\n",__func__,__LINE__);
+    	 return ret;
+    }
+    gw_printf("%s %d strlen:%d  len:%d   count:%d\r\n",__func__,__LINE__,strlen,len,(len/strlen));
+    while(len >= strlen)
+    {
+		current = (Local_static_mac_cfg_t *)pv;
+    	memset(&StaticCfg,0,sizeof(Local_static_mac_cfg_t));
+    	memcpy(&StaticCfg,current,sizeof(Local_static_mac_cfg_t));
+    	len -= sizeof(Local_static_mac_cfg_t);
+    	pv += sizeof(Local_static_mac_cfg_t);
+		gw_port = current->port;
+		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d gw_port:%d\r\n",__func__,__LINE__,gw_port);
+		if(gw_port > GW_ONUPORT_MAX || gw_port < GW_ONUPORT_LAS)
+			{
+				gw_printf("port error\n");
+				return ret;
+			}
+		gw_vlan = current->vlan;
+		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d gw_vlan:%d\r\n",__func__,__LINE__,gw_vlan);
+		if(gw_vlan >GW_VLAN_MAX ||gw_vlan < GW_VLAN_LAS)
+			{
+				gw_printf("vlan error\n");
+				return ret;
+			}
+		if(call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GET, 3, gw_vlan, &tag_ports, &untag_ports) != GW_OK)
+		{
+			gw_printf("onu local not vlan %d\n",gw_vlan);
+			return ret;
+		}
+		gw_pri = current->pri;
+		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d gw_pri:%d\r\n",__func__,__LINE__,gw_pri);
+		if(gw_pri < GW_PORT_PRI_LAS || gw_pri > GW_PORT_PRI_MAX)
+			{
+				gw_printf("pri error\n");
+			}
+
+		if((strcmp((char*)current->staticmac,"0000.0000.0000")  == 0) || strcmp((char*)current->staticmac,"ffff.ffff.ffff") == 0)
+		{
+			gw_printf("add static mac addr[%s] error\n",(char*)current->staticmac);
+			return ret;
+		}
+		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d current->staticmac:%s\r\n",__func__,__LINE__,(char*)current->staticmac);
+		if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,(char*)current->staticmac,gw_port,gw_vlan) != GW_OK)
+			gw_printf("add static mac fail\n");
+		else
+		{
+			Gwd_func_static_mac_cfg_add(&StaticCfg);
+			gw_printf("add static mac success\n");
+		}
+    }
+	return GW_OK;
+}
+int Gwd_func_tlv_static_mac_init()
+{
+    gw_register_conf_handlers(GW_CONF_TYPE_STATIC_MAC, Gwd_func_tlv_static_mac_cfg_showrun, Gwd_func_tlv_static_mac_cfg_restore);
+    return GW_OK;
+}
+#endif
 int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 	gw_uint32 gw_port;
@@ -758,6 +954,7 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 	gw_uint32 gw_pri;
     unsigned int tag_ports=0;
     unsigned int untag_ports=0;
+    Local_static_mac_cfg_t StaticCfg;
 	if (CLI_HELP_REQUESTED) {
 		switch (argc) {
 		case 1:
@@ -780,18 +977,21 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 
 	if(argc == 4)
 		{
+		    memset(&StaticCfg,0,sizeof(Local_static_mac_cfg_t));
 			gw_port = strtol(argv[1], NULL, 10);
 			if(gw_port > GW_ONUPORT_MAX || gw_port < GW_ONUPORT_LAS)
 				{
 					gw_cli_print(cli,"port error\n");
 					return -1;
 				}
+			StaticCfg.port = gw_port;
 			gw_vlan = strtol(argv[2], NULL, 10);
 			if(gw_vlan >GW_VLAN_MAX ||gw_vlan < GW_VLAN_LAS)
 				{
 					gw_cli_print(cli,"vlan error\n");
 					return -1;
 				}
+			StaticCfg.vlan=gw_vlan;
 			if(call_gwdonu_if_api(LIB_IF_VLAN_ENTRY_GET, 3, gw_vlan, &tag_ports, &untag_ports) != GW_OK)
 			{
 				gw_cli_print(cli,"onu local not vlan %d\n",gw_vlan);
@@ -802,16 +1002,20 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 				{
 					gw_cli_print(cli,"pri error\n");
 				}
-
+			StaticCfg.pri=gw_pri;
             if((strcmp(argv[0],"0000.0000.0000")  == 0) || strcmp(argv[0],"ffff.ffff.ffff") == 0)
             {
                 gw_cli_print(cli,"add static mac addr[%s] error\n",argv[0]);
                 return CLI_ERROR;
             }
+            strncpy((char*)StaticCfg.staticmac,argv[0],16);
 			if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,argv[0],gw_port,gw_vlan) != GW_OK)
 				gw_cli_print(cli,"add static mac fail\n");
 			else
+			{
+				Gwd_func_static_mac_cfg_add(&StaticCfg);
 				gw_cli_print(cli,"add static mac success\n");
+			}
 		}
 	else
 		{
@@ -822,6 +1026,7 @@ int cmd_static_mac_add_fdb(struct cli_def *cli, char *command, char *argv[], int
 int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int argc)
 {
 		gw_uint16 gw_vlan;
+		Local_static_mac_cfg_t StaticCfg;
 		if (CLI_HELP_REQUESTED) {
 		switch (argc) {
 		case 1:
@@ -837,16 +1042,23 @@ int cmd_static_mac_del_fdb(struct cli_def *cli, char *command, char *argv[], int
 		}
 		if(argc == 2)
 			{
+				memset(&StaticCfg,0,sizeof(Local_static_mac_cfg_t));
 				gw_vlan = strtol(argv[1], NULL, 10);
 				if(gw_vlan >GW_VLAN_MAX ||gw_vlan < GW_VLAN_LAS)
 					{
 						gw_cli_print(cli,"vlan error\n");
 						return -1;
-					}	
+					}
+				strncpy((char*)StaticCfg.staticmac,argv[0],16);
 				if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_DEL, 2,argv[0],gw_vlan) != GW_OK)
+				{
 					gw_cli_print(cli,"del static mac fail\n");
+				}
 				else
+				{
+					Gwd_func_static_mac_cfg_del(&StaticCfg);
 					gw_cli_print(cli,"del static mac success\n");
+				}
 			}
 		else
 			{
