@@ -830,7 +830,7 @@ gw_int32 Gwd_func_tlv_static_mac_cfg_showrun(gw_int32* len,gw_uint8**pv)
 	int ret=GW_ERROR;
 	Local_static_mac_cfg_t *current =NULL;
 	Local_static_mac_cfg_t *ptr =NULL;
-	unsigned int countentry = 0;
+	unsigned int countentry = 1;
 	unsigned char* p=NULL;
 	unsigned char* mheap=NULL;
 
@@ -846,19 +846,20 @@ gw_int32 Gwd_func_tlv_static_mac_cfg_showrun(gw_int32* len,gw_uint8**pv)
 		countentry++;
 		current=current->next;
 	}
-	if(countentry ==0)
-	{
-		gw_printf("%s %d is NULL \r\n",__func__,__LINE__);
-		return ret;
-	}
+//	if(countentry ==0)
+//	{
+//		*len=(sizeof(Local_static_mac_cfg_t)*);
+//		gw_printf("%s %d is NULL \r\n",__func__,__LINE__);
+//		return ret;
+//	}
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d countentry:%d\r\n",__func__,__LINE__,countentry);
-	mheap = (unsigned char*)malloc(sizeof(Local_static_mac_cfg_t)*(countentry+1));
+	mheap = (unsigned char*)malloc(sizeof(Local_static_mac_cfg_t)*countentry);
 	if(mheap == NULL)
 	{
 		gw_printf("%s %d is malloc error\r\n",__func__,__LINE__);
 		return ret;
 	}
-	memset(mheap,0,(sizeof(Local_static_mac_cfg_t)*(countentry+1)));
+	memset(mheap,0,(sizeof(Local_static_mac_cfg_t)*countentry));
 
 	*len=(sizeof(Local_static_mac_cfg_t)*countentry);
 	gw_log(GW_LOG_LEVEL_DEBUG,"%s %d LEN:%d\r\n",__func__,__LINE__,*len);
