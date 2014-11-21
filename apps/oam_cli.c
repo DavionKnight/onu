@@ -892,7 +892,6 @@ gw_int32 Gwd_func_tlv_static_mac_cfg_restore(gw_int32 len, gw_uint8 *pv)
     	 gw_log(GW_LOG_LEVEL_DEBUG,"%s %d \r\n",__func__,__LINE__);
     	 return ret;
     }
-    gw_printf("%s %d strlen:%d  len:%d   count:%d\r\n",__func__,__LINE__,strlen,len,(len/strlen));
     while(len >= strlen)
     {
 		current = (Local_static_mac_cfg_t *)pv;
