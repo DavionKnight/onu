@@ -17,6 +17,7 @@ extern void gwd_thread_init(void);
 extern void init_oam_pty();
 extern int Gwd_func_dhcp_pkt_process_init();
 extern int Gwd_func_tlv_static_mac_init();
+extern int gw_port_ioslation_init();
 void plat_init()
 {
     unsigned int stat_val;

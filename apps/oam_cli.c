@@ -866,9 +866,14 @@ gw_int32 Gwd_func_tlv_static_mac_cfg_showrun(gw_int32* len,gw_uint8**pv)
 	p=mheap;
 	while(ptr)
 	{
+		if(0==countentry)
+		{
+			break;
+		}
 		memcpy(p,ptr,sizeof(Local_static_mac_cfg_t));
 		p += sizeof(Local_static_mac_cfg_t);
 		ptr=ptr->next;
+		countentry--;
 		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d countentry:%d\r\n",__func__,__LINE__,countentry);
 	}
 
