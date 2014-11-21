@@ -812,7 +812,8 @@ int Gwd_func_static_mac_cfg_del(Local_static_mac_cfg_t *StaticCfg)
 	while((current =*ptr)!=NULL)
 	{
 		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d \r\n",__func__,__LINE__);
-		if(strcmp((char*)current->staticmac,(char*)StaticCfg->staticmac) == 0)
+		if((strcmp((char*)current->staticmac,(char*)StaticCfg->staticmac) == 0) &&
+				(current->vlan == StaticCfg->vlan))
 		{
 			gw_log(GW_LOG_LEVEL_DEBUG,"%s %d \r\n",__func__,__LINE__);
 			*ptr=current->next;
@@ -937,7 +938,9 @@ gw_int32 Gwd_func_tlv_static_mac_cfg_restore(gw_int32 len, gw_uint8 *pv)
 		}
 		gw_log(GW_LOG_LEVEL_DEBUG,"%s %d current->staticmac:%s\r\n",__func__,__LINE__,(char*)current->staticmac);
 		if(call_gwdonu_if_api(LIB_IF_STATIC_MAC_ADD, 3,(char*)current->staticmac,gw_port,gw_vlan) != GW_OK)
+		{
 			gw_printf("add static mac fail\n");
+		}
 		else
 		{
 			Gwd_func_static_mac_cfg_add(&StaticCfg);
