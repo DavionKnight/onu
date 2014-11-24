@@ -1095,7 +1095,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr++  = ONU_INFOR_GET;	/* type : 1 for opCode 1's reply */
 
 			/* Device Type */
-			device_type = DEVICE_TYPE_GT811_A;
+			device_type = PRODUCT_TYPE;
 			SET_SHORT(ptr, device_type);
 			ptr += sizeof(short);
 			/* OUI */
