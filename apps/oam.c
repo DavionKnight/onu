@@ -953,7 +953,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr++  = ONU_INFOR_GET;	/* type : 1 for opCode 1's reply */
 
 			/* Device Type */
-			device_type = DEVICE_TYPE_GT811_A;
+			device_type = PRODUCT_TYPE;
 			SET_SHORT(ptr, device_type);
 			ptr += sizeof(short);
 			/* OUI */
@@ -2846,9 +2846,9 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     while(call_gwdonu_if_api(LIB_IF_FDB_ENTRY_GETNEXT, 6, vid, mac, &vid, mac, &egports,&statics) == GW_OK)
     {
         
-		retv = onu_bitport_phyport_get(egports,phyportmember);/*bit位转换为物理地址*/
+		retv = onu_bitport_phyport_get(egports,phyportmember);
 		
-		if(GW_ERROR == retv)/*不合法的物理端口*/
+		if(GW_ERROR == retv)
 		{
 			continue;
 		}
@@ -2857,7 +2857,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 		{
 			if(PHY_OK == phyportmember[phyport])
 			{
-				if(!boards_physical_to_logical(0, phyport, &logport))/*物理地址转换为逻辑地址*/
+				if(!boards_physical_to_logical(0, phyport, &logport))
 				{
 					continue;
 				}
