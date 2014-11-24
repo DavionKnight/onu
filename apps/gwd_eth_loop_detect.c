@@ -485,11 +485,13 @@ char* onu_product_name_get(unsigned short int productID)
 		case DEVICE_TYPE_GT872_A:
 			return "GT872_A";
 		case DEVICE_TYPE_GT873_A:
-			return getRealProductType(DEVICE_TYPE_GT873_A);
-        case DEVICE_TYPE_GT813C_B:
-            return "GT813C_B";
-        case DEVICE_TYPE_GT815C_B:
-            return "GT815C_B";
+			return "GT873_A";
+		case DEVICE_TYPE_GT872_B:
+			return "GT872_B";
+        case DEVICE_TYPE_GT813_PB:
+            return "GT813_PB";
+        case DEVICE_TYPE_GT815_PB:
+            return "GT815_PB";
                 
 
 		default:
