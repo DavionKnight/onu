@@ -7,7 +7,7 @@
 #include <sys/time.h>
 //#include "plat_common.h"
 #include "../include/gw_os_api_core.h"
-
+#define HAVE_TELNET_CLI
 
 #define OFF 0
 #define ON 1

@@ -263,7 +263,7 @@ int cmd_oam_port_mirror_from(struct cli_def *cli, char *command, char *argv[], i
 	}
 
     
-    if(argc = 3)
+    if(argc == 3)
     {
         if(call_gwdonu_if_api(LIB_IF_PORT_MIRROR_STAT_GET,2,UNIT,&mode) != GW_OK)
         {
