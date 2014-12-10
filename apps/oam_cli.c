@@ -47,7 +47,7 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 				break;
 			case 2:
 				return gw_cli_arg_help(cli, 0, 
-					"[0|8|9|10|11|12]", "port mode: 0 an;8 100FD; 9 100HD; 10 10FD; 11 10FD; 12 1000FD", NULL);
+					"[0|8|9|10|11]", "port mode: 0 an;8 100FD; 9 100HD; 10 10FD; 11 10HD", NULL);
 				break;
 			default:
 				return gw_cli_arg_help(cli, argc > 1, NULL  );
@@ -82,8 +82,6 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 					strcpy(str_spd, "10M");
 				else if( spd == GWD_PORT_SPD_100 )
 					strcpy(str_spd, "100M");
-				else if( spd == GWD_PORT_SPD_1000 )
-					strcpy(str_spd, "1000M");
 				else
 					strcpy(str_spd, "UNKNOWN");
 
@@ -116,10 +114,6 @@ int cmd_oam_port_mode(struct cli_def *cli, char *command, char *argv[], int argc
 				case 9:
 					spd = GWD_PORT_SPD_100;
 					duplex = GWD_PORT_DUPLEX_HALF;
-					break;
-				case 6:
-					spd = GWD_PORT_SPD_1000;
-					duplex = GWD_PORT_DUPLEX_FULL;
 					break;
 				default:
 					spd = GWD_PORT_SPD_AUNEG;
