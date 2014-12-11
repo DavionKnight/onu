@@ -1761,7 +1761,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 				int	requestNum = 0,responseNum = 0;				
 				int requestlen=0;
 
-				int ifhavemac = 0;
+				int ifhavemac = 1;
 				int macnumberget = 0;
 				
 			    userMacResponse_pdu_t *responsePdu = NULL;
@@ -1807,7 +1807,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 				gw_printf("requestPdu->macNum:%d\n",requestPdu->macNum);
                 #endif
                 
-				while(!ifhavemac)
+				while(ifhavemac)
 				{					
 					/*��ȡfdb���е�ǰ256 ��mac ,���û��ȡȫ�´��ڽ��Ż�ȡ֪��ȫ��ȡ��*/
 					if(user_mac_onu_fdb_get(macbuf,lastmac,&macnumberget,&ifhavemac))
@@ -1852,7 +1852,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 							*******************************************************************************/
 							if((responseNum == requestPdu->macNum) || (responseNum >= USR_MAC_RESPONS_MAC_MAX))
 							{
-								ifhavemac=1;
+								ifhavemac=0;
 								macnumberget = 0;
                                 #ifdef __USE_MAC__
                                 gw_printf("while responseNum:%d\n",responseNum);
@@ -1861,8 +1861,6 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 							}
 	    				}
 	                }
-					ifhavemac=0;
-						
 				}
 END:
     #ifdef __USE_MAC__
