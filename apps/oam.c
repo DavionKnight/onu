@@ -1112,7 +1112,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			*ptr++  = ONU_INFOR_GET;	/* type : 1 for opCode 1's reply */
 
 			/* Device Type */
-			device_type = DEVICE_TYPE_GT811_A;
+			device_type = DEVICE_TYPE_GT815C_B;
 			SET_SHORT(ptr, device_type);
 			ptr += sizeof(short);
 			/* OUI */
@@ -1326,12 +1326,14 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			unsigned short usValue;
 			unsigned char ucValue;
 			int	i = 0;
-			extern char   g_cSetTime[20];
+			char   g_cSetTime[50];
 			
 			tmpRet = ONU_REALTIME_SYNC<<8;
 			pReq = pRequest->pPayLoad+1;
-
+			memset(g_cSetTime,0,sizeof(g_cSetTime));
 			ptr = g_cSetTime;
+			ResLen = sprintf(ptr,"%s ","date -s ");
+			ptr +=ResLen;
 			memset(&w_gw_tim,0,sizeof(localtime_tm));
 			/* Year */
 			/*usValue = *((unsigned short *)pReq);*//* Will cause exception: maybe because pReq not odd address */
@@ -1341,7 +1343,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			usValue += pReq[i];
 			if (usValue < 1980 ||usValue > 2079)   //according to OLT system time range, added by dushb 2009-11-12
 				return GWD_RETURN_ERR;
-			ResLen = sprintf(ptr,"%4d/",usValue);
+			ResLen = sprintf(ptr,"%4d.",usValue);
 			w_gw_tim.tm_year = usValue;
 			//diag_printf("year len:%d,year:%d\n",ResLen,w_gw_tim.tm_year);
 			ptr += ResLen;
@@ -1351,7 +1353,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			ucValue = pReq[i];
 			if (ucValue > 12) 
 				return GWD_RETURN_ERR;
-			ResLen = sprintf(ptr,"%02d/",ucValue);
+			ResLen = sprintf(ptr,"%02d.",ucValue);
 			w_gw_tim.tm_mon = ucValue;
 			//diag_printf("mon len:%d mon:%d\n",ResLen,w_gw_tim.tm_mon);
 			ptr += ResLen;
@@ -1361,7 +1363,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			ucValue = pReq[i];
 			if (ucValue > 31) 
 				return GWD_RETURN_ERR;
-			ResLen = sprintf(ptr,"%02d:",ucValue);
+			ResLen = sprintf(ptr,"%02d-",ucValue);
 			w_gw_tim.tm_mday = ucValue;
 			//diag_printf("day len:%d day:%d\n",ResLen,w_gw_tim.tm_mday);
 			ptr += ResLen;
@@ -1398,6 +1400,10 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			i++;
 
 			ResLen = i+1;
+#ifndef CYG_LINUX
+//			gw_printf("ptr:%s\r\n",g_cSetTime);
+			system(g_cSetTime);
+#endif
 			//memcpy(Response,pRequest->pPayLoad,ResLen);
 #ifdef __DEBUG__
 			cl_do_set_time_nouser(NULL);
