@@ -371,12 +371,12 @@ int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int ar
     if(argc == 1)
     {
 
-       if(strcmp(argv[0],"enable") == 0)
+       if(strncmp(argv[0],"en",2) == 0)
        {
             poe_ctl_val = 1;
        }
 
-       if(strcmp(argv[0],"disable") == 0)
+       if(strncmp(argv[0],"dis",3) == 0)
        {
             poe_ctl_val = 0;
        }
@@ -392,7 +392,7 @@ int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int ar
   
     }else if(argc == 2)
     {
-        if(strcmp(argv[0],"enable") == 0)
+        if(strncmp(argv[0],"en",2) == 0)
         {
             poe_ctl_val = 1;
             BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[1],lport,uni_port_num)
@@ -406,7 +406,7 @@ int cmd_onu_poe_cfg_set(struct cli_def *cli, char *command, char *argv[], int ar
             END_PARSE_PORT_LIST_TO_PORT_NO_CHECK();
         }
             
-        if(strcmp(argv[0],"disable") == 0)
+        if(strncmp(argv[0],"dis",3) == 0)
         {
             poe_ctl_val = 0;
             BEGIN_PARSE_PORT_LIST_TO_PORT_NO_CHECK(argv[1],lport,uni_port_num)
