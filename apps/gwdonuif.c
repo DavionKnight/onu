@@ -619,7 +619,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	else
                 printf("gwdonu get multicast transmission is NULL\n");
             break;
-
+        case LIB_IF_CTC_VLAN_MODE_GET:
+        	if(g_im_ifs->ctcvlanmodeget)
+        		ret = (*g_im_ifs->ctcvlanmodeget)(va_arg(ap,unsigned int*));
+        	else
+        		printf("gwdonu get ctc vlan mode is null\r\n");
+        	break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

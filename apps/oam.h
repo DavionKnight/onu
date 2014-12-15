@@ -24,7 +24,16 @@ typedef gw_uint32 epon_port_id_t;
 #define USR_MAC_LEN 6
 #define PHY_ERROR 0
 #define PHY_OK 1
-
+typedef enum
+{
+	gwd_oam_ctc_vlan_transparent       = 0x00,
+	gwd_oam_ctc_vlan_tag               = 0x01,
+	gwd_oam_ctc_vlan_translation       = 0x02,
+	gwd_oam_ctc_vlan_aggregation       = 0x03,
+	gwd_oam_ctc_vlan_trunk             = 0x04,
+	gwd_oam_ctc_vlan_special_transparent= 0xFF,
+	gwd_oam_ctc_num_vlans = 0x06
+}gwd_oam_ctc_vlan_mode_e;
 
 typedef struct userMacRequest_s
 {
