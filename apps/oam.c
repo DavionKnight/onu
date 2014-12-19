@@ -2806,7 +2806,7 @@ int cmd_show_version_build_time(struct cli_def *cli, char *command, char *argv[]
             gw_cli_print(cli,"get version build time fail\r\n");
             return CLI_ERROR;
         }
-        gw_cli_print(cli,"Product_Version %s  Platform_Version %s  %s\r\n",gw_onu_system_info_total.sw_version,PLATFORM_VERSION,buildtimebuf);
+        gw_cli_print(cli,"Product Version\t : %s\nPlatform Version : %s\nBuild Time\t : %s\r\n",gw_onu_system_info_total.sw_version,PLATFORM_VERSION,buildtimebuf);
     }
 
     return CLI_OK;
@@ -3350,9 +3350,11 @@ int cmd_entry_product_cli(struct cli_def *cli, char *command, char *argv[], int 
 	cli->sockfd = 0;
 	pty_oam_to_sdk_cmd = 1;
 	int oamptyenable = 0;
+	int serialptyenable = 0;
 
 	Func_gwd_oam_pty_status_get(&oamptyenable);
-	if(!oamptyenable)
+	Func_gwd_serial_pty_status_get(&serialptyenable);
+	if((!oamptyenable)||(serialptyenable))
 	{
 		gw_cli_print(cli,"current mode not oam pty\r\n");
 		return GW_ERROR;

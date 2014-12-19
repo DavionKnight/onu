@@ -141,6 +141,7 @@ static void OamPtyNotiMsgProcess(long int flag, long int fd);
 static void OamPtyShellTimerNoti();
 
 static int oamptystatus=0;
+static int serialptystatus=0;
 gw_status Func_gwd_oam_pty_fd_get(gw_int32* slavefd,gw_int32* masterfd)
 {
 	if((slavefd == NULL) || (masterfd == NULL))
@@ -152,7 +153,30 @@ gw_status Func_gwd_oam_pty_fd_get(gw_int32* slavefd,gw_int32* masterfd)
 
 	return GW_OK;
 }
+gw_uint8 pty_oam_to_sdk_cmd = 0;
+gw_status Func_gwd_serial_pty_status_get(int* serialptyenable)
+{
+	if(serialptyenable == NULL)
+	{
+		return GW_ERROR;
+	}
+	*serialptyenable = serialptystatus;
+	return GW_OK;
+}
+gw_status Func_gwd_serial_pty_status_set(int serialptyenable)
+{
+	if(serialptyenable)
+	{
+		serialptystatus = 1;
+	}
+	else
+	{
+		serialptystatus = 0;
+		pty_oam_to_sdk_cmd = 0;
+	}
 
+	return GW_OK;
+}
 gw_status Func_gwd_oam_pty_status_get(int* oamptyenable)
 {
 	if(oamptyenable == NULL)
@@ -165,7 +189,16 @@ gw_status Func_gwd_oam_pty_status_get(int* oamptyenable)
 
 gw_status Func_gwd_oam_pty_status_set(int oamptyenable)
 {
-	oamptystatus = oamptyenable;
+	if(oamptyenable)
+	{
+		oamptystatus = 1;
+	}
+	else
+	{
+		oamptystatus = 0;
+		pty_oam_to_sdk_cmd = 0;
+	}
+
 	return GW_OK;
 }
 gw_status gwd_oam_cli_trans_send_out()
@@ -671,7 +704,6 @@ int cl_pty_fd_get(void(*closenoti)(long))
 	     return(g_pty_master);
 	else return(-1);
 }
-gw_uint8 pty_oam_to_sdk_cmd = 0;
 static void OamPtyPacketProcess(GWTT_OAM_SESSION_INFO *pSeInf, char *pPayLoad, long lPayLen)
 {
     char lCtlCode;

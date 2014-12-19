@@ -290,7 +290,9 @@ void cli_start()
     }
 
     // configure session
+#ifdef HAVE_TELNET_CLI
     cli->sockfd = g_pty_slave;
+#endif
     cli->channel = CHANNEL_PTY;
     gw_cli_set_banner(cli, CLI_BANNER);
     gw_cli_set_hostname(cli, HOST_NAME);
@@ -334,11 +336,12 @@ void cli_console_start(gw_int32 type, gw_int32 fd)
     gw_cli_set_hostname(cli, HOST_NAME);
 
 #if 1
+    Func_gwd_serial_pty_status_set(1);
     gw_cli_loop(cli);
 
     gw_cli_done(cli);
 #endif
-
+    Func_gwd_serial_pty_status_set(0);
     return;
 }
 
