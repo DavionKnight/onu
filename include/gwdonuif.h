@@ -270,6 +270,7 @@ typedef gw_int32 (*libgwdonu_vlan_field_cfg_get)(gw_uint32 port,gw_vlan_field_cf
 typedef gw_int32 (*libgwdonu_rcp_field_cfg_set)(gw_uint32 rcpfieldstate);
 
 typedef gw_int32 (*libgwdonu_thread_info_file_get)(gw_int32* i_threadinfofd);
+typedef gw_int32 (*libgwdonu_ctc_vlan_mode_get)(unsigned int* mode);
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -350,6 +351,7 @@ typedef struct gwdonu_im_if_s{
     libgwdonu_multicast_mode_set multicastmodeset;
     libgwdonu_multicast_mode_get multicastmodeget;
     libgwdonu_real_product_type_get onurealproducttypeget;
+
     libgwdonu_product_cli_entry productclientry;
     /********************************************************
     **************************************************************/
@@ -372,6 +374,7 @@ typedef struct gwdonu_im_if_s{
    /******************************************/
    libgwdonu_rcp_field_cfg_set rcpfieldcfgset;
    libgwdonu_thread_info_file_get threadinfoget;
+    libgwdonu_ctc_vlan_mode_get ctcvlanmodeget;
 }gwdonu_im_if_t;
 
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size);

@@ -3051,6 +3051,8 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
     gw_uint32 vid = 0, egports = 0, idx = 0;
 	gw_uint8 mac[GW_MACADDR_LEN]={0,0,0,0,0,0};
 	gw_uint32 statics=0;
+	unsigned int localvlan=0;
+	unsigned int ctcvlanmode=0;
 
     gw_uint32 retv=0;
     gw_uint32 logport=0;
@@ -3103,6 +3105,14 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 			}
 
 		}
+		localvlan = vid;
+		if(call_gwdonu_if_api(LIB_IF_CTC_VLAN_MODE_GET, 1,&ctcvlanmode) == GW_OK)
+		{
+			if(ctcvlanmode==gwd_oam_ctc_vlan_transparent)
+			{
+				localvlan=0;
+			}
+		}
         gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],
             mac[1],
@@ -3112,7 +3122,7 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
             mac[5],
             egports,
             statics-1,
-            vid
+            localvlan
         	);
 		gw_thread_delay(100);
     }
