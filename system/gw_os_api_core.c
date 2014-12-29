@@ -321,12 +321,12 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
                               gw_uint32 priority, gw_uint32 flags)
 {
     gw_uint32 possible_taskid;
-    gw_uint8 *stack_buf = NULL;
+   /* gw_uint8 *stack_buf = NULL;*/
 
 #ifndef CYG_LINUX
     pthread_t threadid;
     pthread_attr_t p_attr;
-    struct sched_param attr_param;
+//    struct sched_param attr_param;
 #endif  
 
     /* we don't want to allow names too long*/
@@ -353,11 +353,13 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
     stack_size += PTHREAD_STACK_MIN;
     /* Check Parameters */
 //    stack_buf = (gw_uint8 *)iros_malloc(IROS_MID_OSAL , stack_size);
+  /*************************************************************************
     stack_buf = (gw_uint8*)malloc(stack_size);
     if (stack_buf == NULL) {
         osal_printf("\r\n Allocate thread's stack space failed");
         return GW_E_OSAL_ERR;
     }
+    ******************************************************************/
 
 #ifdef CYG_LINUX
     cyg_mutex_lock(&gw_osal_task_table_mutex);
@@ -378,7 +380,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
         pthread_mutex_unlock(&gw_osal_thread_table_mut);
 #endif
 //        iros_free(stack_buf);
-        free(stack_buf);
+      /*  free(stack_buf);*/
         osal_printf("\r\n no free thread can be allocate");
         return GW_E_OSAL_ERR_NO_FREE_IDS;
     }
@@ -407,13 +409,13 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 #else
     pthread_attr_init(&p_attr);
 
-    pthread_attr_setstackaddr(&p_attr, stack_buf+stack_size);
+  /*  pthread_attr_setstackaddr(&p_attr, stack_buf+stack_size);*/
     pthread_attr_setstacksize(&p_attr, stack_size);
-
-
+    /*****************************************************************
 	attr_param.sched_priority = (int)priority;	
 	pthread_attr_setschedparam (&p_attr, &attr_param);
-	
+	****************************************************************/
+
     pthread_create(&threadid, &p_attr, function_pointer, param);
     gw_osal_thread_table[possible_taskid].id = (gw_uint32)threadid;
 #endif
@@ -437,7 +439,7 @@ gw_int32 gw_thread_create(gw_uint32 *thread_id,  const gw_int8 *thread_name,
 #endif
     gw_osal_thread_table[*thread_id].stack_size = stack_size;
     gw_osal_thread_table[*thread_id].priority = priority;
-    gw_osal_thread_table[*thread_id].stack_buf = stack_buf;
+    gw_osal_thread_table[*thread_id].stack_buf = NULL;
 
 #ifdef CYG_LINUX
     cyg_mutex_unlock(&gw_osal_task_table_mutex);
