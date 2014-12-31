@@ -3113,6 +3113,16 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 				localvlan=0;
 			}
 		}
+		else
+		{
+			/***************************************************
+			 * 在该系统下VLAN4094作为丢包处理，VLAN4095作为透传处理
+			 */
+			if(localvlan > 4093)
+			{
+				continue;
+			}
+		}
         gw_cli_print(cli, "%2d     %02x:%02x:%02x:%02x:%02x:%02x     %6d           %2d           %2d          0", ++idx,
             mac[0],
             mac[1],
