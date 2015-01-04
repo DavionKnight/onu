@@ -23,6 +23,12 @@ typedef gw_uint32 epon_port_id_t;
 #define USR_MAC_LEN 6
 #define PHY_ERROR 0
 #define PHY_OK 1
+typedef struct gwd_fdb_entry_save_s{
+	unsigned char mac[6];
+	unsigned int vlan;
+	unsigned int statics;
+	unsigned int port;
+}__attribute__ ((packed)) gwdfdbentrysave_t;
 typedef enum
 {
 	gwd_oam_ctc_vlan_transparent       = 0x00,
@@ -351,7 +357,7 @@ extern unsigned long   gulDebugOamFileOp;
 
 #define DEVICE_TYPE_VALID_MAX		DEVICE_TYPE_GT873_A
 #define DEVICE_TYPE_VALID_MIN		DEVICE_TYPE_GT811
-#define PRODUCT_TYPE                DEVICE_TYPE_GT813C_B
+#define PRODUCT_TYPE                DEVICE_TYPE_GT815C_B
 
 
 #define DeviceTypeIsValid( _device_type ) \

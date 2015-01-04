@@ -3053,7 +3053,8 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 	gw_uint32 statics=0;
 	unsigned int localvlan=0;
 	unsigned int ctcvlanmode=0;
-
+	unsigned int localfdbmacheadflag=1;
+	gwdfdbentrysave_t machead;
     gw_uint32 retv=0;
     gw_uint32 logport=0;
 	gw_uint32 phyport = 0;
@@ -3106,6 +3107,23 @@ int cmd_show_fdb(struct cli_def * cli, char *command, char *argv[], int argc)
 
 		}
 		localvlan = vid;
+	    if(localfdbmacheadflag)
+	    {
+	    	memset(&machead,0,sizeof(gwdfdbentrysave_t));
+	    	memcpy(machead.mac,mac,GW_MACADDR_LEN);
+	    	machead.vlan=vid;
+	    	machead.statics=statics;
+	    	machead.port=egports;
+	    	localfdbmacheadflag=0;
+	    }
+	    else
+	    {
+	    	if(((memcmp(machead.mac,mac,GW_MACADDR_LEN)==0)&&(machead.vlan == vid) &&
+	    			(machead.statics == statics)&&(machead.port==egports))||(idx >= 1024))
+	    	{
+	    		break;
+	    	}
+	    }
 		if(call_gwdonu_if_api(LIB_IF_CTC_VLAN_MODE_GET, 1,&ctcvlanmode) == GW_OK)
 		{
 			if(ctcvlanmode==gwd_oam_ctc_vlan_transparent)
