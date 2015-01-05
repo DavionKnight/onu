@@ -730,6 +730,12 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
         	else
         		printf("gwdonu get ctc vlan mode is null\r\n");
         	break;
+        case LIB_IF_DHCP_RULE_MODE_SET:
+        	if(g_im_ifs->dhcprelayruleset)
+        		ret=(*g_im_ifs->dhcprelayruleset)(va_arg(ap,unsigned int));
+        	else
+        		printf("gwdonu set dhcp rule mode is null\r\n");
+        	break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

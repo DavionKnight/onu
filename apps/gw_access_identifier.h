@@ -39,6 +39,10 @@
 
 typedef unsigned long IpAddr;
 enum{
+	DHCP_RULE_CREATE_MODE=0,
+	DHCP_RULE_CLEAR_MODE=1,
+};
+enum{
 	DHCP_OPTION_REQ = 1,
 	DHCP_OPTION_RESPONSE =2,
 };

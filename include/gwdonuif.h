@@ -271,6 +271,11 @@ typedef gw_int32 (*libgwdonu_rcp_field_cfg_set)(gw_uint32 rcpfieldstate);
 
 typedef gw_int32 (*libgwdonu_thread_info_file_get)(gw_int32* i_threadinfofd);
 typedef gw_int32 (*libgwdonu_ctc_vlan_mode_get)(unsigned int* mode);
+/*****************************************
+ *
+ */
+typedef gw_int32 (*libgwdonu_dhcp_relay_rule_set)(unsigned int rulemode);
+
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -375,6 +380,7 @@ typedef struct gwdonu_im_if_s{
    libgwdonu_rcp_field_cfg_set rcpfieldcfgset;
    libgwdonu_thread_info_file_get threadinfoget;
     libgwdonu_ctc_vlan_mode_get ctcvlanmodeget;
+    libgwdonu_dhcp_relay_rule_set dhcprelayruleset;
 }gwdonu_im_if_t;
 
 gw_status reg_gwdonu_im_interfaces(gwdonu_im_if_t * ifs, gw_int32 size);

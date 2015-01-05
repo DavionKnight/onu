@@ -272,6 +272,7 @@ unsigned int GwdDhcpRelayAdmnSet(unsigned char *data,unsigned int len,unsigned i
 	unsigned int ret =GW_ERROR;
 	unsigned char *ptr = NULL;
 	unsigned int i =0;
+	unsigned int olddhcpmode=0;
 	dhcp_option82_data_info_t gw_option82info;
 	if((data == NULL) || (mode >= DHCP_RELAY_GWD_MAX))
 	{
@@ -284,6 +285,31 @@ unsigned int GwdDhcpRelayAdmnSet(unsigned char *data,unsigned int len,unsigned i
 	{
 		gw_printf("%s %d return error\r\n",__func__,__LINE__);
 		return ret;
+	}
+	ret=Gwd_Func_Dhcp_Proxy_Mode_get(&olddhcpmode);
+	FUNC_RETURN_VALUE_CHECK(ret)
+	{
+		gw_printf("%s %d return error\r\n",__func__,__LINE__);
+		return ret;
+	}
+	if((olddhcpmode != DHCP_RELAY_DISABLE) && (mode==DHCP_RELAY_DISABLE))
+	{
+	   if(call_gwdonu_if_api(LIB_IF_DHCP_RULE_MODE_SET,1,DHCP_RULE_CLEAR_MODE) != GW_OK)
+		{
+			gw_log(GW_LOG_LEVEL_MINOR,"set dhcp relay rule mode fail\n");
+			return ret;
+		}
+	}else if((olddhcpmode == DHCP_RELAY_DISABLE) && (mode != DHCP_RELAY_DISABLE))
+	{
+		   if(call_gwdonu_if_api(LIB_IF_DHCP_RULE_MODE_SET,1,DHCP_RULE_CREATE_MODE) != GW_OK)
+			{
+				gw_log(GW_LOG_LEVEL_MINOR,"set dhcp relay rule mode fail\n");
+				return ret;
+			}
+	}
+	else
+	{
+
 	}
 	ret = Gwd_Func_Dhcp_Proxy_Mode_set(mode);
 	FUNC_RETURN_VALUE_CHECK(ret)
