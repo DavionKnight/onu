@@ -2587,8 +2587,9 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
                 "<0-9>", "Release version",
                  NULL);
         case 3:
-        	return gw_cli_arg_help(cli, 0,
+        	 gw_cli_arg_help(cli, 0,
         		"<1-9>", "Build version", NULL);
+        	return gw_cli_arg_help(cli, argc > 1, NULL);
         default:
             return gw_cli_arg_help(cli, argc > 1, NULL);
         }
@@ -2621,7 +2622,30 @@ int cmd_onu_mgt_config_product_hw_version(struct cli_def *cli, char *command, ch
 		{
 			gw_cli_print(cli, "  System information save error!\r\n");
 		}
-    } else
+    }else if(2==argc)
+    {
+		v_major = atoi(argv[0]);
+		v_rel = atoi(argv[1]);
+        if((v_major < 1) || (v_major > 9))
+        {
+            gw_cli_print(cli,"input Major version  %d error\r\n",v_major);
+            return CLI_ERROR;
+        }
+        if((v_rel < 0) || (v_rel > 9))
+        {
+            gw_cli_print(cli,"input Release version %d error\r\n",v_rel);
+            return CLI_ERROR;
+        }
+        memset(gw_onu_system_info_total.hw_version,0,7);
+		sprintf(gw_onu_system_info_total.hw_version, "V%d.%d",
+			v_major, v_rel);
+
+		if (GWD_RETURN_OK != GW_Onu_Sysinfo_Save())
+		{
+			gw_cli_print(cli, "  System information save error!\r\n");
+		}
+    }
+    else
     {
         gw_cli_print(cli, "%% Invalid input.");
     }
