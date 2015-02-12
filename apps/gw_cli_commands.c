@@ -24,7 +24,14 @@ int cli_printf_delay = 100;
 static void clear_port_statistic(struct cli_def * cli, int portid)
 {
 	if (GW_OK!= call_gwdonu_if_api(LIB_IF_PORT_STATISTIC_CLEAR, 1, portid))
-				gw_cli_print(cli, "clear port %d statistic fail!\r\n", portid);
+	{
+		gw_cli_print(cli, "clear port %d statistic fail!\r\n", portid);
+	}
+	else
+	{
+		gw_cli_print(cli, "clear port %d statistic success!\r\n", portid);
+	}
+
 }
 static void show_port_statistic(struct cli_def * cli, int portid)
 {
@@ -148,16 +155,16 @@ int cmd_stat_port_show(struct cli_def *cli, char *command, char *argv[], int arg
 
 int cmd_stat_port_clear(struct cli_def *cli, char *command, char *argv[], int argc)
 {
-
 	int portid = 0;
 	int i = 0;
+	int ponid=0;
 	if(CLI_HELP_REQUESTED)
 	{
 		switch (argc)
 		{
 			case 1:
 				return gw_cli_arg_help(cli, 0,
-					"<1-%d>", gw_onu_read_port_num(), "Input one fe port number", NULL );
+					"<[pon|1-%d]*>", gw_onu_read_port_num(), "Input one fe port number", NULL );
 				break;
 
 			default:
@@ -168,6 +175,11 @@ int cmd_stat_port_clear(struct cli_def *cli, char *command, char *argv[], int ar
 
 	if(argc == 1)
 	{
+		if(strcmp(argv[0],"pon")==0)
+		{
+			clear_port_statistic(cli, ponid);
+			return CLI_OK;
+		}
 		portid = atoi(argv[0]);
 		if(portid > 0 && portid <= gw_onu_read_port_num())
 		{
