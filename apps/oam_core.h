@@ -12,8 +12,8 @@
 #include "oam.h"
 
 
-#define OAM_CLI_OUT_BUF_LENGTH 1024
-
+#define OAM_CLI_OUT_BUF_LENGTH 2048
+#define OAM_CLI_SESSIONID_LEN 8
 void init_gw_oam_async();
 void init_oam_pty();
 

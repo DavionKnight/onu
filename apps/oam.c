@@ -818,6 +818,7 @@ void Gwd_Oam_Handle(unsigned int port, unsigned char *frame, unsigned int len)
 
 		case CLI_REQ_TRANSMIT:
 			gwd_oam_async_trans(pMessage);
+			GwOamMessageListNodeFree(pMessage);
 			break;
 
 		case CLI_PTY_TRANSMIT:

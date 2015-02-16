@@ -153,6 +153,7 @@ gw_status gwd_oam_cli_trans_send_out()
 
 gw_int32 gwd_oam_cli_printf(gw_int8 * p, gw_int32 len)
 {
+#if 0
 	if(len)
 	{
 		if(len+g_oam_cli_out_len < OAM_CLI_OUT_BUF_LENGTH)
@@ -164,7 +165,21 @@ gw_int32 gwd_oam_cli_printf(gw_int8 * p, gw_int32 len)
 			g_oam_cli_out_len = OAM_CLI_OUT_BUF_LENGTH;
 		}
 	}
-
+#else
+	int SendSerNo=0;
+	unsigned char SessionID[OAM_CLI_SESSIONID_LEN]={0};
+	if(len)
+	{
+		if(len < OAM_CLI_OUT_BUF_LENGTH)
+		{
+			memset(g_oam_cli_out_buf,0,OAM_CLI_OUT_BUF_LENGTH);
+			g_oam_cli_out_len += sprintf(g_oam_cli_out_buf, "%s", p);
+			gw_cli_command_msg_info_get(&SendSerNo,SessionID,OAM_CLI_SESSIONID_LEN);
+			CommOnuMsgSend(CLI_RESP_TRANSMIT,SendSerNo, g_oam_cli_out_buf, g_oam_cli_out_len,SessionID);
+		}
+	}
+	g_oam_cli_out_len = 0;
+#endif
 	return g_oam_cli_out_len;
 }
 
@@ -188,7 +203,39 @@ void init_gw_oam_async()
 
 	gw_log(GW_LOG_LEVEL_DEBUG, ("create oam async thread ok!\r\n"));
 }
+static int gwSessionID=0;
+static unsigned char gwdSessionID[OAM_CLI_SESSIONID_LEN];
+int gw_cli_command_msg_info_set(int SendSerNo,unsigned char*SessionID,int SessionID_len)
+{
+	int ret=GW_ERROR;
 
+	if((SessionID == NULL) || (SessionID_len > OAM_CLI_SESSIONID_LEN))
+	{
+		return ret;
+	}
+	gwSessionID=SendSerNo;
+	memcpy(gwdSessionID,SessionID,SessionID_len);
+	return GW_OK;
+}
+int gw_cli_command_msg_info_get(int *SendSerNo,unsigned char*SessionID,int SessionID_len)
+{
+	int ret=GW_ERROR;
+
+	if((SendSerNo==NULL)||(SessionID==NULL)||(SessionID_len < OAM_CLI_SESSIONID_LEN))
+	{
+		return ret;
+	}
+	*SendSerNo=gwSessionID;
+	memset(SessionID,0,OAM_CLI_SESSIONID_LEN);
+	memcpy(SessionID,gwdSessionID,OAM_CLI_SESSIONID_LEN);
+	return GW_OK;
+}
+int gw_cli_command_msg_info_init()
+{
+	gwSessionID=0;
+	memset(gwdSessionID,0,OAM_CLI_SESSIONID_LEN);
+	return GW_OK;
+}
 void gw_oam_async_thread_entry(gw_uint32 * para)
 {
 	gw_uint32 buf = 0, len = 0;
@@ -214,17 +261,13 @@ void gw_oam_async_thread_entry(gw_uint32 * para)
 //					if(OAM_CLI_OUT_BUF_LENGTH >= msg->RevPktLen)
 						//g_oam_cli_out_len = msg->RevPktLen;
 //					memcpy(g_oam_cli_out_buf, msg->pPayLoad, g_oam_cli_out_len);
-
+					gw_cli_command_msg_info_init();
+				    gw_cli_command_msg_info_set(msg->SendSerNo,msg->SessionID,OAM_CLI_SESSIONID_LEN);
 					gw_cli_run_oam_command( msg->pPayLoad);
 
 					gw_log(GW_LOG_LEVEL_DEBUG, "oam_cli result(len == %d):\r\n", g_oam_cli_out_len);
 					gw_dump_pkt(g_oam_cli_out_buf, g_oam_cli_out_len, 16);
 					gw_log(GW_LOG_LEVEL_DEBUG, "\r\n");
-
-					CommOnuMsgSend(CLI_RESP_TRANSMIT, msg->SendSerNo, g_oam_cli_out_buf, g_oam_cli_out_len, msg->SessionID);
-
-					g_oam_cli_out_len = 0;
-
 					GwOamMessageListNodeFree(msg);
 				}
 					break;
@@ -239,8 +282,12 @@ void gw_oam_async_thread_entry(gw_uint32 * para)
 
 gw_status gwd_oam_async_trans(GWTT_OAM_MESSAGE_NODE * msg)
 {
+#if 0
 	gw_uint32 data = (gw_uint32)msg;
 	return gw_pri_queue_put(g_oam_async_queue_id, &data, sizeof(data), GW_OSAL_WAIT_FOREVER, 0);
+#else
+	return GW_ERROR;
+#endif
 }
 
 gw_status gwd_oam_pty_trans(GWTT_OAM_MESSAGE_NODE * msg)
