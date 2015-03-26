@@ -16,6 +16,7 @@
 #include "gw_port.h"
 typedef gw_uint32 epon_port_id_t;
 
+
 #define ONU_LOCATE_USER					200
 #define USR_MAC_ADDRES_CHEAK 		1
 #define USR_MAC_MAX_T 256
@@ -399,6 +400,8 @@ added by wangxiaoyu 2008-05-05
 #define ONU_BOARD_GET					5	/*ONU board info get*/
 
 #define ACCESS_IDENTIFIER     8/*ONU�û�������·��ʶ*/
+#define ONU_SERIAL_CARD					202
+
 
 #define ONU_BOARD_GET_RESP_SUCCESS		1
 #define ONU_BOARD_GET_RESP_FAIL			2

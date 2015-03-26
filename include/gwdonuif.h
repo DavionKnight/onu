@@ -9,6 +9,22 @@
 #define GWDONUIF_H_
 
 
+typedef struct{
+	gw_uint32 baudRate;		//b300(1),b600(2),b1200(3),b2400(4),b4800(5),b9600(6),b19200(7),b38400(8),b57600(9),b115200(10),b230400(11)
+	gw_uint16 dataBit;		//b5 (5),b6(6),b7(7),b8(8)
+	gw_uint16 stopBit;		//sb1 ( 1 ) , sb2 ( 2 )
+	gw_uint16 parity;		//none ( 1 ) , even ( 2 ) , odd ( 3 ) , space ( 4 ) , mask ( 5 )
+	gw_uint16 conEnable;	//true ( 1 ) , false ( 2 )
+	gw_uint16 conMode;		//none ( 0 ) , tcpserver ( 1 ) , tcpclient ( 2 ) , udp ( 3 )
+	gw_uint16 localPort;	//0 .. 65535
+	gw_uint32 peerPort;		//0 .. 65535
+	gw_uint8 peerAddr[4];
+	gw_uint32 conStatus;	//connected(1), disconnect(2)
+	gw_uint32 inBytes;
+	gw_uint32 egBytes;
+}__attribute__((packed)) SerialCard;
+
+
 typedef enum {
     MC_SNOOPING,
     MC_MANUAL,
@@ -228,6 +244,9 @@ typedef gw_int32 (*libgwdonu_multicast_mode_set)(mc_mode_t mode);
 typedef gw_int32 (*libgwdonu_multicast_mode_get)(mc_mode_t *mode);
 typedef gw_int32 (*libgwdonu_real_product_type_get)(gw_uint8 *st);
 
+typedef gw_int32 (*libgwdonu_onu_serial_card_set)(gw_uint32 port,SerialCard* serialSet);
+typedef gw_int32 (*libgwdonu_onu_serial_card_get)(gw_uint32 port,SerialCard* serialInfo);
+
 typedef struct gwdonu_im_if_s{
 
 	libgwdonu_onu_llid_get_t onullidget;
@@ -308,6 +327,8 @@ typedef struct gwdonu_im_if_s{
     libgwdonu_multicast_mode_set multicastmodeset;
     libgwdonu_multicast_mode_get multicastmodeget;
     libgwdonu_real_product_type_get onurealproducttypeget;
+    libgwdonu_onu_serial_card_set	onuserialcardset;
+    libgwdonu_onu_serial_card_get	onuserialcardget;
 
 }gwdonu_im_if_t;
 

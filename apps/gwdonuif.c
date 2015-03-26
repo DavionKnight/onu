@@ -615,11 +615,22 @@ gw_status call_gwdonu_if_api(gw_int32 type, gw_int32 argc, ...)
             break;
         case LIB_IF_REAL_PRODUCT_TYPE_GET:
         	if(g_im_ifs->onurealproducttypeget)
-        		ret = (*g_im_ifs->onurealproducttypeget)(va_arg(ap,gw_int8*));
+        		ret = (*g_im_ifs->onurealproducttypeget)(va_arg(ap,gw_uint8*));
         	else
                 printf("gwdonu get multicast transmission is NULL\n");
             break;
-
+        case LIB_IF_SERIAL_CARD_SET:
+        	if(g_im_ifs->onuserialcardset)
+        		ret = (*g_im_ifs->onuserialcardset)(va_arg(ap,gw_int32),va_arg(ap,SerialCard*));
+        	else
+                printf("gwdonu set multicast transmission is NULL\n");
+            break;
+        case LIB_IF_SERIAL_CARD_GET:
+			if(g_im_ifs->onuserialcardget)
+				ret = (*g_im_ifs->onuserialcardget)(va_arg(ap,gw_int32),va_arg(ap,SerialCard*));
+			else
+				printf("gwdonu get multicast transmission is NULL\n");
+			break;
 		default:
 //			gw_log(GW_LOG_LEVEL_DEBUG, "unkonw if called!\r\n");		
 			break;

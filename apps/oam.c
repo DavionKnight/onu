@@ -1052,7 +1052,7 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			/*extension capality*/
 			*ptr ++ = 0xfe;
 			*ptr ++ = 3;
-			*ptr ++= 0x80; /*added ctc statistic function surpport*/
+			*ptr ++= (1<<7 + 1<<4); /*added ctc statistic function surpport and serial card config*/
 			ResLen = ((unsigned long)ptr-(unsigned long)Response);			
 
 			gulGwOamConnect = 1;
@@ -1574,7 +1574,74 @@ static int GwOamInformationRequest(GWTT_OAM_MESSAGE_NODE *pRequest )
 			return sendIpSourcManAck(IP_RESOURCE_FREE, 0, pRequest->SessionID);
 			break;
 #endif
+#if (RPU_MODULE_SERIAL_CARD == RPU_YES)
+		case ONU_SERIAL_CARD:
+			{
+				unsigned char ret = GWD_RETURN_OK;
+				unsigned char port = 0;
 
+				ptr = Response;
+				/* Payload */
+				*ptr++  = ONU_SERIAL_CARD;
+
+				pReq = pRequest->pPayLoad;
+				port = pReq[1];
+
+				printf("pRequest->RevPktLen is %d\n",pRequest->RevPktLen);
+				if(2 == pRequest->RevPktLen)//i image request info length is 3
+				{
+					printf("come in get\n");
+					SerialCard serialInfo;
+					memset(&serialInfo,0,sizeof(serialInfo));
+					extern gw_uint8 epon_request_serial_card_get(gw_uint8 port,SerialCard *serialInfo);
+					ret = epon_request_serial_card_get(port,&serialInfo);
+					printf("port is %d,baudrate is %d, databits is %d,stopbit is %d, parity is %d, connectEn is %d,ConnectMode is %d,localPort is %d,peerPort is %d\n",
+												port,serialInfo.baudRate,serialInfo.dataBit,serialInfo.stopBit,serialInfo.parity,serialInfo.conEnable,
+												serialInfo.conMode,serialInfo.localPort,serialInfo.peerPort);
+					printf("ConnectStatus is %d,IngressBytes is %d,EgressBytes is %d\n",serialInfo.conStatus,serialInfo.inBytes,serialInfo.egBytes);
+					if(GWD_RETURN_OK == ret)
+					{
+						*ptr++ = 1;
+						*ptr++ = port;
+						memcpy(ptr,(unsigned char *)&serialInfo,sizeof(serialInfo));
+						ptr +=sizeof(serialInfo);
+
+					}
+					else
+					{
+						*ptr++ = 2;
+					}
+
+				}
+				else if(26 == pRequest->RevPktLen)//i image set info length is 20
+				{
+					printf("come in set\n");
+
+					pReq += 2;
+					SerialCard *serialSet = (SerialCard*)pReq;
+					printf("port is %d,baudrate is %d\n",
+							port,serialSet->baudRate);
+					extern gw_uint8 epon_request_serial_card_set(gw_uint8 port,SerialCard* serialSet);
+					ret = epon_request_serial_card_set(port,serialSet);
+					if(GWD_RETURN_OK == ret)
+					{
+						*ptr++ = 1;//1-successfully,2-failed
+					}
+					else
+					{
+						*ptr++ = 2;
+					}
+				}
+				else
+				{
+					printf("RevPktLen(%d) is error\n",pRequest->RevPktLen);
+					*ptr++=2;
+				}
+				ResLen = ((unsigned long)ptr-(unsigned long)Response);
+				printf("ResLen is %d\n",ResLen);
+			}
+			break;
+#endif
 #if (RPU_MODULE_USER_MAC_RELAY == RPU_YES)
 		case ONU_LOCATE_USER:
 			{

@@ -3,17 +3,17 @@
 
 /*----------------------------------------------------------------------*/
 /*
- * ÏÂÃæÁ½¸öºê¶¨ÒåÁË¡°¿ª¡±ºÍ¡°¹Ø¡±Á½¸ö×´Ì¬£¬ÕâÁ½¸öºê±»ºóÃæµÄ
- * ºêÒýÓÃ¡£ÀýÈç£º
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê¶¨ï¿½ï¿½ï¿½Ë¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¡ï¿½ï¿½Ø¡ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ê±»ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ï¿½ï¿½ï¿½Ã¡ï¿½ï¿½ï¿½ï¿½ç£º
  *
  *	#define	RPU_MODULE_RTPRO_OSPF	RPU_NO
  *	#define	RPU_MODULE_RTPRO_RIP	RPU_YES
  *
- * ±íÊ¾¶¯Ì¬Â·ÓÉÐ­ÒéOSPF±»¹Ø±Õ£¬¶ø¶¯Ì¬Â·ÓÉÐ­ÒéRIP±»¿ªÆô£¬Õâ
- * Ñù£¬ÏµÍ³ÔÚ±àÒëÊ±£¬¾Í¿ÉÒÔ²ðµôOSPFÄ£¿é¶ø±£ÁôRIPÄ£¿é¡£
- * ÐèÒª×¢ÒâµÄÊÇÓÐÐ©ÒâÒåÉÏ»¥³âµÄÒ»¶Ôºê£¬²»ÄÜ±»Í¬Ê±ÖÃÎª
- * ¡°RPU_YES¡±»ò¡°RPU_NO¡±£¬ÕâÒ»µã½«ÌåÏÖÔÚºóÃæµÄÐðÊöÖÐ¡£
- * ×¢Òâ£¬Çë²»ÒªÐÞ¸ÄÕâÁ½¸öºêµÄÖµ¡£
+ * ï¿½ï¿½Ê¾ï¿½ï¿½Ì¬Â·ï¿½ï¿½Ð­ï¿½ï¿½OSPFï¿½ï¿½ï¿½Ø±Õ£ï¿½ï¿½ï¿½Ì¬Â·ï¿½ï¿½Ð­ï¿½ï¿½RIPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+ * ï¿½ï¿½ÏµÍ³ï¿½Ú±ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Í¿ï¿½ï¿½Ô²ï¿½ï¿½OSPFÄ£ï¿½ï¿½ï¿½ï¿½ï¿½RIPÄ£ï¿½é¡£
+ * ï¿½ï¿½Òª×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð©ï¿½ï¿½ï¿½ï¿½ï¿½Ï»ï¿½ï¿½ï¿½ï¿½Ò»ï¿½Ôºê£¬ï¿½ï¿½ï¿½Ü±ï¿½Í¬Ê±ï¿½ï¿½Îª
+ * ï¿½ï¿½RPU_YESï¿½ï¿½ï¿½ï¿½RPU_NOï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ã½«ï¿½ï¿½ï¿½ï¿½ï¿½Úºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¡ï¿½
+ * ×¢ï¿½â£¬ï¿½ë²»Òªï¿½Þ¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½
  */
 #define	RPU_YES		1
 #define	RPU_NO		0
@@ -22,6 +22,7 @@
 #define RPU_MODULE_USER_MAC_RELAY RPU_YES
 #define RPU_MODULE_IGMP_TVM RPU_YES
 #define RPU_MODULE_POE RPU_YES
+#define RPU_MODULE_SERIAL_CARD RPU_YES
 
 #define RPU_MODULE_NOT_USE RPU_NO
 
